@@ -10,33 +10,278 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as PortalRouteImport } from './routes/portal'
+import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppClientesRouteImport } from './routes/app/clientes'
+import { Route as AppConfiguracoesRouteImport } from './routes/app/configuracoes'
+import { Route as AppFinanceiroRouteImport } from './routes/app/financeiro'
+import { Route as AppPedidosRouteImport } from './routes/app/pedidos'
+import { Route as AppPipelineRouteImport } from './routes/app/pipeline'
+import { Route as AppProjetosRouteImport } from './routes/app/projetos'
+import { Route as AppPropostasRouteImport } from './routes/app/propostas'
+import { Route as AppRelatoriosRouteImport } from './routes/app/relatorios'
+import { Route as AppTrafegoRouteImport } from './routes/app/trafego'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as PortalIndexRouteImport } from './routes/portal/index'
+import { Route as PortalAprovacoesRouteImport } from './routes/portal/aprovacoes'
+import { Route as PortalArquivosRouteImport } from './routes/portal/arquivos'
+import { Route as PortalPagamentosRouteImport } from './routes/portal/pagamentos'
+import { Route as PortalPedidosRouteImport } from './routes/portal/pedidos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SemAcessoRoute = SemAcessoRouteImport.update({
+  id: '/sem-acesso',
+  path: '/sem-acesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientesRoute = AppClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFinanceiroRoute = AppFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPedidosRoute = AppPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPipelineRoute = AppPipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProjetosRoute = AppProjetosRouteImport.update({
+  id: '/projetos',
+  path: '/projetos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPropostasRoute = AppPropostasRouteImport.update({
+  id: '/propostas',
+  path: '/propostas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTrafegoRoute = AppTrafegoRouteImport.update({
+  id: '/trafego',
+  path: '/trafego',
+  getParentRoute: () => AppRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalAprovacoesRoute = PortalAprovacoesRouteImport.update({
+  id: '/aprovacoes',
+  path: '/aprovacoes',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalArquivosRoute = PortalArquivosRouteImport.update({
+  id: '/arquivos',
+  path: '/arquivos',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalPagamentosRoute = PortalPagamentosRouteImport.update({
+  id: '/pagamentos',
+  path: '/pagamentos',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalPedidosRoute = PortalPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => PortalRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/entrar': typeof EntrarRoute
+  '/portal': typeof PortalRouteWithChildren
+  '/sem-acesso': typeof SemAcessoRoute
+  '/app/clientes': typeof AppClientesRoute
+  '/app/configuracoes': typeof AppConfiguracoesRoute
+  '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/pedidos': typeof AppPedidosRoute
+  '/app/pipeline': typeof AppPipelineRoute
+  '/app/projetos': typeof AppProjetosRoute
+  '/app/propostas': typeof AppPropostasRoute
+  '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/trafego': typeof AppTrafegoRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/portal/aprovacoes': typeof PortalAprovacoesRoute
+  '/portal/arquivos': typeof PortalArquivosRoute
+  '/portal/pagamentos': typeof PortalPagamentosRoute
+  '/portal/pedidos': typeof PortalPedidosRoute
+  '/app/': typeof AppIndexRoute
+  '/portal/': typeof PortalIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/entrar': typeof EntrarRoute
+  '/sem-acesso': typeof SemAcessoRoute
+  '/app/clientes': typeof AppClientesRoute
+  '/app/configuracoes': typeof AppConfiguracoesRoute
+  '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/pedidos': typeof AppPedidosRoute
+  '/app/pipeline': typeof AppPipelineRoute
+  '/app/projetos': typeof AppProjetosRoute
+  '/app/propostas': typeof AppPropostasRoute
+  '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/trafego': typeof AppTrafegoRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/portal/aprovacoes': typeof PortalAprovacoesRoute
+  '/portal/arquivos': typeof PortalArquivosRoute
+  '/portal/pagamentos': typeof PortalPagamentosRoute
+  '/portal/pedidos': typeof PortalPedidosRoute
+  '/app': typeof AppIndexRoute
+  '/portal': typeof PortalIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/entrar': typeof EntrarRoute
+  '/portal': typeof PortalRouteWithChildren
+  '/sem-acesso': typeof SemAcessoRoute
+  '/app/clientes': typeof AppClientesRoute
+  '/app/configuracoes': typeof AppConfiguracoesRoute
+  '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/pedidos': typeof AppPedidosRoute
+  '/app/pipeline': typeof AppPipelineRoute
+  '/app/projetos': typeof AppProjetosRoute
+  '/app/propostas': typeof AppPropostasRoute
+  '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/trafego': typeof AppTrafegoRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/portal/aprovacoes': typeof PortalAprovacoesRoute
+  '/portal/arquivos': typeof PortalArquivosRoute
+  '/portal/pagamentos': typeof PortalPagamentosRoute
+  '/portal/pedidos': typeof PortalPedidosRoute
+  '/app/': typeof AppIndexRoute
+  '/portal/': typeof PortalIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/entrar'
+    | '/portal'
+    | '/sem-acesso'
+    | '/app/clientes'
+    | '/app/configuracoes'
+    | '/app/financeiro'
+    | '/app/pedidos'
+    | '/app/pipeline'
+    | '/app/projetos'
+    | '/app/propostas'
+    | '/app/relatorios'
+    | '/app/trafego'
+    | '/auth/callback'
+    | '/portal/aprovacoes'
+    | '/portal/arquivos'
+    | '/portal/pagamentos'
+    | '/portal/pedidos'
+    | '/app/'
+    | '/portal/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/entrar'
+    | '/sem-acesso'
+    | '/app/clientes'
+    | '/app/configuracoes'
+    | '/app/financeiro'
+    | '/app/pedidos'
+    | '/app/pipeline'
+    | '/app/projetos'
+    | '/app/propostas'
+    | '/app/relatorios'
+    | '/app/trafego'
+    | '/auth/callback'
+    | '/portal/aprovacoes'
+    | '/portal/arquivos'
+    | '/portal/pagamentos'
+    | '/portal/pedidos'
+    | '/app'
+    | '/portal'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/entrar'
+    | '/portal'
+    | '/sem-acesso'
+    | '/app/clientes'
+    | '/app/configuracoes'
+    | '/app/financeiro'
+    | '/app/pedidos'
+    | '/app/pipeline'
+    | '/app/projetos'
+    | '/app/propostas'
+    | '/app/relatorios'
+    | '/app/trafego'
+    | '/auth/callback'
+    | '/portal/aprovacoes'
+    | '/portal/arquivos'
+    | '/portal/pagamentos'
+    | '/portal/pedidos'
+    | '/app/'
+    | '/portal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  EntrarRoute: typeof EntrarRoute
+  PortalRoute: typeof PortalRouteWithChildren
+  SemAcessoRoute: typeof SemAcessoRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +293,203 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sem-acesso': {
+      id: '/sem-acesso'
+      path: '/sem-acesso'
+      fullPath: '/sem-acesso'
+      preLoaderRoute: typeof SemAcessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/clientes': {
+      id: '/app/clientes'
+      path: '/clientes'
+      fullPath: '/app/clientes'
+      preLoaderRoute: typeof AppClientesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/configuracoes': {
+      id: '/app/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/app/configuracoes'
+      preLoaderRoute: typeof AppConfiguracoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/financeiro': {
+      id: '/app/financeiro'
+      path: '/financeiro'
+      fullPath: '/app/financeiro'
+      preLoaderRoute: typeof AppFinanceiroRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pedidos': {
+      id: '/app/pedidos'
+      path: '/pedidos'
+      fullPath: '/app/pedidos'
+      preLoaderRoute: typeof AppPedidosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pipeline': {
+      id: '/app/pipeline'
+      path: '/pipeline'
+      fullPath: '/app/pipeline'
+      preLoaderRoute: typeof AppPipelineRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/projetos': {
+      id: '/app/projetos'
+      path: '/projetos'
+      fullPath: '/app/projetos'
+      preLoaderRoute: typeof AppProjetosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/propostas': {
+      id: '/app/propostas'
+      path: '/propostas'
+      fullPath: '/app/propostas'
+      preLoaderRoute: typeof AppPropostasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/relatorios': {
+      id: '/app/relatorios'
+      path: '/relatorios'
+      fullPath: '/app/relatorios'
+      preLoaderRoute: typeof AppRelatoriosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/trafego': {
+      id: '/app/trafego'
+      path: '/trafego'
+      fullPath: '/app/trafego'
+      preLoaderRoute: typeof AppTrafegoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/': {
+      id: '/portal/'
+      path: '/'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/aprovacoes': {
+      id: '/portal/aprovacoes'
+      path: '/aprovacoes'
+      fullPath: '/portal/aprovacoes'
+      preLoaderRoute: typeof PortalAprovacoesRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/arquivos': {
+      id: '/portal/arquivos'
+      path: '/arquivos'
+      fullPath: '/portal/arquivos'
+      preLoaderRoute: typeof PortalArquivosRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/pagamentos': {
+      id: '/portal/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/portal/pagamentos'
+      preLoaderRoute: typeof PortalPagamentosRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/pedidos': {
+      id: '/portal/pedidos'
+      path: '/pedidos'
+      fullPath: '/portal/pedidos'
+      preLoaderRoute: typeof PortalPedidosRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppClientesRoute: typeof AppClientesRoute
+  AppConfiguracoesRoute: typeof AppConfiguracoesRoute
+  AppFinanceiroRoute: typeof AppFinanceiroRoute
+  AppPedidosRoute: typeof AppPedidosRoute
+  AppPipelineRoute: typeof AppPipelineRoute
+  AppProjetosRoute: typeof AppProjetosRoute
+  AppPropostasRoute: typeof AppPropostasRoute
+  AppRelatoriosRoute: typeof AppRelatoriosRoute
+  AppTrafegoRoute: typeof AppTrafegoRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppClientesRoute: AppClientesRoute,
+  AppConfiguracoesRoute: AppConfiguracoesRoute,
+  AppFinanceiroRoute: AppFinanceiroRoute,
+  AppPedidosRoute: AppPedidosRoute,
+  AppPipelineRoute: AppPipelineRoute,
+  AppProjetosRoute: AppProjetosRoute,
+  AppPropostasRoute: AppPropostasRoute,
+  AppRelatoriosRoute: AppRelatoriosRoute,
+  AppTrafegoRoute: AppTrafegoRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface PortalRouteChildren {
+  PortalAprovacoesRoute: typeof PortalAprovacoesRoute
+  PortalArquivosRoute: typeof PortalArquivosRoute
+  PortalPagamentosRoute: typeof PortalPagamentosRoute
+  PortalPedidosRoute: typeof PortalPedidosRoute
+  PortalIndexRoute: typeof PortalIndexRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalAprovacoesRoute: PortalAprovacoesRoute,
+  PortalArquivosRoute: PortalArquivosRoute,
+  PortalPagamentosRoute: PortalPagamentosRoute,
+  PortalPedidosRoute: PortalPedidosRoute,
+  PortalIndexRoute: PortalIndexRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  EntrarRoute: EntrarRoute,
+  PortalRoute: PortalRouteWithChildren,
+  SemAcessoRoute: SemAcessoRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

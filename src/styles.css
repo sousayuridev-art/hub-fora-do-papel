@@ -69,8 +69,8 @@
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.155 0.006 264.5);
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
   --muted: oklch(0.968 0.007 247.896);
@@ -79,9 +79,9 @@
   --accent-foreground: oklch(0.208 0.042 265.755);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --border: oklch(0.938 0.006 106.5);
+  --input: oklch(0.878 0.007 106.6);
+  --ring: oklch(0.155 0.006 264.5);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -140,5 +140,49 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+}
+
+/*
+ * Tokens da Fora do Papel (CLAUDE.md, "Visual do Hub").
+ * Hub: fundo #F5F5F2 · Portal: fundo #F7F7F4 · tinta #0E1013 · destaque #FFB020 só na ação principal.
+ */
+@theme inline {
+  --color-hub-fundo: oklch(0.966 0.004 106.5);
+  --color-portal-fundo: oklch(0.975 0.003 106.5);
+  --color-hub-tinta: oklch(0.155 0.006 264.5);
+  --color-hub-borda: oklch(0.938 0.006 106.5);
+  --color-hub-suave: oklch(0.526 0.012 257);
+  --color-hub-destaque: oklch(0.81 0.165 75.5);
+  --color-hub-selecao: oklch(0.951 0.006 106.5);
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-titulo: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-rotulo: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: var(--font-sans);
+  }
+  [id] {
+    scroll-margin-top: 72px;
+  }
+}
+
+/* Portal e áreas no celular (card P-portal-celular). Acima de 767 px nada disto vale. */
+@media (max-width: 767px) {
+  /* M5 · campos com 16 px: o iPhone não dá zoom ao tocar. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+  /* Barras fixas somem com o teclado aberto, para não cobrir o campo. */
+  body:has(input:not([type="checkbox"]):not([type="radio"]):focus, textarea:focus, select:focus)
+    .barra-fixa {
+    display: none;
   }
 }

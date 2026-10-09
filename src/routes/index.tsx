@@ -1,23 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+import { TelaCarregando } from "@/components/feedback/TelaCarregando";
+import { carregarAcesso, inicioDoPapel } from "@/lib/acesso";
+
+/** Raiz: manda cada pessoa para a sua área. */
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Hub Fora do Papel" },
-      { name: "description", content: "Hub Fora do Papel — estrutura inicial do projeto." },
-      { property: "og:title", content: "Hub Fora do Papel" },
-      { property: "og:description", content: "Hub Fora do Papel — estrutura inicial do projeto." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Index,
+  ssr: false,
+  beforeLoad: async ({ context }) => {
+    const { session, acesso } = await carregarAcesso(context.queryClient);
+    if (!session) throw redirect({ to: "/entrar" });
+    throw redirect({ to: acesso?.papel ? inicioDoPapel[acesso.papel] : "/sem-acesso" });
+  },
+  pendingComponent: Redirecionando,
+  component: Redirecionando,
 });
 
-function Index() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background">
-      <h1 className="text-4xl font-semibold tracking-tight text-foreground">Hub Fora do Papel</h1>
-    </main>
-  );
+function Redirecionando() {
+  return <TelaCarregando />;
 }
