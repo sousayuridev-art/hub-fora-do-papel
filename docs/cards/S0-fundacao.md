@@ -1,6 +1,8 @@
 # Card S0 · Fundação do Hub
 
 > **Status (09/10):** passos 1 a 4 feitos pelo Claude Code e testados. O Lovable exigiu a base TanStack Start: as rotas são por arquivo em `src/routes` (TanStack Router), a proteção das áreas fica no `beforeLoad` e o gerenciador é o `bun`. Falta só o passo 5 (Supabase remoto), que depende de você. Como rodar: `docs/como-rodar.md`.
+>
+> **Login (12/10):** o link do e-mail usa o fluxo `implicit` para funcionar em qualquer navegador ou celular. Quando o SMTP próprio estiver no Supabase, ativar o modelo `supabase/templates/link-acesso.html` (token_hash) no painel e no `config.toml` e voltar o `flowType` para `pkce`.
 
 **Objetivo:** deixar o projeto pronto para receber os módulos: repositório sincronizado com o Lovable, banco com segurança por tenant testada, login por link, as duas áreas (operador e portal) com seus menus e o padrão de dados, avisos e erros.
 **Estimativa:** 1 dia (6 a 8 horas).

@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 
 const buscaCallback = z.object({
   code: z.string().optional().catch(undefined),
+  token_hash: z.string().optional().catch(undefined),
   volta: z.string().startsWith("/").optional().catch(undefined),
 });
 
@@ -17,9 +18,13 @@ export const Route = createFileRoute("/auth/callback")({
   component: Callback,
 });
 
-/** Volta do link mágico: troca o código pela sessão e segue para a área certa. */
+/**
+ * Volta do link mágico.
+ * - token_hash (padrão em produção): vale em qualquer navegador ou aparelho, mesmo abrindo o e-mail no celular.
+ * - code (PKCE): só vale no mesmo navegador que pediu o link; mantido para o Supabase local.
+ */
 function Callback() {
-  const { code, volta } = Route.useSearch();
+  const { code, token_hash: tokenHash, volta } = Route.useSearch();
   const navigate = useNavigate();
   const [falhou, setFalhou] = useState(false);
 
@@ -27,7 +32,10 @@ function Callback() {
     let ativo = true;
     async function concluir() {
       try {
-        if (code) {
+        if (tokenHash) {
+          const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
+          if (error) throw error;
+        } else if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
         }
@@ -42,7 +50,7 @@ function Callback() {
     return () => {
       ativo = false;
     };
-  }, [code, volta, navigate]);
+  }, [code, tokenHash, volta, navigate]);
 
   if (falhou) {
     return (

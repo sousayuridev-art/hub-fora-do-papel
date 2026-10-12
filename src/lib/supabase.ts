@@ -22,6 +22,9 @@ export const supabase = createClient(url ?? "http://127.0.0.1:54321", anonKey ??
     persistSession: typeof window !== "undefined",
     autoRefreshToken: typeof window !== "undefined",
     detectSessionInUrl: typeof window !== "undefined",
-    flowType: "pkce",
+    // "implicit": o link do e-mail funciona em qualquer navegador ou aparelho (no PKCE, só no
+    // navegador que pediu o link). Voltar para "pkce" quando o modelo de e-mail com token_hash
+    // estiver ativo (depende de SMTP próprio no Supabase).
+    flowType: "implicit",
   },
 });

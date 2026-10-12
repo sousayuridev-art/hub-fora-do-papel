@@ -245,6 +245,14 @@ otp_expiry = 3600
 # sender_name = "Admin"
 
 # Uncomment to customize email template
+# Quando houver SMTP próprio, ativar o modelo com token_hash (ver docs/cards/S0-fundacao.md):
+# [auth.email.template.magic_link]
+# subject = "Seu link de acesso ao Hub Fora do Papel"
+# content_path = "./supabase/templates/link-acesso.html"
+# [auth.email.template.confirmation]
+# subject = "Seu link de acesso ao Hub Fora do Papel"
+# content_path = "./supabase/templates/link-acesso.html"
+
 # [auth.email.template.invite]
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"

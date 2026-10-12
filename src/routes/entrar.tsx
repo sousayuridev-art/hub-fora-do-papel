@@ -42,7 +42,8 @@ function Entrar() {
   const enviarLink = useMutation({
     mutationFn: async (endereco: string) => {
       const retorno = new URL("/auth/callback", window.location.origin);
-      if (volta) retorno.searchParams.set("volta", volta);
+      // Sempre com "?": o modelo de e-mail do Supabase acrescenta "&token_hash=…&type=email".
+      retorno.searchParams.set("volta", volta ?? "/");
       const { error } = await supabase.auth.signInWithOtp({
         email: endereco,
         options: { emailRedirectTo: retorno.toString(), shouldCreateUser: true },
