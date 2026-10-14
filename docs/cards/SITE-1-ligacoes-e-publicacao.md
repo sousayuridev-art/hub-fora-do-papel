@@ -66,6 +66,6 @@ Hoje o formulário, a agenda e a inscrição mostram sucesso sem enviar nada: to
 
 ## Depende do Yuri
 - Login no Lovable para ligar o site ao GitHub.
-- IDs de GA4/GTM e pixel da Meta (ou decidir deixar para o portão 2).
+- GA4 recebido em 14/10: `G-MND58YQ287` (vai em `VITE_GA4_ID`, carregado só após o aceite de cookies; o trecho `gtag.js` colado direto no `<head>` não será usado). Número `16128357974` recebido: confirmar se é o ID do Google Ads (`AW-…`). Pixel da Meta: pendente.
 - Razão social, endereço e e-mail de privacidade.
 - Acesso ao Registro.br para conferir o DNS (só leitura).
