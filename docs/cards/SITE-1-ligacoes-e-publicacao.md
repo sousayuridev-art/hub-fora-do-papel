@@ -69,3 +69,9 @@ Hoje o formulário, a agenda e a inscrição mostram sucesso sem enviar nada: to
 - GA4 recebido em 14/10: `G-MND58YQ287` (vai em `VITE_GA4_ID`, carregado só após o aceite de cookies; o trecho `gtag.js` colado direto no `<head>` não será usado). Número `16128357974` recebido: confirmar se é o ID do Google Ads (`AW-…`). Pixel da Meta: pendente.
 - Razão social, endereço e e-mail de privacidade.
 - Acesso ao Registro.br para conferir o DNS (só leitura).
+
+## Situação em 14/10/2026
+- Código no repositório `sousayuridev-art/fora-do-papel-blueprint` (commit 8972bd9). Testes 23/23, build ok.
+- Teste ponta a ponta local: horário, mensagem e inscrição gravados em `site_contatos` e `event_outbox`; sem rede, erro e nenhum sucesso.
+- Lighthouse mobile local (com compressão, como na CDN): inicial 92/100/100/92 → 96/100/100/100; artigos 96/100/100/100; artigo 95/100/96/100 (96 por imagem servida só pelo Lovable).
+- Falta: aplicar esta migração no Supabase de produção, ligar o domínio no Lovable (DNS do Registro.br sem registros hoje), confirmar dados da política, ID do Google Ads e pixel.
