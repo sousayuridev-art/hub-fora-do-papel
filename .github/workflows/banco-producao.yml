@@ -1,0 +1,55 @@
+# Aplica as migrações de supabase/migrations no banco de PRODUÇÃO.
+# Roda só quando alguém clica em "Run workflow" no GitHub (aba Actions).
+# Senhas ficam nos "secrets" do repositório: nunca no código nem no chat.
+name: Banco de produção · migrações
+
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "verificar = só mostra o que mudaria · aplicar = grava no banco de produção"
+        type: choice
+        options: [verificar, aplicar]
+        default: verificar
+
+concurrency:
+  group: banco-producao
+  cancel-in-progress: false
+
+jobs:
+  migracoes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: cjzzbpqwlpjvlawllfqy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir se os segredos foram cadastrados
+        run: |
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::Falta o secret SUPABASE_ACCESS_TOKEN"; exit 1; }
+          test -n "$SUPABASE_DB_PASSWORD" || { echo "::error::Falta o secret SUPABASE_DB_PASSWORD"; exit 1; }
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Ligar ao projeto de produção
+        run: supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Migrações (coluna Local = repositório, Remote = produção)
+        run: supabase migration list --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Simular (nada é gravado)
+        if: inputs.modo == 'verificar'
+        run: supabase db push --dry-run --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Aplicar no banco de produção
+        if: inputs.modo == 'aplicar'
+        run: supabase db push --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Situação depois de aplicar
+        if: inputs.modo == 'aplicar'
+        run: supabase migration list --password "$SUPABASE_DB_PASSWORD"

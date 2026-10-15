@@ -12,7 +12,8 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000c1', 'paula@sorriso.test'),
   ('00000000-0000-0000-0000-0000000000c2', 'julia@otica.test');
 
--- Tenants
+-- Tenants (a migração já cria a Fora do Papel; o teste usa um id fixo para ela)
+delete from public.tenants where slug = 'fora-do-papel';
 insert into public.tenants (id, name, slug) values
   ('10000000-0000-0000-0000-000000000001', 'Fora do Papel', 'fora-do-papel'),
   ('10000000-0000-0000-0000-000000000002', 'Outra Agência', 'outra-agencia');
