@@ -1,7 +1,7 @@
 -- SITE-1: o site grava contatos pela RPC, mas ninguém de fora lê.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(13);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -25,7 +25,7 @@ select is(
   (select public.site_registrar_contato('mensagem', 'ana@teste.com', true, 'Ana')),
   'repetição em 1 minuto devolve o mesmo registro');
 select isnt(
-  public.site_registrar_contato('horario', 'bia@teste.com', true, 'Bia', null, null, null, now() + interval '2 days'),
+  public.site_registrar_contato('horario', 'bia@teste.com', true, 'Bia', '+55 (79) 99999-0000', null, null, now() + interval '2 days'),
   null, 'anônimo pede horário');
 select throws_ok(
   $$select public.site_registrar_contato('mensagem', 'sem-arroba', true, 'Ana')$$,
@@ -33,15 +33,25 @@ select throws_ok(
 select throws_ok(
   $$select public.site_registrar_contato('inscricao', 'c@teste.com', false)$$,
   '22023', 'consentimento_obrigatorio', 'sem consentimento é recusado');
+select throws_ok(
+  $$select public.site_registrar_contato('horario', 'dani@teste.com', true, 'Dani', null, null, null, now() + interval '2 days')$$,
+  '22023', 'whatsapp_invalido', 'horário sem WhatsApp é recusado');
+select throws_ok(
+  $$select public.site_registrar_contato('mensagem', 'eva@teste.com', true, 'Eva', null, null, null, null, '{}'::jsonb, 'enorme')$$,
+  '22023', 'porte_invalido', 'porte fora da lista é recusado');
+select isnt(
+  public.site_registrar_contato('mensagem', 'fabio@teste.com', true, 'Fábio', null, 'Sistemas', null, null, '{}'::jsonb, '11_50'),
+  null, 'porte válido é aceito');
 select is((select count(*) from public.site_contatos)::int, 0, 'anônimo não lê a tabela');
 
 -- Dono da Fora do Papel
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
-select is((select count(*) from public.site_contatos)::int, 2, 'dono vê os 2 contatos gravados');
-select is((select count(*) from public.event_outbox where event = 'site.contato_recebido')::int, 2,
+select is((select count(*) from public.site_contatos)::int, 3, 'dono vê os 3 contatos gravados');
+select is((select count(*) from public.event_outbox where event = 'site.contato_recebido')::int, 3,
   'cada contato gerou 1 evento');
+select is((select porte from public.site_contatos where email = 'fabio@teste.com'), '11_50', 'porte gravado no contato');
 
 -- Dono de outra agência
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
