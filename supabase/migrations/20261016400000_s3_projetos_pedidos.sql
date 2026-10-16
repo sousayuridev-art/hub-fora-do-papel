@@ -817,6 +817,8 @@ begin
        where p.tenant_id = t and p.status = 'andamento' and p.launch_date >= hoje
        order by p.launch_date limit 1),
     'semana', jsonb_build_object('inicio', ini_sem, 'fim', ini_sem + 6,
+       'total_minutos', (select coalesce(sum(minutes), 0) from public.time_entries
+                          where tenant_id = t and worked_on between ini_sem and ini_sem + 6),
        'itens', coalesce((select jsonb_agg(jsonb_build_object('projeto_id', p.id, 'empresa', c.company_name,
                     'projeto', p.name, 'minutos', x.m) order by x.m desc)
           from (select project_id, sum(minutes) m from public.time_entries

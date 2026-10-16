@@ -20,7 +20,6 @@ import { Route as AppFinanceiroRouteImport } from './routes/app/financeiro'
 import { Route as AppMateriaisRouteImport } from './routes/app/materiais'
 import { Route as AppPedidosRouteImport } from './routes/app/pedidos'
 import { Route as AppPipelineRouteImport } from './routes/app/pipeline'
-import { Route as AppProjetosRouteImport } from './routes/app/projetos'
 import { Route as AppPropostasRouteImport } from './routes/app/propostas'
 import { Route as AppRelatoriosRouteImport } from './routes/app/relatorios'
 import { Route as AppTrafegoRouteImport } from './routes/app/trafego'
@@ -33,6 +32,8 @@ import { Route as PortalPedidosRouteImport } from './routes/portal/pedidos'
 import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as AppClientesIndexRouteImport } from './routes/app/clientes/index'
 import { Route as AppClientesIdRouteImport } from './routes/app/clientes/$id'
+import { Route as AppProjetosIndexRouteImport } from './routes/app/projetos/index'
+import { Route as AppProjetosIdRouteImport } from './routes/app/projetos/$id'
 import { Route as PreviaPropostaIdRouteImport } from './routes/previa.proposta.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -88,11 +89,6 @@ const AppPedidosRoute = AppPedidosRouteImport.update({
 const AppPipelineRoute = AppPipelineRouteImport.update({
   id: '/pipeline',
   path: '/pipeline',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProjetosRoute = AppProjetosRouteImport.update({
-  id: '/projetos',
-  path: '/projetos',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPropostasRoute = AppPropostasRouteImport.update({
@@ -155,6 +151,16 @@ const AppClientesIdRoute = AppClientesIdRouteImport.update({
   path: '/clientes/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProjetosIndexRoute = AppProjetosIndexRouteImport.update({
+  id: '/projetos/',
+  path: '/projetos/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProjetosIdRoute = AppProjetosIdRouteImport.update({
+  id: '/projetos/$id',
+  path: '/projetos/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 const PreviaPropostaIdRoute = PreviaPropostaIdRouteImport.update({
   id: '/previa/proposta/$id',
   path: '/previa/proposta/$id',
@@ -172,7 +178,6 @@ export interface FileRoutesByFullPath {
   '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
-  '/app/projetos': typeof AppProjetosRoute
   '/app/propostas': typeof AppPropostasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/trafego': typeof AppTrafegoRoute
@@ -185,8 +190,10 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
+  '/app/projetos/$id': typeof AppProjetosIdRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
+  '/app/projetos/': typeof AppProjetosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -197,7 +204,6 @@ export interface FileRoutesByTo {
   '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
-  '/app/projetos': typeof AppProjetosRoute
   '/app/propostas': typeof AppPropostasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/trafego': typeof AppTrafegoRoute
@@ -210,8 +216,10 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
+  '/app/projetos/$id': typeof AppProjetosIdRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes': typeof AppClientesIndexRoute
+  '/app/projetos': typeof AppProjetosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -225,7 +233,6 @@ export interface FileRoutesById {
   '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
-  '/app/projetos': typeof AppProjetosRoute
   '/app/propostas': typeof AppPropostasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/trafego': typeof AppTrafegoRoute
@@ -238,8 +245,10 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
+  '/app/projetos/$id': typeof AppProjetosIdRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
+  '/app/projetos/': typeof AppProjetosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -254,7 +263,6 @@ export interface FileRouteTypes {
     | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
-    | '/app/projetos'
     | '/app/propostas'
     | '/app/relatorios'
     | '/app/trafego'
@@ -267,8 +275,10 @@ export interface FileRouteTypes {
     | '/app/'
     | '/portal/'
     | '/app/clientes/$id'
+    | '/app/projetos/$id'
     | '/previa/proposta/$id'
     | '/app/clientes/'
+    | '/app/projetos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -279,7 +289,6 @@ export interface FileRouteTypes {
     | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
-    | '/app/projetos'
     | '/app/propostas'
     | '/app/relatorios'
     | '/app/trafego'
@@ -292,8 +301,10 @@ export interface FileRouteTypes {
     | '/app'
     | '/portal'
     | '/app/clientes/$id'
+    | '/app/projetos/$id'
     | '/previa/proposta/$id'
     | '/app/clientes'
+    | '/app/projetos'
   id:
     | '__root__'
     | '/'
@@ -306,7 +317,6 @@ export interface FileRouteTypes {
     | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
-    | '/app/projetos'
     | '/app/propostas'
     | '/app/relatorios'
     | '/app/trafego'
@@ -319,8 +329,10 @@ export interface FileRouteTypes {
     | '/app/'
     | '/portal/'
     | '/app/clientes/$id'
+    | '/app/projetos/$id'
     | '/previa/proposta/$id'
     | '/app/clientes/'
+    | '/app/projetos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -413,13 +425,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPipelineRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/projetos': {
-      id: '/app/projetos'
-      path: '/projetos'
-      fullPath: '/app/projetos'
-      preLoaderRoute: typeof AppProjetosRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/propostas': {
       id: '/app/propostas'
       path: '/propostas'
@@ -504,6 +509,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/projetos/': {
+      id: '/app/projetos/'
+      path: '/projetos'
+      fullPath: '/app/projetos/'
+      preLoaderRoute: typeof AppProjetosIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/projetos/$id': {
+      id: '/app/projetos/$id'
+      path: '/projetos/$id'
+      fullPath: '/app/projetos/$id'
+      preLoaderRoute: typeof AppProjetosIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/previa/proposta/$id': {
       id: '/previa/proposta/$id'
       path: '/previa/proposta/$id'
@@ -520,13 +539,14 @@ interface AppRouteChildren {
   AppMateriaisRoute: typeof AppMateriaisRoute
   AppPedidosRoute: typeof AppPedidosRoute
   AppPipelineRoute: typeof AppPipelineRoute
-  AppProjetosRoute: typeof AppProjetosRoute
   AppPropostasRoute: typeof AppPropostasRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppTrafegoRoute: typeof AppTrafegoRoute
   AppIndexRoute: typeof AppIndexRoute
   AppClientesIdRoute: typeof AppClientesIdRoute
+  AppProjetosIdRoute: typeof AppProjetosIdRoute
   AppClientesIndexRoute: typeof AppClientesIndexRoute
+  AppProjetosIndexRoute: typeof AppProjetosIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -535,13 +555,14 @@ const AppRouteChildren: AppRouteChildren = {
   AppMateriaisRoute: AppMateriaisRoute,
   AppPedidosRoute: AppPedidosRoute,
   AppPipelineRoute: AppPipelineRoute,
-  AppProjetosRoute: AppProjetosRoute,
   AppPropostasRoute: AppPropostasRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppTrafegoRoute: AppTrafegoRoute,
   AppIndexRoute: AppIndexRoute,
   AppClientesIdRoute: AppClientesIdRoute,
+  AppProjetosIdRoute: AppProjetosIdRoute,
   AppClientesIndexRoute: AppClientesIndexRoute,
+  AppProjetosIndexRoute: AppProjetosIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

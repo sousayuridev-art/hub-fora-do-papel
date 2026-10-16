@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BadgeDollarSign,
   FileText,
+  Inbox,
   MessageCircle,
   TriangleAlert,
   Trophy,
@@ -136,6 +137,22 @@ function Painel() {
                 : `${n.falhas_site} pedidos do site não entraram no funil nos últimos 30 dias.`}{" "}
               Os dados não se perderam; fale com o suporte para importar.
             </p>
+          )}
+
+          {n && n.pedidos_novos > 0 && (
+            <Link
+              to="/app/pedidos"
+              search={{ aba: "recebido" }}
+              className="flex min-h-14 items-center gap-3 rounded-2xl bg-[#FFF1D6] p-4 text-[14.5px] text-[#7A4200] hover:bg-[#FFE8BD]"
+            >
+              <Inbox className="size-5 shrink-0" aria-hidden="true" />
+              <span className="flex-1">
+                {n.pedidos_novos === 1
+                  ? "1 pedido de cliente esperando classificação."
+                  : `${n.pedidos_novos} pedidos de clientes esperando classificação.`}
+              </span>
+              <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+            </Link>
           )}
 
           <section aria-labelledby="titulo-hoje" className="flex flex-col gap-3">

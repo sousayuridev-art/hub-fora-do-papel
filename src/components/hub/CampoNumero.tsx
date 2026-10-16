@@ -31,7 +31,7 @@ export function CampoNumero({
   aoMudar: (n: number | null) => void;
   prefixo?: string;
   sufixo?: string;
-  ajuda?: string;
+  ajuda?: string | undefined;
   escala?: number;
   casas?: number;
   rotuloOculto?: boolean;
