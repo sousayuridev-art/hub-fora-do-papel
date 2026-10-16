@@ -15,9 +15,9 @@ import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
 import { Route as AppIndexRouteImport } from './routes/app/index'
-import { Route as AppClientesRouteImport } from './routes/app/clientes'
 import { Route as AppConfiguracoesRouteImport } from './routes/app/configuracoes'
 import { Route as AppFinanceiroRouteImport } from './routes/app/financeiro'
+import { Route as AppMateriaisRouteImport } from './routes/app/materiais'
 import { Route as AppPedidosRouteImport } from './routes/app/pedidos'
 import { Route as AppPipelineRouteImport } from './routes/app/pipeline'
 import { Route as AppProjetosRouteImport } from './routes/app/projetos'
@@ -30,6 +30,8 @@ import { Route as PortalAprovacoesRouteImport } from './routes/portal/aprovacoes
 import { Route as PortalArquivosRouteImport } from './routes/portal/arquivos'
 import { Route as PortalPagamentosRouteImport } from './routes/portal/pagamentos'
 import { Route as PortalPedidosRouteImport } from './routes/portal/pedidos'
+import { Route as AppClientesIndexRouteImport } from './routes/app/clientes/index'
+import { Route as AppClientesIdRouteImport } from './routes/app/clientes/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -61,11 +63,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppClientesRoute = AppClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
@@ -74,6 +71,11 @@ const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
 const AppFinanceiroRoute = AppFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMateriaisRoute = AppMateriaisRouteImport.update({
+  id: '/materiais',
+  path: '/materiais',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPedidosRoute = AppPedidosRouteImport.update({
@@ -136,6 +138,16 @@ const PortalPedidosRoute = PortalPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => PortalRoute,
 } as any)
+const AppClientesIndexRoute = AppClientesIndexRouteImport.update({
+  id: '/clientes/',
+  path: '/clientes/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientesIdRoute = AppClientesIdRouteImport.update({
+  id: '/clientes/$id',
+  path: '/clientes/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,9 +155,9 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/portal': typeof PortalRouteWithChildren
   '/sem-acesso': typeof SemAcessoRoute
-  '/app/clientes': typeof AppClientesRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
   '/app/projetos': typeof AppProjetosRoute
@@ -159,14 +171,16 @@ export interface FileRoutesByFullPath {
   '/portal/pedidos': typeof PortalPedidosRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/app/clientes/$id': typeof AppClientesIdRoute
+  '/app/clientes/': typeof AppClientesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/sem-acesso': typeof SemAcessoRoute
-  '/app/clientes': typeof AppClientesRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
   '/app/projetos': typeof AppProjetosRoute
@@ -180,6 +194,8 @@ export interface FileRoutesByTo {
   '/portal/pedidos': typeof PortalPedidosRoute
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
+  '/app/clientes/$id': typeof AppClientesIdRoute
+  '/app/clientes': typeof AppClientesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -188,9 +204,9 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/portal': typeof PortalRouteWithChildren
   '/sem-acesso': typeof SemAcessoRoute
-  '/app/clientes': typeof AppClientesRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
   '/app/projetos': typeof AppProjetosRoute
@@ -204,6 +220,8 @@ export interface FileRoutesById {
   '/portal/pedidos': typeof PortalPedidosRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/app/clientes/$id': typeof AppClientesIdRoute
+  '/app/clientes/': typeof AppClientesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -213,9 +231,9 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/portal'
     | '/sem-acesso'
-    | '/app/clientes'
     | '/app/configuracoes'
     | '/app/financeiro'
+    | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
     | '/app/projetos'
@@ -229,14 +247,16 @@ export interface FileRouteTypes {
     | '/portal/pedidos'
     | '/app/'
     | '/portal/'
+    | '/app/clientes/$id'
+    | '/app/clientes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/entrar'
     | '/sem-acesso'
-    | '/app/clientes'
     | '/app/configuracoes'
     | '/app/financeiro'
+    | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
     | '/app/projetos'
@@ -250,6 +270,8 @@ export interface FileRouteTypes {
     | '/portal/pedidos'
     | '/app'
     | '/portal'
+    | '/app/clientes/$id'
+    | '/app/clientes'
   id:
     | '__root__'
     | '/'
@@ -257,9 +279,9 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/portal'
     | '/sem-acesso'
-    | '/app/clientes'
     | '/app/configuracoes'
     | '/app/financeiro'
+    | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
     | '/app/projetos'
@@ -273,6 +295,8 @@ export interface FileRouteTypes {
     | '/portal/pedidos'
     | '/app/'
     | '/portal/'
+    | '/app/clientes/$id'
+    | '/app/clientes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -328,13 +352,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/clientes': {
-      id: '/app/clientes'
-      path: '/clientes'
-      fullPath: '/app/clientes'
-      preLoaderRoute: typeof AppClientesRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/configuracoes': {
       id: '/app/configuracoes'
       path: '/configuracoes'
@@ -347,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/financeiro'
       fullPath: '/app/financeiro'
       preLoaderRoute: typeof AppFinanceiroRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/materiais': {
+      id: '/app/materiais'
+      path: '/materiais'
+      fullPath: '/app/materiais'
+      preLoaderRoute: typeof AppMateriaisRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/pedidos': {
@@ -433,13 +457,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalPedidosRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/app/clientes/': {
+      id: '/app/clientes/'
+      path: '/clientes'
+      fullPath: '/app/clientes/'
+      preLoaderRoute: typeof AppClientesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/clientes/$id': {
+      id: '/app/clientes/$id'
+      path: '/clientes/$id'
+      fullPath: '/app/clientes/$id'
+      preLoaderRoute: typeof AppClientesIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
-  AppClientesRoute: typeof AppClientesRoute
   AppConfiguracoesRoute: typeof AppConfiguracoesRoute
   AppFinanceiroRoute: typeof AppFinanceiroRoute
+  AppMateriaisRoute: typeof AppMateriaisRoute
   AppPedidosRoute: typeof AppPedidosRoute
   AppPipelineRoute: typeof AppPipelineRoute
   AppProjetosRoute: typeof AppProjetosRoute
@@ -447,12 +485,14 @@ interface AppRouteChildren {
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppTrafegoRoute: typeof AppTrafegoRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppClientesIdRoute: typeof AppClientesIdRoute
+  AppClientesIndexRoute: typeof AppClientesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppClientesRoute: AppClientesRoute,
   AppConfiguracoesRoute: AppConfiguracoesRoute,
   AppFinanceiroRoute: AppFinanceiroRoute,
+  AppMateriaisRoute: AppMateriaisRoute,
   AppPedidosRoute: AppPedidosRoute,
   AppPipelineRoute: AppPipelineRoute,
   AppProjetosRoute: AppProjetosRoute,
@@ -460,6 +500,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppTrafegoRoute: AppTrafegoRoute,
   AppIndexRoute: AppIndexRoute,
+  AppClientesIdRoute: AppClientesIdRoute,
+  AppClientesIndexRoute: AppClientesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

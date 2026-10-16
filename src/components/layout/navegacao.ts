@@ -9,6 +9,7 @@ import {
   Inbox,
   KanbanSquare,
   LayoutDashboard,
+  Library,
   Megaphone,
   MessageSquarePlus,
   Settings,
@@ -20,7 +21,7 @@ import {
 export type ItemMenu = { rotulo: string; para: string; icone: LucideIcon; exato?: boolean };
 export type GrupoMenu = { titulo: string | null; itens: ItemMenu[] };
 
-/** Menu do operador, agrupado exatamente como no protótipo aprovado. */
+/** Menu do operador, agrupado como na proposta 2 (16/10). */
 export const menuOperador: GrupoMenu[] = [
   {
     titulo: null,
@@ -41,6 +42,10 @@ export const menuOperador: GrupoMenu[] = [
       { rotulo: "Projetos", para: "/app/projetos", icone: FolderKanban },
       { rotulo: "Pedidos", para: "/app/pedidos", icone: Inbox },
     ],
+  },
+  {
+    titulo: "Biblioteca",
+    itens: [{ rotulo: "Materiais", para: "/app/materiais", icone: Library }],
   },
   {
     titulo: "Gestão",

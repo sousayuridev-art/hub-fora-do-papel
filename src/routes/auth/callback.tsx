@@ -9,7 +9,11 @@ import { supabase } from "@/lib/supabase";
 const buscaCallback = z.object({
   code: z.string().optional().catch(undefined),
   token_hash: z.string().optional().catch(undefined),
-  volta: z.string().startsWith("/").optional().catch(undefined),
+  volta: z
+    .string()
+    .regex(/^\/(?![/\\])/, "caminho interno")
+    .optional()
+    .catch(undefined),
 });
 
 export const Route = createFileRoute("/auth/callback")({

@@ -155,6 +155,22 @@
   --color-hub-suave: oklch(0.526 0.012 257);
   --color-hub-destaque: oklch(0.81 0.165 75.5);
   --color-hub-selecao: oklch(0.951 0.006 106.5);
+  /* Proposta 2 (16/10): menu escuro e cores de situação */
+  --color-menu: #0e1013;
+  --color-menu-texto: #c9cbd0;
+  --color-menu-ativo: #1e2127;
+  --color-menu-rotulo: #8a8f98;
+  --color-sit-neutro: #f1f1ec;
+  --color-sit-neutro-t: #2a2d33;
+  --color-sit-info: #e5edff;
+  --color-sit-info-t: #1e3fa8;
+  --color-sit-atencao: #fff1d6;
+  --color-sit-atencao-t: #7a4200;
+  --color-sit-risco: #fde8e6;
+  --color-sit-risco-t: #9a1c12;
+  --color-sit-ok: #e3f4ea;
+  --color-sit-ok-t: #145a37;
+  --color-coluna: #ecece6;
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-titulo: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-rotulo: "IBM Plex Mono", ui-monospace, monospace;

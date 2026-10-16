@@ -13,7 +13,13 @@ import { carregarAcesso, inicioDoPapel } from "@/lib/acesso";
 import { supabase } from "@/lib/supabase";
 import { erro, mensagemDeErro } from "@/lib/notify";
 
-const buscaEntrar = z.object({ volta: z.string().startsWith("/").optional().catch(undefined) });
+const buscaEntrar = z.object({
+  volta: z
+    .string()
+    .regex(/^\/(?![/\\])/, "caminho interno")
+    .optional()
+    .catch(undefined),
+});
 
 export const Route = createFileRoute("/entrar")({
   ssr: false,

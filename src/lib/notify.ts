@@ -26,7 +26,17 @@ export function erro(mensagem: string, opcoes: ErroOpcoes = {}) {
 
 /** Traduz erros comuns de rede e do Supabase para uma frase que o usuário entende. */
 export function mensagemDeErro(e: unknown): string {
-  const texto = e instanceof Error ? e.message : typeof e === "string" ? e : "";
+  // Erros do Supabase (PostgrestError, AuthError) nem sempre são instâncias de Error.
+  const texto =
+    e instanceof Error
+      ? e.message
+      : typeof e === "string"
+        ? e
+        : typeof e === "object" && e !== null && "message" in e
+          ? String((e as { message: unknown }).message) +
+            " " +
+            String((e as { code?: unknown }).code ?? "")
+          : "";
   if (/failed to fetch|network|load failed/i.test(texto))
     return "Sem conexão com o servidor. Confira sua internet.";
   if (/rate limit|too many|429/i.test(texto))

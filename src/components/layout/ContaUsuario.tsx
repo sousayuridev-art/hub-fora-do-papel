@@ -14,8 +14,8 @@ export function iniciais(texto: string) {
   return ((partes[0]?.[0] ?? "") + (partes[1]?.[0] ?? "")).toUpperCase() || "?";
 }
 
-/** Usuário logado + botão de sair. */
-export function ContaUsuario() {
+/** Usuário logado + botão de sair. `escuro`: versão para o menu escuro do Hub. */
+export function ContaUsuario({ escuro = false }: { escuro?: boolean }) {
   const { session } = useSession();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -35,19 +35,31 @@ export function ContaUsuario() {
 
   return (
     <div className="flex min-h-12 items-center gap-3 px-3">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#EEF3FF] text-[13px] font-semibold text-[#1E3FA8]">
+      <span
+        className={
+          escuro
+            ? "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#2A2D33] text-[13px] font-semibold text-white"
+            : "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#EEF3FF] text-[13px] font-semibold text-[#1E3FA8]"
+        }
+      >
         {iniciais(nome)}
       </span>
-      <span
-        className="min-w-0 flex-1 truncate text-[14px] font-medium text-hub-tinta"
-        title={email}
-      >
-        {nome}
+      <span className="flex min-w-0 flex-1 flex-col leading-tight" title={email}>
+        <span
+          className={`truncate text-[14px] font-medium ${escuro ? "text-white" : "text-hub-tinta"}`}
+        >
+          {nome}
+        </span>
+        {escuro && <span className="font-rotulo text-[12.5px] text-menu-rotulo">Operador</span>}
       </span>
       <button
         type="button"
         onClick={() => void sair()}
-        className="flex size-10 items-center justify-center rounded-lg text-hub-suave hover:bg-hub-selecao hover:text-hub-tinta"
+        className={
+          escuro
+            ? "flex size-10 items-center justify-center rounded-lg text-menu-rotulo hover:bg-menu-ativo hover:text-white"
+            : "flex size-10 items-center justify-center rounded-lg text-hub-suave hover:bg-hub-selecao hover:text-hub-tinta"
+        }
         aria-label="Sair"
         title="Sair"
       >
