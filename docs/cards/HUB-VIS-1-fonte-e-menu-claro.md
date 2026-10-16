@@ -34,4 +34,5 @@ Pedido do Yuri depois de publicar o HUB-VIS-1: "ficou muito branco, traga mais c
 - Topo: logotipo em pílula ("Fora do Papel · Hub") e busca com Ctrl K.
 - Rodapé: Configurações e cartão da conta (#1E2127) com iniciais em âmbar.
 - Painel: ícones nos indicadores e números da fila em âmbar claro.
+- Barra de rolagem do menu escondida; aparece fina só enquanto a pessoa rola (pedido de 16/10, 15h08).
 **Aceite:** contraste de texto ≥ 4,5:1; build, lint e e2e passam.

@@ -208,3 +208,22 @@
     display: none;
   }
 }
+
+/* HUB-VIS-2: barra de rolagem do menu escondida; aparece fina só enquanto a pessoa rola. */
+.rolagem-discreta {
+  scrollbar-width: none;
+}
+.rolagem-discreta::-webkit-scrollbar {
+  width: 0;
+}
+.rolagem-discreta[data-rolando="true"] {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.28) transparent;
+}
+.rolagem-discreta[data-rolando="true"]::-webkit-scrollbar {
+  width: 6px;
+}
+.rolagem-discreta[data-rolando="true"]::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.28);
+  border-radius: 999px;
+}

@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 
@@ -52,6 +53,15 @@ export function MenuOperador({
   aoNavegar?: (() => void) | undefined;
   aoBuscar: () => void;
 }) {
+  // A barra de rolagem só aparece enquanto a pessoa rola o menu.
+  const [rolando, setRolando] = useState(false);
+  const relogio = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const aoRolar = () => {
+    setRolando(true);
+    if (relogio.current) clearTimeout(relogio.current);
+    relogio.current = setTimeout(() => setRolando(false), 900);
+  };
+
   return (
     <div className="flex h-full flex-col bg-menu text-menu-texto">
       <div className="flex flex-col gap-4 px-4 pb-2 pt-5">
@@ -78,7 +88,9 @@ export function MenuOperador({
       </div>
       <nav
         aria-label="Menu principal"
-        className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-3"
+        onScroll={aoRolar}
+        data-rolando={rolando}
+        className="rolagem-discreta flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-3"
       >
         {menuOperador.map((grupo) => (
           <div key={grupo.titulo ?? "inicio"} className="flex flex-col gap-1">
