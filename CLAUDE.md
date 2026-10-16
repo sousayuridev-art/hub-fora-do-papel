@@ -41,7 +41,7 @@ Lidas pelo Claude Code em todo pedido. Cards em `docs/cards/`; cite o card no pe
 
 ## Visual do Hub (sistema interno)
 - Fundo #F5F5F2, texto #0E1013, destaque #FFB020 só na ação principal.
-- Títulos Bricolage Grotesque, texto Geist, rótulos IBM Plex Mono.
+- Hub e portal: Plus Jakarta Sans em títulos, texto e rótulos; Bricolage Grotesque só no nome "Fora do Papel" (card HUB-VIS-1). Menu lateral claro.
 - Situações: neutro #F1F1EC/#2A2D33, informação #E5EDFF/#1E3FA8, atenção #FFF1D6/#7A4200, risco #FDE8E6/#9A1C12, concluído #E3F4EA/#145A37.
 
 ## Portal do cliente no celular (até 767 px; acima disso nada muda)

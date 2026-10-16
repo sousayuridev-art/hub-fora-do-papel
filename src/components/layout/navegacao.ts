@@ -18,7 +18,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type ItemMenu = { rotulo: string; para: string; icone: LucideIcon; exato?: boolean };
+export type ItemMenu = {
+  rotulo: string;
+  para: string;
+  icone: LucideIcon;
+  exato?: boolean;
+  /** Tela ainda não construída: o menu mostra "Em breve". */
+  emBreve?: boolean;
+};
 export type GrupoMenu = { titulo: string | null; itens: ItemMenu[] };
 
 /** Menu do operador, agrupado como na proposta 2 (16/10). */
@@ -32,26 +39,26 @@ export const menuOperador: GrupoMenu[] = [
     itens: [
       { rotulo: "Pipeline", para: "/app/pipeline", icone: KanbanSquare },
       { rotulo: "Clientes", para: "/app/clientes", icone: Users },
-      { rotulo: "Propostas", para: "/app/propostas", icone: FileText },
-      { rotulo: "Tráfego pago", para: "/app/trafego", icone: Megaphone },
+      { rotulo: "Propostas", para: "/app/propostas", icone: FileText, emBreve: true },
+      { rotulo: "Tráfego pago", para: "/app/trafego", icone: Megaphone, emBreve: true },
     ],
   },
   {
     titulo: "Entregar",
     itens: [
-      { rotulo: "Projetos", para: "/app/projetos", icone: FolderKanban },
-      { rotulo: "Pedidos", para: "/app/pedidos", icone: Inbox },
+      { rotulo: "Projetos", para: "/app/projetos", icone: FolderKanban, emBreve: true },
+      { rotulo: "Pedidos", para: "/app/pedidos", icone: Inbox, emBreve: true },
     ],
   },
   {
     titulo: "Biblioteca",
-    itens: [{ rotulo: "Materiais", para: "/app/materiais", icone: Library }],
+    itens: [{ rotulo: "Materiais", para: "/app/materiais", icone: Library, emBreve: true }],
   },
   {
     titulo: "Gestão",
     itens: [
-      { rotulo: "Financeiro", para: "/app/financeiro", icone: Wallet },
-      { rotulo: "Relatórios", para: "/app/relatorios", icone: BarChart3 },
+      { rotulo: "Financeiro", para: "/app/financeiro", icone: Wallet, emBreve: true },
+      { rotulo: "Relatórios", para: "/app/relatorios", icone: BarChart3, emBreve: true },
     ],
   },
 ];

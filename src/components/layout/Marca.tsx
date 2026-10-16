@@ -19,7 +19,7 @@ export function Marca() {
   return (
     <span className="flex items-center gap-2.5">
       <Simbolo />
-      <span className="font-titulo text-base font-semibold tracking-tight text-hub-tinta">
+      <span className="font-marca text-base font-semibold tracking-tight text-hub-tinta">
         Fora do Papel
       </span>
     </span>

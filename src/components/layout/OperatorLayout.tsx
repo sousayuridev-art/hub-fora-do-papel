@@ -8,7 +8,7 @@ import { BuscaGeral } from "@/components/layout/BuscaGeral";
 
 /**
  * Casca do sistema interno (proposta 2).
- * Computador: menu escuro fixo de 240 px. Celular: barra no topo com o menu em gaveta.
+ * Computador: menu claro fixo de 264 px (HUB-VIS-1). Celular: barra no topo com o menu em gaveta.
  */
 export function OperatorLayout({ children }: { children: ReactNode }) {
   const [gavetaAberta, setGavetaAberta] = useState(false);
@@ -27,7 +27,7 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-hub-fundo text-hub-tinta">
-      <aside className="fixed inset-y-0 left-0 hidden w-60 md:block">
+      <aside className="fixed inset-y-0 left-0 hidden w-66 border-r border-hub-borda md:block">
         <MenuOperador aoBuscar={() => setBuscaAberta(true)} />
       </aside>
 
@@ -66,7 +66,7 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
 
       <BuscaGeral aberta={buscaAberta} aoMudar={setBuscaAberta} />
 
-      <main className="md:pl-60">
+      <main className="md:pl-66">
         <div className="mx-auto w-full max-w-[1320px] px-4 py-6 md:px-8 md:py-7">{children}</div>
       </main>
     </div>
