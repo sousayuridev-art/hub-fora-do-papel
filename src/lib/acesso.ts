@@ -20,6 +20,15 @@ export const inicioDoPapel: Record<Papel, "/app" | "/portal"> = {
 
 /** Papel do usuário pela RPC my_access() (security definer). Dono tem prioridade sobre cliente. */
 export async function buscarAcesso(): Promise<Acesso> {
+  const primeiro = await lerAcesso();
+  if (primeiro.papel) return primeiro;
+  // Sem papel: pode ser o primeiro acesso de um cliente convidado. O banco liga o e-mail ao convite.
+  const { data, error } = await supabase.rpc("portal_aceitar_convite");
+  if (error || !((data as { ligados?: number } | null)?.ligados ?? 0)) return primeiro;
+  return lerAcesso();
+}
+
+async function lerAcesso(): Promise<Acesso> {
   const { data, error } = await supabase.rpc("my_access");
   if (error) throw error;
   const linhas = (data ?? []) as LinhaAcesso[];

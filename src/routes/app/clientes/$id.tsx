@@ -11,6 +11,8 @@ import {
 } from "@/components/clientes/ClienteOportunidade";
 import { ClienteContato } from "@/components/clientes/ClienteContato";
 import { ClientePropostas } from "@/components/clientes/ClientePropostas";
+import { ClienteProjetos } from "@/components/clientes/ClienteProjetos";
+import { ClienteAcessoPortal } from "@/components/clientes/ClienteAcessoPortal";
 import { ClienteAnotacoes } from "@/components/clientes/ClienteAnotacoes";
 import { ClienteLinhaDoTempo } from "@/components/clientes/ClienteLinhaDoTempo";
 import { EditarClientePainel } from "@/components/clientes/EditarClientePainel";
@@ -161,10 +163,12 @@ function Ficha() {
                 Esta ficha ainda não tem oportunidade no funil.
               </p>
             )}
+            <ClienteProjetos clienteId={c.id} />
             <ClientePropostas clienteId={c.id} />
           </div>
           <div className="flex flex-col gap-4">
             <ClienteContato c={c} />
+            <ClienteAcessoPortal clienteId={c.id} emailSugerido={c.email} />
             <ClienteAnotacoes clienteId={c.id} linha={linha.data} />
           </div>
         </div>
