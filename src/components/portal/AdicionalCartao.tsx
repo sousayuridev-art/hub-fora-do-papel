@@ -16,10 +16,12 @@ const botaoClaro =
 export function AdicionalCartao({
   a,
   enviando,
+  podeAprovar = true,
   aoDecidir,
 }: {
   a: AdicionalPortal;
   enviando: boolean;
+  podeAprovar?: boolean;
   aoDecidir: (aprova: boolean, comentario: string) => void;
 }) {
   const [confirmar, setConfirmar] = useState<null | boolean>(null);
@@ -44,9 +46,11 @@ export function AdicionalCartao({
         </h2>
         {a.descricao && <p className="text-[15px] text-hub-suave">{a.descricao}</p>}
         {a.nota && <p className="rounded-xl bg-hub-fundo p-4 text-[15px]">{a.nota}</p>}
-        <p className="text-[14px] text-hub-suave">
-          Este pedido vai além do que combinamos na proposta. Ele só começa se você aprovar.
-        </p>
+        {aberto && (
+          <p className="text-[14px] text-hub-suave">
+            Este pedido vai além do que combinamos na proposta. Ele só começa se você aprovar.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-4 rounded-2xl bg-hub-tinta p-5 text-white">
@@ -62,7 +66,11 @@ export function AdicionalCartao({
           </span>
         </div>
 
-        {aberto ? (
+        {aberto && !podeAprovar ? (
+          <p className="text-[14.5px] text-[#C9CBD0]">
+            Quem aprova na sua empresa decide este serviço. Seu acesso é só para acompanhar.
+          </p>
+        ) : aberto ? (
           confirmar === null ? (
             <div className="flex flex-col gap-2">
               <button

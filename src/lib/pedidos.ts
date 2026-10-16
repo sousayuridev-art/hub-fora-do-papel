@@ -171,6 +171,7 @@ export function mensagemDoPedido(e: unknown): string | null {
   const mapa: Record<string, string> = {
     adicional_sem_aprovacao: "O serviço adicional só começa depois que o cliente aprovar.",
     pedido_ja_andando: "Esse pedido já está andando; não dá para reclassificar.",
+    pedido_ja_decidido: "O cliente já decidiu este pedido; o valor aprovado não muda.",
     horas_obrigatorias: "Informe as horas do serviço adicional.",
     classifique_antes: "Classifique o pedido antes de iniciar.",
     pedido_nao_e_adicional: "Só serviço adicional vai para o cliente decidir.",

@@ -17,11 +17,13 @@ const botaoClaro =
 export function EntregaCartao({
   e,
   enviando,
+  podeAprovar = true,
   aoAprovar,
   aoPedirAjuste,
 }: {
   e: EntregaPortal;
   enviando: boolean;
+  podeAprovar?: boolean;
   aoAprovar: (comentario: string) => void;
   aoPedirAjuste: (comentario: string) => void;
 }) {
@@ -85,7 +87,12 @@ export function EntregaCartao({
         </p>
       )}
 
-      {aberta && modo === "ver" && (
+      {aberta && !podeAprovar && (
+        <p className="rounded-xl bg-hub-fundo p-4 text-[14.5px] text-hub-suave">
+          Quem aprova na sua empresa decide esta entrega. Seu acesso é só para acompanhar.
+        </p>
+      )}
+      {aberta && podeAprovar && modo === "ver" && (
         <div className="flex flex-col gap-2 md:flex-row">
           <button
             type="button"

@@ -44,7 +44,7 @@ function Inicio() {
       <TituloPortal
         rotulo={d.empresa}
         titulo={primeiro ? `Olá, ${primeiro}` : "Olá"}
-        texto={`Aqui você acompanha o seu projeto, aprova entregas e faz pedidos. Seu responsável é ${d.responsavel}.`}
+        texto={`Aqui você acompanha o seu projeto, aprova entregas e faz pedidos.${d.responsavel ? ` Seu responsável é ${d.responsavel}.` : ""}`}
       />
       <PortalResumo p={d.pendencias} />
       <PortalAcoes

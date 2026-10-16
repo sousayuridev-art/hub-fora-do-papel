@@ -67,6 +67,7 @@ function Aprovacoes() {
                     key={e.id}
                     e={e}
                     enviando={enviando}
+                    podeAprovar={d.pode_aprovar}
                     aoAprovar={(c) => m.aprovar.mutate({ id: e.id, comentario: c })}
                     aoPedirAjuste={(c) => m.ajuste.mutate({ id: e.id, comentario: c })}
                   />
@@ -76,6 +77,7 @@ function Aprovacoes() {
                     key={a.id}
                     a={a}
                     enviando={enviando}
+                    podeAprovar={d.pode_aprovar}
                     aoDecidir={(aprova, c) =>
                       m.adicional.mutate({ id: a.id, aprova, comentario: c })
                     }

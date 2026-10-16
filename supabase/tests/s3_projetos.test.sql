@@ -2,14 +2,17 @@
 -- serviço adicional só depois do sim, lançamento com checklist, convite e isolamento.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(37);
+select plan(42);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
   ('00000000-0000-0000-0000-0000000000a2', 'outra-agencia@test'),
   ('00000000-0000-0000-0000-0000000000c1', 'paula@sorriso.test'),
-  ('00000000-0000-0000-0000-0000000000c2', 'Bruno@Otica.test'),
-  ('00000000-0000-0000-0000-0000000000c3', 'estranho@test');
+  ('00000000-0000-0000-0000-0000000000c3', 'estranho@test'),
+  ('00000000-0000-0000-0000-0000000000c4', 'estagiaria@sorriso.test');
+insert into auth.users (id, email, email_confirmed_at) values
+  ('00000000-0000-0000-0000-0000000000c2', 'Bruno@Otica.test', null),
+  ('00000000-0000-0000-0000-0000000000c5', 'ana@sorriso.test', now());
 delete from public.tenants where slug = 'fora-do-papel';
 insert into public.tenants (id, name, slug) values
   ('10000000-0000-0000-0000-000000000001', 'Fora do Papel', 'fora-do-papel'),
@@ -23,6 +26,11 @@ insert into public.clients (id, tenant_id, company_name, contact_name, whatsapp)
   ('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'Clínica Sorriso Leve', 'Paula Viana', '79900000001');
 insert into public.client_members (client_id, user_id, tenant_id) values
   ('20000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c1', '10000000-0000-0000-0000-000000000001');
+-- Estagiária: vê o portal, mas não pode aprovar
+insert into public.memberships (tenant_id, user_id, role) values
+  ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c4', 'client');
+insert into public.client_members (client_id, user_id, tenant_id, can_approve) values
+  ('20000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000c4', '10000000-0000-0000-0000-000000000001', false);
 insert into public.deals (id, tenant_id, client_id, stage, next_step, next_step_at) values
   ('30000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', 'proposta', 'Retorno', now());
 
@@ -35,6 +43,20 @@ values ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-0000000
 update public.proposals set status = 'aceita', token = repeat('c', 64), sent_at = now(), accepted_at = now(),
        accept_data = '{"nome":"Paula Viana"}', snapshot = '{"mensalidade":{"nome":"Evolução","cents":120000}}'
  where id = '40000000-0000-0000-0000-000000000001';
+
+-- Proposta com valores no limite também vira projeto (o aceite do cliente nunca falha por isso)
+insert into public.deals (id, tenant_id, client_id, stage, next_step, next_step_at) values
+  ('30000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'proposta', 'Retorno', now());
+insert into public.proposals (id, tenant_id, client_id, deal_id, project_type, hours_total, total_cents)
+values ('40000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001',
+        '30000000-0000-0000-0000-000000000003', 'X', 99999.9, 2000000000);
+update public.proposals set status = 'aceita', token = repeat('e', 64), sent_at = now(), accepted_at = now(),
+       accept_data = '{"nome":"Bruno"}', snapshot = '{"mensalidade":{"nome":"Plano grande","cents":90000000}}'
+ where id = '40000000-0000-0000-0000-000000000002';
+select is((select name || ':' || value_cents || ':' || monthly_cents from public.projects
+            where proposal_id = '40000000-0000-0000-0000-000000000002'), 'Projeto:100000000:90000000',
+  'Valores no limite não travam o aceite');
+delete from public.projects where proposal_id = '40000000-0000-0000-0000-000000000002';
 
 create temp table t (chave text primary key, valor jsonb);
 grant all on t to authenticated, anon;
@@ -49,7 +71,8 @@ select is((select plan_name || ':' || monthly_cents || ':' || hours_estimated fr
             where proposal_id = '40000000-0000-0000-0000-000000000001'), 'Evolução:120000:42.0', 'Plano, mensal e horas vêm da proposta');
 select is((select count(*) from public.launch_items where project_id = (select (valor->>'id')::uuid from t where chave = 'proj'))::int,
   6, 'Checklist padrão com a mensalidade');
-select is((select count(*) from public.event_outbox where event = 'projeto.criado')::int, 1, 'Evento projeto.criado para o n8n');
+select is((select count(*) from public.event_outbox where event = 'projeto.criado'
+                and payload->>'proposta_id' = '40000000-0000-0000-0000-000000000001')::int, 1, 'Evento projeto.criado para o n8n');
 
 -- ===== Yuri (dono) =====
 set local role authenticated;
@@ -100,6 +123,13 @@ select is((select count(*) from public.projects)::int + (select count(*) from pu
 select throws_ok(format($$ select public.projeto_detalhe(%L) $$, (select valor->>'id' from t where chave = 'proj')),
   'P0002', null, 'Outra agência não abre o projeto');
 
+-- ===== Estagiária (sem permissão de aprovar) =====
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c4","role":"authenticated"}', true);
+select throws_ok(format($$ select public.portal_aprovar(%L) $$, (select valor->>'id' from t where chave = 'ap')),
+  '42501', null, 'Quem não pode aprovar não aprova entrega');
+select throws_ok(format($$ select public.portal_adicional_decidir(%L, true) $$, (select valor->>'id' from t where chave = 'ped')),
+  '42501', null, 'Quem não pode aprovar não decide serviço adicional');
+
 -- ===== Cliente do portal (Paula, Sorriso) =====
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
 select is((select count(*) from public.projects)::int + (select count(*) from public.time_entries)::int
@@ -122,11 +152,17 @@ select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000
 select is((public.portal_aceitar_convite()) ->> 'ligados', '0', 'E-mail sem convite não ganha acesso');
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated"}', true);
 select throws_ok($$ select public.portal_pendencias() $$, '42501', null, 'Antes do convite aceito, sem portal');
+select is((public.portal_aceitar_convite()) ->> 'ligados', '0', 'E-mail ainda não confirmado não liga o convite');
+reset role;
+update auth.users set email_confirmed_at = now() where id = '00000000-0000-0000-0000-0000000000c2';
+set local role authenticated;
 select is((public.portal_aceitar_convite()) ->> 'ligados', '1', 'Primeiro acesso liga o e-mail convidado');
 select is((public.portal_inicio()) ->> 'empresa', 'Ótica Visão Clara', 'Convidado vê só a própria empresa');
 
 -- ===== Yuri de novo =====
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select throws_ok(format($$ select public.pedido_classificar(%L, 'adicional', 40) $$, (select valor->>'id' from t where chave = 'ped')),
+  '22023', null, 'Depois do sim do cliente, o preço não muda');
 select is((public.pedido_iniciar((select (valor->>'id')::uuid from t where chave = 'ped'))) ->> 'status', 'fazendo',
   'Depois do sim do cliente, o serviço adicional começa');
 select ok(exists (select 1 from jsonb_array_elements((public.painel_novidades()) -> 'novidades') x

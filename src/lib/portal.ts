@@ -26,7 +26,7 @@ export type AcaoPortal =
 export type InicioPortal = {
   empresa: string;
   contato: string | null;
-  responsavel: string;
+  responsavel: string | null;
   hoje: string;
   pendencias: PendenciasDoPortal;
   projeto: {
@@ -74,7 +74,11 @@ export type AdicionalPortal = {
   decidido_em: string | null;
 };
 
-export type AprovacoesPortal = { entregas: EntregaPortal[]; adicionais: AdicionalPortal[] };
+export type AprovacoesPortal = {
+  pode_aprovar: boolean;
+  entregas: EntregaPortal[];
+  adicionais: AdicionalPortal[];
+};
 
 export type PedidoPortal = {
   id: string;
@@ -152,6 +156,7 @@ export function mensagemDoPortal(e: unknown): string | null {
     e instanceof Error ? e.message : ((e as { message?: string } | null)?.message ?? "");
   const mapa: Record<string, string> = {
     aprovacao_ja_decidida: "Essa entrega já foi respondida.",
+    sem_permissao_aprovar: "Seu acesso não permite aprovar. Peça a quem aprova na sua empresa.",
     comentario_obrigatorio: "Conte o que precisa mudar (pelo menos 5 letras).",
     pedido_indisponivel: "Esse pedido não está mais esperando sua decisão.",
     muitas_tentativas: "Você já fez muitos pedidos hoje. Fale com o seu responsável pelo WhatsApp.",

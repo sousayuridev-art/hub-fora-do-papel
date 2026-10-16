@@ -42,6 +42,10 @@ function resumo(p: PedidoPortal): string {
   if (p.status === "recusado") return p.nota ?? "Este pedido não será feito.";
   if (p.status === "aguardando_cliente")
     return `Virou serviço adicional: ${p.horas?.toLocaleString("pt-BR")} h, ${moeda(p.valor_cents)}. Decida em Aprovações.`;
+  if (p.classificacao === "adicional" && p.decisao === "aprovado")
+    return `Serviço adicional aprovado por você (${moeda(p.valor_cents)}). ${
+      p.status === "fazendo" ? "Estamos trabalhando nisso." : "Começa em breve."
+    }`;
   if (p.classificacao === "escopo") return "Está dentro do que combinamos. Sem custo.";
   if (p.classificacao === "mensalidade") return "Usa as horas da sua mensalidade.";
   return `Recebido ${diaComHora(p.criado_em)}.`;

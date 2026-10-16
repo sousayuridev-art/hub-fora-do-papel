@@ -287,6 +287,7 @@ export const lancarProjeto = (id: string) =>
 
 /** "90" → "1h30"; "60" → "1h"; "30" → "30 min". */
 export function horasMin(minutos: number): string {
+  if (minutos <= 0) return "0 h";
   const h = Math.floor(minutos / 60);
   const m = Math.round(minutos % 60);
   if (h === 0) return `${m} min`;

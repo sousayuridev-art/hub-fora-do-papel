@@ -168,3 +168,17 @@ Hoje, depois do aceite, o andamento fica na memória do Yuri e no WhatsApp. Com 
 - **Horas e encerramento:** horas lançadas aparecem no projeto e na semana. "Lançar projeto" só libera com o checklist completo.
 - **Celular:** a 390 px, sem rolagem lateral no Hub e no portal.
 - **Verificações:** build, lint, vitest, pgTAP e e2e passam.
+
+## Notas da implementação (16/10)
+- **Revisão de segurança independente** (antes de publicar). Corrigido:
+  - preço do serviço adicional não muda depois do sim do cliente;
+  - só quem tem "pode aprovar" decide no portal (os outros só acompanham);
+  - convite só liga e-mail confirmado;
+  - limite de pedidos sem corrida;
+  - aceite da proposta nunca falha por valor no limite;
+  - convites com limite diário;
+  - tirar acesso cancela convites abertos.
+- **Ficou para depois** (registrado, sem risco hoje):
+  - troca de empresa ou de projeto no portal (pessoa com duas empresas ou cliente com dois projetos vê a primeira empresa e o projeto mais recente);
+  - quem tem mais de uma agência soma pedidos das duas em `pedidos_resumo`.
+- **Supabase de produção:** o login do cliente usa link de acesso. Se o convidado não conseguir entrar, confira em Authentication › Sign In / Providers se "Allow new users to sign up" está ligado.

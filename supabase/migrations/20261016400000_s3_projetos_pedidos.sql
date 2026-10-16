@@ -27,10 +27,10 @@ create table public.projects (
   name             text not null check (length(trim(name)) between 2 and 120),
   status           public.project_status not null default 'andamento',
   launch_date      date,
-  hours_estimated  numeric(6,1) not null default 0 check (hours_estimated between 0 and 9999),
+  hours_estimated  numeric(7,1) not null default 0 check (hours_estimated between 0 and 99999.9),
   value_cents      integer not null default 0 check (value_cents between 0 and 100000000),
   plan_name        text,
-  monthly_cents    integer check (monthly_cents is null or monthly_cents between 0 and 10000000),
+  monthly_cents    integer check (monthly_cents is null or monthly_cents between 0 and 100000000),
   started_at       timestamptz not null default now(),
   launched_at      timestamptz,
   created_at       timestamptz not null default now(),
@@ -305,7 +305,7 @@ begin
   end loop;
   if p.plan_name is not null then
     insert into public.launch_items (tenant_id, project_id, position, title)
-    values (p.tenant_id, p.id, i + 1, 'Mensalidade ' || p.plan_name || ' combinada');
+    values (p.tenant_id, p.id, i + 1, left('Mensalidade ' || p.plan_name || ' combinada', 120));
   end if;
 end;
 $$;
@@ -355,9 +355,11 @@ begin
   insert into public.projects (tenant_id, client_id, deal_id, proposal_id, name, launch_date, hours_estimated,
                                value_cents, plan_name, monthly_cents)
   values (pr.tenant_id, pr.client_id, pr.deal_id, pr.id,
-          left(coalesce(nullif(trim(pr.project_type), ''), nullif(trim(pr.title), ''), 'Projeto'), 120),
-          pr.launch_date, coalesce(pr.hours_total, 0), coalesce(pr.total_cents, 0),
-          s->'mensalidade'->>'nome', (s->'mensalidade'->>'cents')::int)
+          left(coalesce((select x from unnest(array[trim(pr.project_type), trim(pr.title)]) x where length(x) >= 2 limit 1),
+                        'Projeto'), 120),
+          pr.launch_date, least(greatest(coalesce(pr.hours_total, 0), 0), 99999.9),
+          least(greatest(coalesce(pr.total_cents, 0), 0), 100000000),
+          left(s->'mensalidade'->>'nome', 80), least((s->'mensalidade'->>'cents')::bigint, 100000000)::int)
   returning * into p;
   perform public._projeto_fases(p, pr.phases);
   perform public._projeto_padrao(p);
@@ -426,10 +428,11 @@ begin
     p.name := left(trim(j->>'nome'), 120);
   end if;
   if j ? 'lancamento' then p.launch_date := nullif(j->>'lancamento', '')::date; end if;
-  if j ? 'horas_estimadas' then p.hours_estimated := greatest(0, least(9999, coalesce((j->>'horas_estimadas')::numeric, 0))); end if;
+  if j ? 'horas_estimadas' then p.hours_estimated := greatest(0, least(99999.9, coalesce((j->>'horas_estimadas')::numeric, 0))); end if;
   update public.projects set name = p.name, launch_date = p.launch_date, hours_estimated = p.hours_estimated
    where id = p.id returning * into p;
-  perform public._projeto_evento(p.tenant_id, p.client_id, p.id, null, 'projeto_atualizado', j, 'hub', null);
+  perform public._projeto_evento(p.tenant_id, p.client_id, p.id, null, 'projeto_atualizado',
+    jsonb_build_object('nome', p.name, 'lancamento', p.launch_date, 'horas_estimadas', p.hours_estimated), 'hub', null);
   return to_jsonb(p) - 'tenant_id';
 end;
 $$;
@@ -551,7 +554,7 @@ create or replace function public.tarefa_criar(
 declare p public.projects := public._projeto_do_dono(p_projeto); t public.project_tasks;
 begin
   if length(trim(coalesce(p_titulo, ''))) < 2 then raise exception 'titulo_obrigatorio' using errcode = '22023'; end if;
-  if p_pedido is not null and not exists (select 1 from public.requests where id = p_pedido and tenant_id = p.tenant_id) then
+  if p_pedido is not null and not exists (select 1 from public.requests where id = p_pedido and project_id = p.id) then
     raise exception 'pedido_inexistente' using errcode = 'P0002';
   end if;
   insert into public.project_tasks (tenant_id, project_id, request_id, cycle, area, title, description, position)
@@ -726,6 +729,7 @@ declare r public.requests := public._pedido_do_dono(p_id); s public.pricing_sett
         h numeric := greatest(0, least(999, coalesce(p_horas, 0)));
 begin
   if r.status not in ('recebido', 'em_analise') then raise exception 'pedido_ja_andando' using errcode = '22023'; end if;
+  if r.client_decision is not null then raise exception 'pedido_ja_decidido' using errcode = '22023'; end if;
   if p_classificacao is null then raise exception 'classificacao_obrigatoria' using errcode = '22023'; end if;
   if p_classificacao = 'adicional' and h <= 0 then raise exception 'horas_obrigatorias' using errcode = '22023'; end if;
   -- Dentro do combinado ou da mensalidade: vai direto para "Fazendo"
@@ -920,8 +924,11 @@ begin
     raise exception 'cliente_inexistente' using errcode = 'P0002';
   end if;
   if v !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' or length(v) > 160 then raise exception 'email_invalido' using errcode = '22023'; end if;
+  if (select count(*) from public.portal_invites where tenant_id = t and created_at > now() - interval '1 day') >= 30 then
+    raise exception 'muitas_tentativas' using errcode = '54000';
+  end if;
   if exists (select 1 from public.memberships m join auth.users u on u.id = m.user_id
-              where lower(u.email) = v and m.role = 'owner') then
+              where lower(u.email) = v and m.role = 'owner' and m.tenant_id = t) then
     raise exception 'email_de_dono' using errcode = '22023';
   end if;
   if exists (select 1 from public.client_members cm join auth.users u on u.id = cm.user_id
@@ -961,6 +968,9 @@ begin
     raise exception 'cliente_inexistente' using errcode = 'P0002';
   end if;
   delete from public.client_members where client_id = p_cliente and user_id = p_usuario;
+  update public.portal_invites set canceled_at = now()
+   where client_id = p_cliente and accepted_at is null and canceled_at is null
+     and lower(email) = (select lower(email) from auth.users where id = p_usuario);
   -- Sem outra empresa nesse tenant, perde o papel de cliente
   if not exists (select 1 from public.client_members where user_id = p_usuario and tenant_id = t) then
     delete from public.memberships where user_id = p_usuario and tenant_id = t and role = 'client';
@@ -995,7 +1005,7 @@ returns jsonb language plpgsql volatile security definer set search_path = publi
 declare v text; i public.portal_invites; n int := 0;
 begin
   if auth.uid() is null then return jsonb_build_object('ligados', 0); end if;
-  select lower(email) into v from auth.users where id = auth.uid();
+  select lower(email) into v from auth.users where id = auth.uid() and email_confirmed_at is not null;
   if v is null then return jsonb_build_object('ligados', 0); end if;
   for i in select * from public.portal_invites
             where lower(email) = v and accepted_at is null and canceled_at is null and expires_at > now() for update loop
@@ -1032,6 +1042,13 @@ end;
 $$;
 revoke all on function public._portal_cliente(uuid) from public, anon, authenticated;
 
+create or replace function public._portal_pode_aprovar(p_cliente uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.client_members
+                  where client_id = p_cliente and user_id = auth.uid() and can_approve);
+$$;
+revoke all on function public._portal_pode_aprovar(uuid) from public, anon, authenticated;
+
 create or replace function public.portal_pendencias(p_cliente uuid default null)
 returns jsonb language plpgsql stable security definer set search_path = public as $$
 declare c uuid := public._portal_cliente(p_cliente); ap int; pe int; ad int;
@@ -1054,11 +1071,10 @@ begin
   return jsonb_build_object(
     'empresa', (select company_name from public.clients where id = c),
     'contato', (select contact_name from public.clients where id = c),
-    'responsavel', coalesce((select coalesce(nullif(trim(pr.full_name), ''), nullif(trim(u.raw_user_meta_data->>'full_name'), ''))
+    'responsavel', (select coalesce(nullif(trim(pr.full_name), ''), nullif(trim(u.raw_user_meta_data->>'full_name'), ''))
                      from public.memberships m join auth.users u on u.id = m.user_id
                      left join public.profiles pr on pr.id = m.user_id
                     where m.tenant_id = t and m.role = 'owner' order by m.created_at limit 1),
-                    (select name from public.tenants where id = t)),
     'hoje', public._hoje(t),
     'pendencias', public.portal_pendencias(c),
     'projeto', case when p.id is null then null else jsonb_build_object(
@@ -1088,6 +1104,7 @@ returns jsonb language plpgsql stable security definer set search_path = public 
 declare c uuid := public._portal_cliente(p_cliente);
 begin
   return jsonb_build_object(
+    'pode_aprovar', public._portal_pode_aprovar(c),
     'entregas', coalesce((select jsonb_agg(jsonb_build_object('id', a.id, 'titulo', a.title, 'descricao', a.description,
         'itens', a.items, 'previa', a.preview_url, 'status', a.status, 'enviada_em', a.sent_at,
         'decidida_em', a.decided_at, 'comentario', a.decision_note,
@@ -1124,6 +1141,7 @@ declare a public.approvals;
 begin
   select * into a from public.approvals where id = p_id for update;
   if a.id is null or not public.is_client_member(a.client_id) then raise exception 'aprovacao_inexistente' using errcode = 'P0002'; end if;
+  if not public._portal_pode_aprovar(a.client_id) then raise exception 'sem_permissao_aprovar' using errcode = '42501'; end if;
   if a.status = 'aprovada' then return jsonb_build_object('repetido', true); end if;
   if a.status <> 'aguardando' then raise exception 'aprovacao_ja_decidida' using errcode = '22023'; end if;
   update public.approvals set status = 'aprovada', decided_at = now(), decided_by = auth.uid(),
@@ -1142,6 +1160,7 @@ declare a public.approvals;
 begin
   select * into a from public.approvals where id = p_id for update;
   if a.id is null or not public.is_client_member(a.client_id) then raise exception 'aprovacao_inexistente' using errcode = 'P0002'; end if;
+  if not public._portal_pode_aprovar(a.client_id) then raise exception 'sem_permissao_aprovar' using errcode = '42501'; end if;
   if a.status <> 'aguardando' then raise exception 'aprovacao_ja_decidida' using errcode = '22023'; end if;
   if length(trim(coalesce(p_comentario, ''))) < 5 then raise exception 'comentario_obrigatorio' using errcode = '22023'; end if;
   update public.approvals set status = 'ajuste', decided_at = now(), decided_by = auth.uid(),
@@ -1159,6 +1178,7 @@ declare r public.requests;
 begin
   select * into r from public.requests where id = p_id for update;
   if r.id is null or not public.is_client_member(r.client_id) then raise exception 'pedido_inexistente' using errcode = 'P0002'; end if;
+  if not public._portal_pode_aprovar(r.client_id) then raise exception 'sem_permissao_aprovar' using errcode = '42501'; end if;
   if r.client_decision is not null and r.status <> 'aguardando_cliente' then return jsonb_build_object('repetido', true); end if;
   if r.status <> 'aguardando_cliente' then raise exception 'pedido_indisponivel' using errcode = '22023'; end if;
   update public.requests set client_decision = case when p_aprova then 'aprovado' else 'recusado' end,
@@ -1193,6 +1213,7 @@ returns jsonb language plpgsql volatile security definer set search_path = publi
 declare c uuid := public._portal_cliente(p_cliente); t uuid; r public.requests;
 begin
   select tenant_id into t from public.clients where id = c;
+  perform pg_advisory_xact_lock(hashtext('pedido:' || c::text));
   -- Limite contra excesso: 20 pedidos por dia por empresa
   if (select count(*) from public.requests where client_id = c and created_at > now() - interval '1 day') >= 20 then
     raise exception 'muitas_tentativas' using errcode = '54000';
