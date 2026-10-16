@@ -53,7 +53,7 @@ export function PaginaProposta({
                 <a
                   key={s.id}
                   href={`#${s.id}`}
-                  className="flex min-h-10 items-center gap-2 rounded-lg px-2 text-[14px] text-hub-suave hover:bg-white hover:text-hub-tinta"
+                  className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-[14px] text-hub-suave hover:bg-white hover:text-hub-tinta"
                 >
                   <span className="text-[12.5px] font-semibold tabular-nums">
                     {String(i + 1).padStart(2, "0")}

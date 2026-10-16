@@ -43,7 +43,8 @@ export function mensagemDeErro(e: unknown): string {
     return "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.";
   if (/email.*invalid|invalid.*email/i.test(texto))
     return "Não conseguimos enviar para esse e-mail. Confira o endereço digitado.";
-  if (/jwt|token|session/i.test(texto)) return "Sua sessão expirou. Entre de novo.";
+  if (/jwt expired|invalid jwt|session_not_found|refresh_token|auth session missing/i.test(texto))
+    return "Sua sessão expirou. Entre de novo.";
   if (/permission|42501|row-level security/i.test(texto))
     return "Você não tem permissão para essa ação.";
   return "Algo deu errado. Tente de novo em instantes.";

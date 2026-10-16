@@ -24,9 +24,18 @@ export function PrecosFormulario({ dados }: { dados: DadosPrecos }) {
   const [p, setP] = useState<Precos>(dados.precos);
   const [planos, setPlanos] = useState<PlanoPreco[]>(dados.planos);
 
+  // Recarregar (trocar de janela) não apaga o que a pessoa está editando
+  const [base, setBase] = useState(dados);
   useEffect(() => {
-    setP(dados.precos);
-    setPlanos(dados.planos);
+    const editando =
+      JSON.stringify(p) !== JSON.stringify(base.precos) ||
+      JSON.stringify(planos) !== JSON.stringify(base.planos);
+    if (!editando) {
+      setP(dados.precos);
+      setPlanos(dados.planos);
+    }
+    setBase(dados);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dados]);
 
   const mudou = useMemo(
@@ -60,13 +69,14 @@ export function PrecosFormulario({ dados }: { dados: DadosPrecos }) {
   const mudarPlano = (id: string, campos: Partial<PlanoPreco>) =>
     setPlanos((atual) => atual.map((pl) => (pl.id === id ? { ...pl, ...campos } : pl)));
   const pisoErrado = p.floor_cents > p.hour_cents;
+  const conferido = Boolean(dados.precos.confirmed_at);
 
   return (
     <form
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        if (mudou && !pisoErrado) salvar.mutate();
+        if ((mudou || !conferido) && !pisoErrado) salvar.mutate();
       }}
     >
       <div className="flex gap-3 rounded-2xl bg-sit-info p-4 text-sit-info-t">
@@ -90,7 +100,9 @@ export function PrecosFormulario({ dados }: { dados: DadosPrecos }) {
             ? "O piso não pode ser maior que a hora de referência."
             : mudou
               ? "Há alterações sem salvar."
-              : "Nenhuma alteração pendente."}
+              : !conferido
+                ? "Preços ainda não conferidos: confira e salve para liberar o envio de propostas."
+                : `Conferidos em ${new Date(dados.precos.confirmed_at ?? "").toLocaleDateString("pt-BR")}.`}
         </p>
         <button
           type="button"
@@ -106,10 +118,10 @@ export function PrecosFormulario({ dados }: { dados: DadosPrecos }) {
         <button
           type="submit"
           className={`${classeAcaoPrincipal} disabled:opacity-50`}
-          disabled={!mudou || pisoErrado || salvar.isPending}
+          disabled={(!mudou && conferido) || pisoErrado || salvar.isPending}
         >
           <Check className="size-4" aria-hidden="true" />
-          Salvar alterações
+          {conferido || mudou ? "Salvar alterações" : "Conferi, salvar"}
         </button>
       </div>
     </form>

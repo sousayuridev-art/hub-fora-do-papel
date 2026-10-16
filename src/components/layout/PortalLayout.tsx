@@ -17,19 +17,15 @@ type Props = {
   barraDeAcao?: ReactNode;
 };
 
-/** Nome da empresa do cliente logado. A RLS garante que ele só enxerga a própria. */
+/** Nome da empresa do cliente logado (RPC portal_minha_empresa: só campos públicos da própria empresa). */
 function useEmpresaDoCliente(clientId: string | null) {
   return useQuery({
     queryKey: ["clientes", clientId, "nome"],
     enabled: Boolean(clientId),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("company_name")
-        .eq("id", clientId ?? "")
-        .single();
+      const { data, error } = await supabase.rpc("portal_minha_empresa");
       if (error) throw error;
-      return data.company_name as string;
+      return ((data as { empresa?: string } | null)?.empresa ?? "") as string;
     },
   });
 }

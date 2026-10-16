@@ -45,3 +45,17 @@ describe("mensagens do funil", () => {
     expect(mensagemDoFunil({ message: "outra coisa" })).toBeNull();
   });
 });
+
+describe("números digitados do jeito brasileiro", () => {
+  it("lê milhar com ponto e decimal com vírgula", async () => {
+    const { numeroBR, moeda: m } = await import("@/lib/formatar");
+    expect(numeroBR("1.200")).toBe(1200);
+    expect(numeroBR("1.200,50")).toBe(1200.5);
+    expect(numeroBR("12,5")).toBe(12.5);
+    expect(numeroBR("4.5")).toBe(4.5);
+    expect(numeroBR("R$ 300")).toBe(300);
+    expect(numeroBR("")).toBeNull();
+    expect(m(4990)).toBe("R$ 49,90");
+    expect(m(120000)).toBe("R$ 1.200");
+  });
+});

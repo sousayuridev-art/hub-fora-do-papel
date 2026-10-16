@@ -44,7 +44,7 @@ select throws_ok(
 select isnt(
   public.site_registrar_contato('mensagem', 'fabio@teste.com', true, 'Fábio', null, 'Sistemas', null, null, '{}'::jsonb, '11_50'),
   null, 'porte válido é aceito');
-select is((select count(*) from public.site_contatos)::int, 0, 'anônimo não lê a tabela');
+select throws_ok($$ select count(*) from public.site_contatos $$, '42501', null, 'anônimo não lê a tabela');
 
 -- Dono da Fora do Papel
 reset role;

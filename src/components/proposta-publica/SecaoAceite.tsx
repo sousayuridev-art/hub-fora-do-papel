@@ -47,8 +47,8 @@ export function SecaoAceite({
               Proposta aceita. Vamos começar.
             </h3>
             <p className="text-[15px] text-[#C9CBD0]">
-              {doc.responsavel} recebe o aviso agora e fala com você para combinar o início. Guarde
-              este comprovante: ele fica neste mesmo link.
+              Seu aceite está registrado. {doc.responsavel} vai falar com você para combinar o
+              início. Guarde este comprovante: ele fica neste mesmo link.
             </p>
           </div>
           <dl className="grid overflow-hidden rounded-2xl bg-white/5 md:grid-cols-2">

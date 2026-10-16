@@ -27,7 +27,7 @@ export function SecaoMensalidade({
         return (
           <fieldset
             key={pl.id}
-            className="grid gap-3 border-b border-hub-borda pb-4 last:border-b-0 sm:grid-cols-[110px_1fr_1fr_1fr] sm:items-end"
+            className="grid gap-3 border-b border-hub-borda pb-4 last:border-b-0 sm:grid-cols-[110px_repeat(3,minmax(0,1fr))] sm:items-end"
           >
             <legend className="sr-only">Plano {pl.name}</legend>
             <span className="flex flex-col pb-1 sm:pb-2.5" aria-hidden="true">

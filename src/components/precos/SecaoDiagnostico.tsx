@@ -18,7 +18,10 @@ export function SecaoDiagnostico({ p, mudar }: PropsSecao) {
           ["Ampliado", "diag_ampliado_cents", "diag_ampliado_hours"],
         ] as const
       ).map(([nome, preco, horas]) => (
-        <fieldset key={nome} className="grid gap-3 sm:grid-cols-[110px_1fr_1fr] sm:items-end">
+        <fieldset
+          key={nome}
+          className="grid gap-3 sm:grid-cols-[110px_repeat(2,minmax(0,1fr))] sm:items-end"
+        >
           <legend className="sr-only">Diagnóstico {nome}</legend>
           <span className="pb-2.5 text-[15px] font-semibold" aria-hidden="true">
             {nome}

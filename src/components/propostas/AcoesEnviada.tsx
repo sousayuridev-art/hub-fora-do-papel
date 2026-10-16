@@ -1,3 +1,4 @@
+import { useSession } from "@/hooks/useSession";
 import { Copy, Eye, MessageCircle, PencilLine, XCircle } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
@@ -26,8 +27,12 @@ export function AcoesEnviada({
   const vencida =
     p.status === "enviada" && p.expires_at != null && new Date(p.expires_at) < new Date();
   const primeiroNome = detalhe.cliente.contato.split(" ")[0] ?? detalhe.cliente.contato;
+  const { session } = useSession();
+  const quemEnvia =
+    ((session?.user.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] ||
+    "a equipe";
   const mensagem = link
-    ? `Oi, ${primeiroNome}! Aqui é o Yuri, da Fora do Papel. A proposta para a ${detalhe.cliente.empresa} está pronta: ${link}\n\nEla vale até ${p.expires_at ? diaMes(p.expires_at) : ""}. Se tiver qualquer dúvida, me chame por aqui.`
+    ? `Oi, ${primeiroNome}! Aqui é ${quemEnvia}, da Fora do Papel. A proposta para a ${detalhe.cliente.empresa} está pronta: ${link}\n\nEla vale até ${p.expires_at ? diaMes(p.expires_at) : ""}. Se tiver qualquer dúvida, me chame por aqui.`
     : "";
   const wpp = linkWhatsapp(detalhe.cliente.whatsapp);
 

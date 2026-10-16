@@ -56,7 +56,7 @@ export function ContaUsuario({ cartao = false }: { cartao?: boolean }) {
         >
           {nome}
         </span>
-        {cartao && <span className="truncate text-[12.5px] text-[#C9CBD0]">Operador</span>}
+        {cartao && <span className="truncate text-[12.5px] text-[#C9CBD0]">Dono da conta</span>}
       </span>
       <button
         type="button"

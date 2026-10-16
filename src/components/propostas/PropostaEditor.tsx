@@ -23,6 +23,7 @@ import { chavesClientes, chavesFunil } from "@/lib/funil";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
   chavesPropostas,
+  detalheProposta,
   enviarProposta,
   marcarRecusada,
   mensagemDaProposta,
@@ -44,12 +45,13 @@ function AvisoSalvamento({ estado }: { estado: EstadoSalvamento }) {
     pendente: { icone: Loader2, texto: "Salvando…" },
     salvando: { icone: Loader2, texto: "Salvando…" },
     erro: { icone: CloudOff, texto: "Não salvo" },
+    conflito: { icone: CloudOff, texto: "Mudou em outra aba: recarregue" },
   } as const;
   const { icone: Icone, texto } = mapa[estado];
   return (
     <span
       role="status"
-      className={`inline-flex items-center gap-1.5 text-[13.5px] ${estado === "erro" ? "text-sit-risco-t" : "text-hub-suave"}`}
+      className={`inline-flex items-center gap-1.5 text-[13.5px] ${estado === "erro" || estado === "conflito" ? "text-sit-risco-t" : "text-hub-suave"}`}
     >
       <Icone
         className={`size-4 ${estado === "salvando" ? "animate-spin" : ""}`}
@@ -68,7 +70,10 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
   const [d, setD] = useState<Rascunho>(() => rascunhoDe(p));
   const [recusar, setRecusar] = useState(false);
   const editor = useEditorProposta(detalhe);
-  const bloqueado = p.status !== "rascunho";
+  const situacaoAntes = (ctx: { antes: DetalheProposta | undefined } | undefined) => {
+    // Volta só a situação: a versão salva no meio do caminho continua valendo
+    if (ctx?.antes) mudarSituacao(ctx.antes.proposta.status);
+  };
 
   const alterar = (parcial: DocProposta) => {
     setD((atual) => ({ ...atual, ...parcial }) as Rascunho);
@@ -79,6 +84,8 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
     void qc.invalidateQueries({ queryKey: chavesPropostas.tudo });
     void qc.invalidateQueries({ queryKey: chavesFunil.tudo });
     void qc.invalidateQueries({ queryKey: chavesClientes.tudo });
+    void qc.invalidateQueries({ queryKey: ["trafego"] });
+    void qc.invalidateQueries({ queryKey: ["painel"] });
   };
 
   const comAntes = async () => {
@@ -103,14 +110,22 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
     },
     onSuccess: () => ok("Proposta enviada. Agora mande o link pelo WhatsApp."),
     onError: (e, _v, ctx) => {
-      if (ctx?.antes) qc.setQueryData(chavesPropostas.detalhe(p.id), ctx.antes);
+      situacaoAntes(ctx);
       erro(mensagemDaProposta(e) ?? mensagemDeErro(e), { tentarDeNovo: () => enviar.mutate() });
     },
     onSettled: atualizarTudo,
   });
 
   const reabrir = useMutation({
-    mutationFn: () => reabrirProposta(p.id),
+    mutationFn: async () => {
+      await reabrirProposta(p.id);
+      const novo = await qc.fetchQuery({
+        queryKey: chavesPropostas.detalhe(p.id),
+        queryFn: () => detalheProposta(p.id),
+        staleTime: 0,
+      });
+      editor.adotarVersao(novo.proposta.updated_at);
+    },
     onMutate: async () => {
       const antes = await comAntes();
       mudarSituacao("rascunho");
@@ -119,7 +134,7 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
     onSuccess: () =>
       ok('Proposta reaberta como nova versão. O cliente vê "em atualização" até você reenviar.'),
     onError: (e, _v, ctx) => {
-      if (ctx?.antes) qc.setQueryData(chavesPropostas.detalhe(p.id), ctx.antes);
+      situacaoAntes(ctx);
       erro(mensagemDaProposta(e) ?? mensagemDeErro(e), { tentarDeNovo: () => reabrir.mutate() });
     },
     onSettled: atualizarTudo,
@@ -134,7 +149,7 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
     },
     onSuccess: () => ok("Proposta marcada como recusada."),
     onError: (e, motivo, ctx) => {
-      if (ctx?.antes) qc.setQueryData(chavesPropostas.detalhe(p.id), ctx.antes);
+      situacaoAntes(ctx);
       erro(mensagemDaProposta(e) ?? mensagemDeErro(e), {
         tentarDeNovo: () => recusada.mutate(motivo),
       });
@@ -142,6 +157,7 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
     onSettled: atualizarTudo,
   });
 
+  const bloqueado = p.status !== "rascunho" || reabrir.isPending;
   const verComoCliente = () => window.open(`/previa/proposta/${p.id}`, "_blank", "noopener");
   const sit = rotuloSituacao[p.status];
   const primeiroNome = detalhe.cliente.contato.split(" ")[0] ?? detalhe.cliente.contato;

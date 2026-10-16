@@ -28,9 +28,8 @@ export const Route = createFileRoute("/entrar")({
   beforeLoad: async ({ context, search }) => {
     const { session, acesso } = await carregarAcesso(context.queryClient);
     if (!session || !acesso) return;
-    throw redirect({
-      to: acesso.papel ? (search.volta ?? inicioDoPapel[acesso.papel]) : "/sem-acesso",
-    });
+    if (acesso.papel && search.volta) throw redirect({ href: search.volta });
+    throw redirect({ to: acesso.papel ? inicioDoPapel[acesso.papel] : "/sem-acesso" });
   },
   pendingComponent: () => <TelaCarregando />,
   head: () => ({ meta: [{ title: "Entrar · Hub Fora do Papel" }] }),

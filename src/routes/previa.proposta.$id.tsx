@@ -11,8 +11,7 @@ import { supabase } from "@/lib/supabase";
 /** "Ver como o cliente vê": a mesma página do link, montada para o dono, com o aceite desativado. */
 export const Route = createFileRoute("/previa/proposta/$id")({
   ssr: false,
-  beforeLoad: ({ context, location }) =>
-    exigirPapel(context.queryClient, "owner", location.pathname),
+  beforeLoad: ({ context, location }) => exigirPapel(context.queryClient, "owner", location.href),
   head: () => ({ meta: [{ title: "Prévia da proposta · Hub Fora do Papel" }] }),
   pendingComponent: () => <TelaCarregando />,
   component: Previa,

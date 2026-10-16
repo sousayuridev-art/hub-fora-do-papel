@@ -60,7 +60,7 @@ export function FunilCartao({
         </Link>
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="relative z-10 -mr-1 -mt-1 flex size-9 shrink-0 items-center justify-center rounded-lg text-hub-suave hover:bg-hub-selecao hover:text-hub-tinta"
+            className="relative z-10 -mr-2 -mt-2 flex size-11 shrink-0 items-center justify-center rounded-lg text-hub-suave hover:bg-hub-selecao hover:text-hub-tinta"
             aria-label={`Ações de ${o.company_name}`}
           >
             <MoreHorizontal className="size-4" aria-hidden="true" />

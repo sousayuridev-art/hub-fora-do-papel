@@ -48,6 +48,7 @@ export function TrafegoInvestimentos({
               <button
                 type="button"
                 aria-label={`Remover ${moeda(v.valor_cents)} de ${v.campanha}`}
+                disabled={v.id.startsWith("temp-")}
                 onClick={() => aoRemover(v.id)}
                 className="flex size-11 items-center justify-center rounded-lg text-hub-suave hover:bg-sit-risco hover:text-sit-risco-t"
               >

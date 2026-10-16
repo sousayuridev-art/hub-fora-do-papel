@@ -326,9 +326,10 @@ export type DadosAceite = {
   concordo: boolean;
 };
 
-export async function aceitarProposta(token: string, d: DadosAceite) {
+export async function aceitarProposta(token: string, versao: number, d: DadosAceite) {
   const { data, error } = await supabase.rpc("proposta_aceitar", {
     p_token: token,
+    p_versao: versao,
     p_nome: d.nome,
     p_email: d.email,
     p_documento: d.documento,
@@ -377,6 +378,8 @@ export function mensagemDaProposta(e: unknown): string | null {
     razao_social_invalida: "Informe a razão social ou o nome completo.",
     endereco_invalido: "Informe o endereço completo, com número e cidade.",
     link_invalido: "Este link não é válido. Peça um novo ao responsável.",
+    proposta_mudou:
+      "A proposta foi atualizada enquanto você lia. Mostramos a versão nova: confira os valores e aceite de novo.",
     sem_permissao: "Você não tem permissão para essa ação.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));

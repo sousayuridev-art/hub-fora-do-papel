@@ -7,8 +7,7 @@ import { exigirPapel } from "@/lib/acesso";
 /** Portal do cliente (/portal). Só quem tem papel de cliente entra. */
 export const Route = createFileRoute("/portal")({
   ssr: false,
-  beforeLoad: ({ context, location }) =>
-    exigirPapel(context.queryClient, "client", location.pathname),
+  beforeLoad: ({ context, location }) => exigirPapel(context.queryClient, "client", location.href),
   pendingComponent: () => <TelaCarregando />,
   component: () => (
     <PortalLayout>

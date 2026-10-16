@@ -20,6 +20,8 @@ export type Precos = {
   adjustment_index: "IPCA" | "IGP-M" | "nenhum";
   infra_at_cost: boolean;
   updated_at: string;
+  /** Quando o Yuri salvou os preços pela última vez. Vazio = nunca conferidos (propostas não saem). */
+  confirmed_at: string | null;
 };
 
 export type PlanoPreco = {

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -21,6 +22,12 @@ export function BuscaGeral({
   aoMudar: (v: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const [termo, setTermo] = useState("");
+  const normal = (t: string) =>
+    t
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase();
   const clientes = useQuery({
     queryKey: chavesClientes.lista,
     queryFn: listarClientes,
@@ -35,7 +42,11 @@ export function BuscaGeral({
 
   return (
     <CommandDialog open={aberta} onOpenChange={aoMudar}>
-      <CommandInput placeholder="Buscar cliente, contato ou tela…" />
+      <CommandInput
+        placeholder="Buscar cliente, contato ou tela…"
+        value={termo}
+        onValueChange={setTermo}
+      />
       <CommandList>
         <CommandEmpty>
           {clientes.isPending
@@ -46,17 +57,27 @@ export function BuscaGeral({
         </CommandEmpty>
         {(clientes.data?.length ?? 0) > 0 && (
           <CommandGroup heading="Clientes e contatos">
-            {clientes.data?.slice(0, 200).map((c) => (
-              <CommandItem
-                key={c.id}
-                value={`${c.company_name} ${c.contact_name} ${c.email ?? ""}`}
-                onSelect={() => ir("", { id: c.id })}
-                className="min-h-11"
-              >
-                <span className="font-medium">{c.company_name}</span>
-                <span className="text-hub-suave">· {c.contact_name}</span>
-              </CommandItem>
-            ))}
+            {/* Filtra antes de cortar: qualquer cliente da base pode ser achado */}
+            {(clientes.data ?? [])
+              .filter(
+                (c) =>
+                  !termo.trim() ||
+                  normal(`${c.company_name} ${c.contact_name} ${c.email ?? ""}`).includes(
+                    normal(termo.trim()),
+                  ),
+              )
+              .slice(0, 40)
+              .map((c) => (
+                <CommandItem
+                  key={c.id}
+                  value={`${c.company_name} ${c.contact_name} ${c.email ?? ""}`}
+                  onSelect={() => ir("", { id: c.id })}
+                  className="min-h-11"
+                >
+                  <span className="font-medium">{c.company_name}</span>
+                  <span className="text-hub-suave">· {c.contact_name}</span>
+                </CommandItem>
+              ))}
           </CommandGroup>
         )}
         <CommandGroup heading="Telas">

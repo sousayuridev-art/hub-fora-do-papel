@@ -7,7 +7,7 @@ bun install
 cp .env.example .env.local      # preencha com os valores do passo abaixo
 supabase start                  # sobe o banco local; mostra API_URL e ANON_KEY
 supabase db reset               # aplica as migrações do zero
-supabase test db                # teste de isolamento: 9 de 9
+supabase test db                # testes do banco: 113, todos devem passar (também rodam no GitHub a cada envio)
 bun run dev                     # abre em http://localhost:8080
 ```
 

@@ -1,12 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeDollarSign, MessageCircle, Users } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeDollarSign,
+  FileText,
+  MessageCircle,
+  TriangleAlert,
+  Trophy,
+  Users,
+} from "lucide-react";
 
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { linkWhatsapp, moeda, prazoRelativo, isoDoDia } from "@/lib/formatar";
+import { PainelNovidades } from "@/components/painel/PainelNovidades";
+import { linkWhatsapp, moeda, prazoRelativo } from "@/lib/formatar";
+import { chavesPainel, novidadesDoPainel } from "@/lib/painel";
 import { chavesFunil, painelHoje, rotuloEtapa } from "@/lib/funil";
 import { useSession } from "@/hooks/useSession";
 
@@ -26,7 +36,8 @@ function Painel() {
   const { session } = useSession();
   const nomeCompleto = (session?.user.user_metadata?.["full_name"] as string | undefined) ?? "";
   const primeiroNome = nomeCompleto.split(" ")[0];
-  const hoje = isoDoDia(new Date());
+  const extra = useQuery({ queryKey: chavesPainel.novidades, queryFn: novidadesDoPainel });
+  const n = extra.data;
 
   return (
     <div className="flex flex-col gap-6">
@@ -78,13 +89,54 @@ function Painel() {
               </dd>
               <dd className="mt-1 text-[13.5px] text-hub-suave">Diagnósticos e propostas</dd>
             </div>
-            <div className="rounded-2xl border border-dashed border-[#D6D6CF] p-5 text-[14px] text-hub-suave sm:col-span-2">
-              <dt className="font-medium text-hub-tinta">Projetos, recebimentos e mensalidades</dt>
-              <dd className="mt-1">
-                Entram aqui com os módulos de projetos e financeiro. Até lá, sem números estimados.
+            <div className="rounded-2xl border border-hub-borda bg-white p-5">
+              <dt className="flex items-center gap-2.5 text-[14px] text-hub-suave">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-sit-ok text-sit-ok-t">
+                  <Trophy className="size-[18px]" aria-hidden="true" />
+                </span>
+                Fechado no mês
+              </dt>
+              <dd className="mt-3 font-titulo text-3xl font-bold tabular-nums">
+                {n ? moeda(n.fechado_mes_cents) : "–"}
+              </dd>
+              <dd className="mt-1 text-[13.5px] text-hub-suave">
+                {n
+                  ? `${n.fechados_mes} ${n.fechados_mes === 1 ? "contrato" : "contratos"} neste mês`
+                  : " "}
+              </dd>
+            </div>
+            <div className="rounded-2xl border border-hub-borda bg-white p-5">
+              <dt className="flex items-center gap-2.5 text-[14px] text-hub-suave">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-[#FFF1D6] text-[#9A5B00]">
+                  <FileText className="size-[18px]" aria-hidden="true" />
+                </span>
+                Propostas aguardando
+              </dt>
+              <dd className="mt-3 font-titulo text-3xl font-bold tabular-nums">
+                {n ? n.propostas_aguardando : "–"}
+              </dd>
+              <dd className="mt-1 text-[13.5px] text-hub-suave">
+                {n
+                  ? n.propostas_aguardando === 0
+                    ? "Nenhuma esperando resposta"
+                    : `${moeda(n.propostas_aguardando_cents)} · ${n.propostas_vistas} já ${n.propostas_vistas === 1 ? "aberta" : "abertas"}`
+                  : " "}
               </dd>
             </div>
           </dl>
+
+          {n && n.falhas_site > 0 && (
+            <p
+              className="flex items-start gap-3 rounded-2xl bg-sit-risco p-4 text-[14.5px] text-sit-risco-t"
+              role="alert"
+            >
+              <TriangleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+              {n.falhas_site === 1
+                ? "1 pedido do site não entrou no funil nos últimos 30 dias."
+                : `${n.falhas_site} pedidos do site não entraram no funil nos últimos 30 dias.`}{" "}
+              Os dados não se perderam; fale com o suporte para importar.
+            </p>
+          )}
 
           <section aria-labelledby="titulo-hoje" className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
@@ -107,11 +159,7 @@ function Painel() {
             ) : (
               <ol className="flex flex-col rounded-2xl border border-hub-borda bg-white">
                 {dados.data.itens.map((i, n) => {
-                  const prazo = prazoRelativo(
-                    i.quando.slice(0, 10),
-                    hoje,
-                    i.com_hora ? i.quando : null,
-                  );
+                  const prazo = prazoRelativo(i.dia, i.hoje, i.com_hora ? i.quando : null);
                   const wpp = linkWhatsapp(i.whatsapp);
                   return (
                     <li
@@ -125,7 +173,7 @@ function Painel() {
                         <Link
                           to="/app/clientes/$id"
                           params={{ id: i.client_id }}
-                          className="font-semibold hover:underline"
+                          className="-my-2.5 inline-block self-start py-2.5 font-semibold hover:underline"
                         >
                           {i.empresa}
                         </Link>
@@ -161,6 +209,17 @@ function Painel() {
               </ol>
             )}
           </section>
+
+          {extra.isError ? (
+            <EstadoErro
+              titulo="Não foi possível carregar as novidades"
+              aoTentarDeNovo={() => void extra.refetch()}
+            />
+          ) : n ? (
+            <PainelNovidades itens={n.novidades} />
+          ) : (
+            <div className="h-40 animate-pulse rounded-2xl bg-white" aria-busy="true" />
+          )}
         </>
       )}
     </div>

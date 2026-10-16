@@ -37,14 +37,22 @@ function PropostaDoCliente() {
   });
 
   const aceitar = useMutation({
-    mutationFn: (d: DadosAceite) => aceitarProposta(token, d),
+    mutationFn: (d: DadosAceite) => {
+      const r = dados.data;
+      const versao = r && "documento" in r ? r.documento.versao : 0;
+      return aceitarProposta(token, versao, d);
+    },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: chavesPropostas.publica(token) });
       ok("Aceite registrado. Obrigado pela confiança.");
       document.getElementById("aceite")?.scrollIntoView({ behavior: "smooth" });
     },
-    onError: (e, d) =>
-      erro(mensagemDaProposta(e) ?? mensagemDeErro(e), { tentarDeNovo: () => aceitar.mutate(d) }),
+    onError: (e, d) => {
+      const msg = mensagemDaProposta(e) ?? mensagemDeErro(e);
+      // Versão nova ou situação mudou: recarrega o documento para o cliente ver o que vale agora
+      void qc.invalidateQueries({ queryKey: chavesPropostas.publica(token) });
+      erro(msg, { tentarDeNovo: () => aceitar.mutate(d) });
+    },
   });
 
   const recusar = useMutation({

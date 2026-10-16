@@ -169,6 +169,10 @@ export function FormularioAceite({
         Li e concordo com esta proposta, com o que não está incluído e com as condições de
         pagamento.
       </label>
+      <p className="text-[13px] text-hub-suave">
+        Usamos estes dados só para o contrato e a cobrança deste projeto. Junto com o aceite
+        guardamos a data, o navegador e o endereço de internet, como comprovante.
+      </p>
       <div className="flex flex-col gap-2">
         <button
           type="submit"

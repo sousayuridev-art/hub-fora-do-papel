@@ -79,9 +79,11 @@ export function EditarClientePainel({
 }) {
   const [f, setF] = useState<Form>(deCliente(c));
   const qc = useQueryClient();
+  // Reinicia só ao abrir: um recarregamento no meio da edição não apaga o que foi digitado
   useEffect(() => {
     if (aberto) setF(deCliente(c));
-  }, [aberto, c]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberto]);
 
   const salvar = useMutation({
     mutationFn: (mudancas: CamposCliente) => salvarCliente(c.id, c.updated_at, mudancas),

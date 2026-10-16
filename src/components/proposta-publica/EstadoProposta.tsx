@@ -12,7 +12,8 @@ const textos = {
   atualizando: {
     icone: RefreshCw,
     titulo: "Esta proposta está sendo atualizada",
-    texto: "Uma versão nova chega neste mesmo link em breve. Você recebe um aviso pelo WhatsApp.",
+    texto:
+      "Uma versão nova vai ficar disponível neste mesmo link. Se tiver pressa, fale com o seu responsável.",
   },
   vencida: {
     icone: Clock,

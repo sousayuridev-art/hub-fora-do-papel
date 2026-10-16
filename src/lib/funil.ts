@@ -196,6 +196,9 @@ export type PainelHoje = {
     etapa: Etapa;
     proximo_passo: string;
     quando: string;
+    /** Dia do próximo passo e "hoje", já no fuso da agência (AAAA-MM-DD). */
+    dia: string;
+    hoje: string;
     com_hora: boolean;
     vencido: boolean;
     valor_cents: number | null;
@@ -389,6 +392,10 @@ export function mensagemDoFunil(e: unknown): string | null {
     ja_existe_oportunidade_aberta: "Este cliente já tem uma oportunidade aberta.",
     anotacao_invalida: "Escreva a anotação (até 4.000 caracteres).",
     sem_permissao: "Você não tem permissão para essa ação.",
+    oportunidade_fechada_por_aceite:
+      "O cliente aceitou a proposta desta oportunidade. Ela fica em Fechado; para um novo trabalho, crie um novo contato.",
+    tenant_ambiguo:
+      "Seu acesso está em mais de uma empresa. Fale com o suporte para escolher a principal.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;

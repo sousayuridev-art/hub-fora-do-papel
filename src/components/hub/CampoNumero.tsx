@@ -1,15 +1,7 @@
 import { useEffect, useId, useState } from "react";
 
+import { numeroBR as numeroDoTexto } from "@/lib/formatar";
 import { cn } from "@/lib/utils";
-
-/** Texto digitado → número (aceita "1.200,50" e "1200.5"). Vazio → null. */
-function numeroDoTexto(texto: string): number | null {
-  const t = texto.trim();
-  if (!t) return null;
-  const normal = t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t;
-  const n = Number(normal.replace(/[^\d.-]/g, ""));
-  return Number.isFinite(n) ? n : null;
-}
 
 function textoDoNumero(n: number | null, casas: number): string {
   if (n == null) return "";
@@ -52,13 +44,14 @@ export function CampoNumero({
   const [texto, setTexto] = useState(textoDoNumero(externo, casas));
 
   useEffect(() => {
-    if (numeroDoTexto(texto) !== externo) setTexto(textoDoNumero(externo, casas));
+    // Campo vazio e valor zero/nulo são a mesma coisa: não reescreve enquanto a pessoa apaga.
+    if ((numeroDoTexto(texto) ?? 0) !== (externo ?? 0)) setTexto(textoDoNumero(externo, casas));
     // Só sincroniza quando o valor de fora muda (salvar, desfazer, recarregar).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [externo]);
 
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
       <label htmlFor={id} className={cn("text-[14px] font-medium", rotuloOculto && "sr-only")}>
         {rotulo}
       </label>
@@ -76,7 +69,8 @@ export function CampoNumero({
             const n = numeroDoTexto(e.target.value);
             aoMudar(n == null ? null : escala === 1 ? n : Math.round(n * escala));
           }}
-          className="min-w-0 flex-1 bg-transparent text-base tabular-nums outline-none disabled:text-hub-suave md:text-[15px]"
+          size={1}
+          className="h-full min-w-0 flex-1 bg-transparent text-base tabular-nums outline-none disabled:text-hub-suave md:text-[15px]"
         />
         {sufixo && <span className="shrink-0 text-[14px] text-hub-suave">{sufixo}</span>}
       </div>

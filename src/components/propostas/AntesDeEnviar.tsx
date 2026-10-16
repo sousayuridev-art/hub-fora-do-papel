@@ -6,6 +6,7 @@ import type { Calculo, Conferencias, DocProposta } from "@/lib/propostas";
 import { cn } from "@/lib/utils";
 
 const automaticas: { chave: string; texto: string }[] = [
+  { chave: "precos", texto: "Preços conferidos em Configurações" },
   { chave: "textos", texto: "Tipo de projeto e título" },
   { chave: "itens", texto: "Todos os itens com nome e horas" },
   { chave: "fora", texto: "O que não está incluído preenchido" },

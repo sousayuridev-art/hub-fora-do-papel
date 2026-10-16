@@ -8,6 +8,7 @@ export const Route = createFileRoute("/app/materiais")({
     <EmConstrucao
       titulo="Materiais"
       descricao="Modelos, guias para clientes e textos prontos num lugar só. Chega com os projetos (card S3)."
+      enquantoIsso="os modelos ficam no manual de comunicação."
     />
   ),
 });

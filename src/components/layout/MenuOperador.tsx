@@ -32,7 +32,13 @@ function LinkMenu({ item, aoNavegar }: { item: ItemMenu; aoNavegar?: (() => void
           />
           <span className="flex-1 truncate">{item.rotulo}</span>
           {item.emBreve && (
-            <span className="rounded-full bg-white/8 px-2 py-0.5 text-[12.5px] font-medium text-[#A9ADB5]">
+            <span
+              className={
+                isActive
+                  ? "rounded-full bg-hub-tinta/10 px-2 py-0.5 text-[12.5px] font-medium text-hub-tinta"
+                  : "rounded-full bg-white/8 px-2 py-0.5 text-[12.5px] font-medium text-[#A9ADB5]"
+              }
+            >
               Em breve
             </span>
           )}

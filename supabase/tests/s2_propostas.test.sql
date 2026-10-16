@@ -69,7 +69,8 @@ select ok((select (valor->'calculo'->>'abaixo_do_piso')::boolean from t where ch
 select ok(exists (select 1 from t, jsonb_array_elements(valor->'calculo'->'pendencias') x
                    where chave = 'otica_d' and x->>'chave' = 'valor_hora'), 'Abaixo do piso sem motivo é pendência');
 
--- Completa tudo e envia
+-- Completa tudo e envia (preços conferidos em Configurações)
+select public.precos_salvar('{}'::jsonb, null);
 insert into t select 'otica_ok', public.proposta_salvar((select (valor->>'id')::uuid from t where chave = 'otica'), null,
   jsonb_build_object('tipo', 'Site com catálogo', 'titulo', 'Um site que mostra as armações', 'desconto_cents', 0,
     'fora', '[{"item":"Sessão de fotos","motivo":"As fotos vêm da ótica"}]'::jsonb,
@@ -104,16 +105,16 @@ select is(public.proposta_publica(repeat('a', 64)) ->> 'estado', 'invalido', 'Li
 select is(public.proposta_publica((select valor->>'token' from t where chave = 'env')) ->> 'estado', 'enviada', 'Link certo abre a proposta');
 select ok(not ((public.proposta_publica((select valor->>'token' from t where chave = 'env')) -> 'documento' -> 'itens' -> 0) ? 'horas'),
   'Cliente não vê as horas internas');
-select throws_ok(format($$ select public.proposta_aceitar(%L, 'Bruno Alves', 'bruno@otica.test', '111.111.111-11',
+select throws_ok(format($$ select public.proposta_aceitar(%L, 1, 'Bruno Alves', 'bruno@otica.test', '111.111.111-11',
     'Ótica Visão Clara Ltda', 'Rua das Flores, 100, Aracaju', null, null, true) $$, (select valor->>'token' from t where chave = 'env')),
   '22023', null, 'Documento inválido é recusado');
-select throws_ok(format($$ select public.proposta_aceitar(%L, 'Bruno Alves', 'bruno@otica.test', '11.222.333/0001-81',
+select throws_ok(format($$ select public.proposta_aceitar(%L, 1, 'Bruno Alves', 'bruno@otica.test', '11.222.333/0001-81',
     'Ótica Visão Clara Ltda', 'Rua das Flores, 100, Aracaju', null, null, false) $$, (select valor->>'token' from t where chave = 'env')),
   '22023', null, 'Sem "Li e concordo" não aceita');
-select is((public.proposta_aceitar((select valor->>'token' from t where chave = 'env'), 'Bruno Alves', 'bruno@otica.test',
+select is((public.proposta_aceitar((select valor->>'token' from t where chave = 'env'), 1, 'Bruno Alves', 'bruno@otica.test',
     '11.222.333/0001-81', 'Ótica Visão Clara Ltda', 'Rua das Flores, 100, Aracaju', null, null, true)) ->> 'repetido',
   'false', 'Aceite com CNPJ válido');
-select is((public.proposta_aceitar((select valor->>'token' from t where chave = 'env'), 'Bruno Alves', 'bruno@otica.test',
+select is((public.proposta_aceitar((select valor->>'token' from t where chave = 'env'), 1, 'Bruno Alves', 'bruno@otica.test',
     '11.222.333/0001-81', 'Ótica Visão Clara Ltda', 'Rua das Flores, 100, Aracaju', null, null, true)) ->> 'repetido',
   'true', 'Aceitar de novo devolve o mesmo comprovante');
 reset role;
@@ -128,7 +129,7 @@ update public.proposals set status = 'enviada', token = repeat('b', 64), sent_at
   expires_at = now() - interval '1 day', snapshot = '{}'::jsonb
  where id = (select (valor->>'id')::uuid from t where chave = 'sorriso');
 set local role anon;
-select throws_ok($$ select public.proposta_aceitar(repeat('b', 64), 'Paula Viana', 'paula@sorriso.test', '529.982.247-25',
+select throws_ok($$ select public.proposta_aceitar(repeat('b', 64), 1, 'Paula Viana', 'paula@sorriso.test', '529.982.247-25',
     'Paula Viana', 'Av. Beira Mar, 200, Aracaju', null, null, true) $$, '22023', null, 'Proposta vencida não aceita');
 reset role;
 

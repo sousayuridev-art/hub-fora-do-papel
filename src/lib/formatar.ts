@@ -1,23 +1,42 @@
 /** Formatação em português do Brasil (valores em centavos, datas no fuso da agência). */
 
-const moedaFmt = new Intl.NumberFormat("pt-BR", {
+const moedaInteira = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
+  minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
+const moedaCentavos = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
-/** 1250000 → "R$ 12.500" */
+/** 1250000 → "R$ 12.500"; 4990 → "R$ 49,90" (centavos só quando existem). */
 export function moeda(cents: number | null | undefined): string {
   if (cents == null) return "—";
-  return moedaFmt.format(cents / 100).replace(/\u00a0/g, " ");
+  const fmt = cents % 100 === 0 ? moedaInteira : moedaCentavos;
+  return fmt.format(cents / 100).replace(/\u00a0/g, " ");
+}
+
+/**
+ * Número digitado do jeito brasileiro: "1.200" = mil e duzentos, "1.200,50", "12,5", "300".
+ * Ponto seguido de exatamente 3 dígitos é separador de milhar; vírgula é decimal. Vazio → null.
+ */
+export function numeroBR(texto: string): number | null {
+  let t = texto.replace(/[^\d,.-]/g, "");
+  if (!t) return null;
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
 }
 
 /** "R$ 12.500" ou "12500" → 1250000. Vazio → null. */
 export function centavosDoTexto(texto: string): number | null {
-  const limpo = texto.replace(/[^\d,]/g, "").replace(",", ".");
-  if (!limpo) return null;
-  const valor = Number(limpo);
-  return Number.isFinite(valor) ? Math.round(valor * 100) : null;
+  const n = numeroBR(texto);
+  return n == null ? null : Math.round(n * 100);
 }
 
 const diaMesFmt = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "2-digit" });

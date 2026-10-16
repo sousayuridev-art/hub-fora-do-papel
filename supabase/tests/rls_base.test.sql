@@ -3,7 +3,7 @@
 -- e que um tenant não enxerga o outro.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(10);
 
 -- Pessoas
 insert into auth.users (id, email) values
@@ -37,12 +37,12 @@ insert into public.client_members (client_id, user_id, tenant_id) values
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
 
-select is((select count(*) from public.clients)::int, 1, 'Paula vê só 1 cliente');
-select is((select company_name from public.clients limit 1), 'Clínica Sorriso Leve', 'Paula vê só a própria empresa');
+select is((select count(*) from public.clients)::int, 0, 'Paula não lê a tabela de clientes (campos internos)');
+select is(public.portal_minha_empresa() ->> 'empresa', 'Clínica Sorriso Leve', 'Paula vê só a própria empresa pelo portal');
 select is((select count(*) from public.client_members)::int, 1, 'Paula vê só o próprio vínculo');
 select is((select count(*) from public.event_outbox)::int, 0, 'Paula não lê a fila de eventos');
 
-update public.clients set company_name = 'Hackeado' where id = '20000000-0000-0000-0000-000000000001';
+select throws_ok($$ update public.clients set company_name = 'Hackeado' where id = '20000000-0000-0000-0000-000000000001' $$, '42501', null, 'Paula não altera a empresa');
 reset role;
 select is((select company_name from public.clients where id = '20000000-0000-0000-0000-000000000001'), 'Clínica Sorriso Leve', 'Paula não consegue alterar a empresa');
 

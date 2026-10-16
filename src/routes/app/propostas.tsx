@@ -93,7 +93,7 @@ function Propostas() {
       >
         <div
           className={cn(
-            "flex flex-col gap-3 rounded-2xl border border-hub-borda bg-white p-3 lg:sticky lg:top-6 lg:self-start",
+            "flex min-w-0 flex-col gap-3 overflow-hidden rounded-2xl border border-hub-borda bg-white p-3 lg:sticky lg:top-6 lg:self-start",
             id && "max-2xl:hidden",
           )}
         >

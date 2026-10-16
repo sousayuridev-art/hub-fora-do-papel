@@ -1,0 +1,37 @@
+# Conferência automática a cada envio ao GitHub (card REV-1).
+# Não toca no banco de produção: o banco de teste sobe dentro do próprio GitHub.
+name: Conferência
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: conferencia-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codigo:
+    name: Código (lint, testes e build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run test
+      - run: bun run build
+
+  banco:
+    name: Banco (migrações e testes pgTAP)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase db start
+      - run: supabase test db

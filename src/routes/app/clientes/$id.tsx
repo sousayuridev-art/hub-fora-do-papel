@@ -10,6 +10,7 @@ import {
   type AcaoOportunidade,
 } from "@/components/clientes/ClienteOportunidade";
 import { ClienteContato } from "@/components/clientes/ClienteContato";
+import { ClientePropostas } from "@/components/clientes/ClientePropostas";
 import { ClienteAnotacoes } from "@/components/clientes/ClienteAnotacoes";
 import { ClienteLinhaDoTempo } from "@/components/clientes/ClienteLinhaDoTempo";
 import { EditarClientePainel } from "@/components/clientes/EditarClientePainel";
@@ -136,8 +137,10 @@ function Ficha() {
             titulo="Não foi possível carregar a linha do tempo"
             aoTentarDeNovo={() => void linha.refetch()}
           />
+        ) : linha.isPending ? (
+          <div className="h-64 animate-pulse rounded-2xl bg-white" aria-busy="true" />
         ) : (
-          <ClienteLinhaDoTempo itens={linha.data ?? []} />
+          <ClienteLinhaDoTempo itens={linha.data} />
         )
       ) : (
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -158,13 +161,7 @@ function Ficha() {
                 Esta ficha ainda não tem oportunidade no funil.
               </p>
             )}
-            <section className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-5 text-[14.5px] text-hub-suave">
-              <h2 className="mb-1 font-titulo text-lg font-bold text-hub-tinta">
-                Proposta, projeto e valores
-              </h2>
-              Aparecem aqui quando os módulos de propostas (S2) e projetos (S3) estiverem prontos.
-              Nada é mostrado antes de existir de verdade.
-            </section>
+            <ClientePropostas clienteId={c.id} />
           </div>
           <div className="flex flex-col gap-4">
             <ClienteContato c={c} />

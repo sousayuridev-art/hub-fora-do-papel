@@ -54,6 +54,32 @@ export function useMutacoesFunil() {
   function recarregar() {
     void qc.invalidateQueries({ queryKey: chavesFunil.tudo });
     void qc.invalidateQueries({ queryKey: chavesClientes.tudo });
+    void qc.invalidateQueries({ queryKey: ["propostas"] });
+    void qc.invalidateQueries({ queryKey: ["trafego"] });
+    void qc.invalidateQueries({ queryKey: ["painel"] });
+  }
+
+  /** Versão nova devolvida pelo banco vai para o cache: a próxima ação já usa a versão certa. */
+  function guardarVersao(id: string, r: { updated_at?: string } | null | undefined) {
+    if (!r?.updated_at) return;
+    for (const [chave, lista] of qc.getQueriesData<Oportunidade[]>({
+      queryKey: ["funil", "lista"],
+    })) {
+      if (lista)
+        qc.setQueryData<Oportunidade[]>(
+          chave,
+          lista.map((o) => (o.id === id ? { ...o, updated_at: r.updated_at ?? o.updated_at } : o)),
+        );
+    }
+  }
+
+  /** "Tentar de novo" usa a versão que está no cache agora, não a da primeira tentativa. */
+  function fresco<T extends Pick<Oportunidade, "id" | "updated_at">>(o: T): T {
+    for (const [, lista] of qc.getQueriesData<Oportunidade[]>({ queryKey: ["funil", "lista"] })) {
+      const achado = lista?.find((x) => x.id === o.id);
+      if (achado) return { ...o, updated_at: achado.updated_at };
+    }
+    return o;
   }
 
   const mover = useMutation({
@@ -69,9 +95,10 @@ export function useMutacoesFunil() {
     onError: (e, v, ctx) => {
       voltar(ctx);
       erro(`Não foi possível mover. ${mensagemAmigavel(e)}`, {
-        tentarDeNovo: () => mover.mutate(v),
+        tentarDeNovo: () => mover.mutate({ ...v, o: fresco(v.o) }),
       });
     },
+    onSuccess: (r, v) => guardarVersao(v.o.id, r),
     onSettled: recarregar,
   });
 
@@ -85,7 +112,7 @@ export function useMutacoesFunil() {
       }),
     onError: (e, v, ctx) => {
       voltar(ctx);
-      erro(mensagemAmigavel(e), { tentarDeNovo: () => arquivar.mutate(v) });
+      erro(mensagemAmigavel(e), { tentarDeNovo: () => arquivar.mutate({ ...v, o: fresco(v.o) }) });
     },
     onSettled: recarregar,
   });
@@ -115,10 +142,13 @@ export function useMutacoesFunil() {
           "diagnostico" in v.campos ? (v.campos.diagnostico ?? null) : o.diagnostic_tier,
         diagnostic_paid: v.campos.diagnostico_pago ?? o.diagnostic_paid,
       })),
-    onSuccess: () => ok("Oportunidade atualizada."),
+    onSuccess: (r, v) => {
+      guardarVersao(v.o.id, r);
+      ok("Oportunidade atualizada.");
+    },
     onError: (e, v, ctx) => {
       voltar(ctx);
-      erro(mensagemAmigavel(e), { tentarDeNovo: () => atualizar.mutate(v) });
+      erro(mensagemAmigavel(e), { tentarDeNovo: () => atualizar.mutate({ ...v, o: fresco(v.o) }) });
     },
     onSettled: recarregar,
   });
