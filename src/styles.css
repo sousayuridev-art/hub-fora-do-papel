@@ -155,14 +155,14 @@
   --color-hub-suave: oklch(0.526 0.012 257);
   --color-hub-destaque: oklch(0.81 0.165 75.5);
   --color-hub-selecao: oklch(0.951 0.006 106.5);
-  /* HUB-VIS-2 (16/10): menu creme com as cores da marca; cores de situação da proposta 2 */
-  --color-menu: #fff8ea;
-  --color-menu-texto: #3d424b;
-  --color-menu-ativo: #ffe4a3;
-  --color-menu-hover: #fff0cc;
-  --color-menu-borda: #f1e3bf;
-  --color-menu-rotulo: #8c7444;
-  --color-menu-icone: #9a5b00;
+  /* HUB-VIS-2 (16/10): menu escuro da marca, no modelo da referência do Yuri */
+  --color-menu: #0e1013;
+  --color-menu-texto: #e6e7ea;
+  --color-menu-ativo: #ffb020;
+  --color-menu-hover: rgb(255 255 255 / 0.07);
+  --color-menu-borda: #23262c;
+  --color-menu-rotulo: #8a8f98;
+  --color-menu-icone: #0e1013;
   --color-marca-escura: #9a5b00;
   --color-sit-neutro: #f1f1ec;
   --color-sit-neutro-t: #2a2d33;
@@ -175,10 +175,10 @@
   --color-sit-ok: #e3f4ea;
   --color-sit-ok-t: #145a37;
   --color-coluna: #ecece6;
-  /* HUB-VIS-1: uma família só (Plus Jakarta Sans); Bricolage só no nome da marca */
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-titulo: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-rotulo: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  /* HUB-VIS-2: uma família só (Poppins, como a referência); Bricolage só no nome da marca */
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-titulo: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-rotulo: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-marca: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
 }
 

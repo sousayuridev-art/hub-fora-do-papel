@@ -37,7 +37,7 @@ export function ContaUsuario({ cartao = false }: { cartao?: boolean }) {
     <div
       className={
         cartao
-          ? "flex min-h-14 items-center gap-3 rounded-xl bg-hub-tinta py-2 pl-3 pr-1 text-white"
+          ? "flex min-h-14 items-center gap-3 rounded-xl bg-[#1E2127] py-2 pl-3 pr-1 text-white ring-1 ring-white/8"
           : "flex min-h-12 items-center gap-3 px-3"
       }
     >

@@ -8,7 +8,7 @@ import { BuscaGeral } from "@/components/layout/BuscaGeral";
 
 /**
  * Casca do sistema interno (proposta 2).
- * Computador: menu claro fixo de 264 px (HUB-VIS-1). Celular: barra no topo com o menu em gaveta.
+ * Computador: menu escuro da marca, fixo, de 280 px (HUB-VIS-2). Celular: barra no topo com o menu em gaveta.
  */
 export function OperatorLayout({ children }: { children: ReactNode }) {
   const [gavetaAberta, setGavetaAberta] = useState(false);
@@ -27,15 +27,15 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-hub-fundo text-hub-tinta">
-      <aside className="fixed inset-y-0 left-0 hidden w-66 border-r border-menu-borda md:block">
+      <aside className="fixed inset-y-0 left-0 hidden w-70 border-r border-menu-borda md:block">
         <MenuOperador aoBuscar={() => setBuscaAberta(true)} />
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-menu-borda bg-menu/95 px-2 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-hub-borda bg-white/95 px-2 backdrop-blur md:hidden">
         <button
           type="button"
           onClick={() => setGavetaAberta(true)}
-          className="flex size-11 items-center justify-center rounded-lg text-hub-tinta hover:bg-menu-hover"
+          className="flex size-11 items-center justify-center rounded-lg text-hub-tinta hover:bg-hub-selecao"
           aria-label="Abrir menu"
         >
           <Menu className="size-5" aria-hidden="true" />
@@ -66,7 +66,7 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
 
       <BuscaGeral aberta={buscaAberta} aoMudar={setBuscaAberta} />
 
-      <main className="md:pl-66">
+      <main className="md:pl-70">
         <div className="mx-auto w-full max-w-[1320px] px-4 py-6 md:px-8 md:py-7">{children}</div>
       </main>
     </div>

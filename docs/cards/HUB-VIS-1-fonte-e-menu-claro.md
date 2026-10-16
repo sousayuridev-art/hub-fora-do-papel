@@ -8,7 +8,7 @@ O Hub é usado o dia inteiro. Uma fonte arredondada e um menu claro cansam menos
 
 ## Requisitos
 1. **Fonte:** Plus Jakarta Sans (Google Fonts, `display=swap`, pesos 400, 500, 600 e 700) para texto, títulos e rótulos. Bricolage Grotesque fica só no nome "Fora do Papel" ao lado do símbolo. Geist e IBM Plex Mono deixam de ser carregadas no Hub.
-2. **Menu lateral claro (computador, 264 px):**
+2. **Menu lateral claro (computador, 280 px):**
    - Fundo branco, borda direita suave, sem bloco escuro.
    - Topo: símbolo + "Fora do Papel" + "Hub"; campo "Buscar…" com fundo cinza claro e atalho Ctrl K.
    - Grupos com título em letra normal (Vender, Entregar, Biblioteca, Gestão), sem caixa alta.
@@ -26,12 +26,12 @@ Telas internas (funil, clientes, ficha) e cores de situação não mudam; só he
 - Menu claro com item ativo visível, foco por teclado visível e alvos de toque de 44 px.
 - `bun run build`, `bun run lint`, testes e e2e locais passam.
 
-## HUB-VIS-2 · Mais cores da marca (16/10)
-Pedido do Yuri depois de publicar o HUB-VIS-1: "ficou muito branco, traga mais cores da marca".
-- Menu em creme #FFF8EA, borda #F1E3BF; item ativo em âmbar claro #FFE4A3 com ícone #9A5B00; passar o mouse em #FFF0CC.
-- Cartão da conta em #0E1013 com as iniciais em âmbar #FFB020.
-- Barra do topo no celular no mesmo creme.
-- Rótulo do grupo nos cabeçalhos (ex.: VENDER) em #9A5B00.
-- Painel: ícones nos indicadores (âmbar claro e azul de informação) e números da fila em âmbar claro.
-- O âmbar cheio #FFB020 continua só no botão principal, no logotipo e nas iniciais da conta.
+## HUB-VIS-2 · Menu no modelo da referência e mais cores da marca (16/10)
+Pedido do Yuri depois de publicar o HUB-VIS-1: "ficou muito branco, traga mais cores da marca", com imagem do menu da Plamev como modelo.
+- Fonte: Poppins (a da referência) no lugar da Plus Jakarta Sans; Bricolage segue no nome da marca.
+- Menu escuro #0E1013, texto claro, ícones de 20 px; grupos em caixa alta (VENDER, ENTREGAR…).
+- Item ativo em pílula âmbar #FFB020 com texto escuro (como a pílula azul da referência). Regra do âmbar ampliada: ação principal, logotipo e item ativo do menu.
+- Topo: logotipo em pílula ("Fora do Papel · Hub") e busca com Ctrl K.
+- Rodapé: Configurações e cartão da conta (#1E2127) com iniciais em âmbar.
+- Painel: ícones nos indicadores e números da fila em âmbar claro.
 **Aceite:** contraste de texto ≥ 4,5:1; build, lint e e2e passam.

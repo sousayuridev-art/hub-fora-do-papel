@@ -41,7 +41,7 @@ Lidas pelo Claude Code em todo pedido. Cards em `docs/cards/`; cite o card no pe
 
 ## Visual do Hub (sistema interno)
 - Fundo #F5F5F2, texto #0E1013, destaque #FFB020 só na ação principal.
-- Hub e portal: Plus Jakarta Sans em títulos, texto e rótulos; Bricolage Grotesque só no nome "Fora do Papel" (card HUB-VIS-1). Menu lateral creme (#FFF8EA) com item ativo em âmbar claro #FFE4A3 e conta em #0E1013 (card HUB-VIS-2); tons claros de âmbar podem marcar ícones e números, o #FFB020 cheio segue só na ação principal e no logotipo.
+- Hub e portal: Poppins em títulos, texto e rótulos; Bricolage Grotesque só no nome "Fora do Papel". Menu lateral escuro #0E1013, item ativo em âmbar #FFB020 com texto escuro, grupos em caixa alta, conta em cartão no rodapé (cards HUB-VIS-1 e HUB-VIS-2). Tons claros de âmbar podem marcar ícones e números no conteúdo.
 - Situações: neutro #F1F1EC/#2A2D33, informação #E5EDFF/#1E3FA8, atenção #FFF1D6/#7A4200, risco #FDE8E6/#9A1C12, concluído #E3F4EA/#145A37.
 
 ## Portal do cliente no celular (até 767 px; acima disso nada muda)
