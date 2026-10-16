@@ -1,3 +1,4 @@
+import { SugestoesCampanhas, idSugestoesCampanhas } from "@/components/trafego/SugestoesCampanhas";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -135,6 +136,7 @@ export function EditarClientePainel({
             <Label htmlFor={`ed-${campo.k}`}>{campo.rotulo}</Label>
             <Input
               id={`ed-${campo.k}`}
+              list={campo.k === "anuncio" ? idSugestoesCampanhas : undefined}
               type={campo.tipo ?? "text"}
               inputMode={campo.modo}
               autoComplete={campo.auto ?? "off"}
@@ -144,6 +146,7 @@ export function EditarClientePainel({
             />
           </div>
         ))}
+        <SugestoesCampanhas ativo={aberto} />
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="ed-origem">Origem</Label>
           <select

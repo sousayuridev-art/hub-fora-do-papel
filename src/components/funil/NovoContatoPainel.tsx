@@ -1,3 +1,4 @@
+import { SugestoesCampanhas, idSugestoesCampanhas } from "@/components/trafego/SugestoesCampanhas";
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -198,11 +199,13 @@ export function NovoContatoPainel({
           <Campo id="nc-anuncio" rotulo="Qual anúncio">
             <Input
               id="nc-anuncio"
+              list={idSugestoesCampanhas}
               value={f.anuncio}
               maxLength={120}
               onChange={(e) => set("anuncio", e.target.value)}
               className="h-11"
             />
+            <SugestoesCampanhas ativo={aberto} />
           </Campo>
         )}
         {f.origem === "indicacao" && (
