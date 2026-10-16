@@ -27,15 +27,15 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-hub-fundo text-hub-tinta">
-      <aside className="fixed inset-y-0 left-0 hidden w-66 border-r border-hub-borda md:block">
+      <aside className="fixed inset-y-0 left-0 hidden w-66 border-r border-menu-borda md:block">
         <MenuOperador aoBuscar={() => setBuscaAberta(true)} />
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-hub-borda bg-white/95 px-2 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-menu-borda bg-menu/95 px-2 backdrop-blur md:hidden">
         <button
           type="button"
           onClick={() => setGavetaAberta(true)}
-          className="flex size-11 items-center justify-center rounded-lg text-hub-tinta hover:bg-hub-selecao"
+          className="flex size-11 items-center justify-center rounded-lg text-hub-tinta hover:bg-menu-hover"
           aria-label="Abrir menu"
         >
           <Menu className="size-5" aria-hidden="true" />

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, MessageCircle } from "lucide-react";
+import { ArrowRight, BadgeDollarSign, MessageCircle, Users } from "lucide-react";
 
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
@@ -50,8 +50,13 @@ function Painel() {
         <>
           <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-hub-borda bg-white p-5">
-              <dt className="text-[14px] text-hub-suave">Contatos ativos</dt>
-              <dd className="mt-1 font-titulo text-3xl font-bold tabular-nums">
+              <dt className="flex items-center gap-2.5 text-[14px] text-hub-suave">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-[#FFF1D6] text-[#9A5B00]">
+                  <Users className="size-[18px]" aria-hidden="true" />
+                </span>
+                Contatos ativos
+              </dt>
+              <dd className="mt-3 font-titulo text-3xl font-bold tabular-nums">
                 {dados.data?.resumo.ativos ?? "–"}
               </dd>
               {dados.data && dados.data.resumo.vencidos > 0 && (
@@ -62,8 +67,13 @@ function Painel() {
               )}
             </div>
             <div className="rounded-2xl border border-hub-borda bg-white p-5">
-              <dt className="text-[14px] text-hub-suave">Em negociação</dt>
-              <dd className="mt-1 font-titulo text-3xl font-bold tabular-nums">
+              <dt className="flex items-center gap-2.5 text-[14px] text-hub-suave">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-sit-info text-sit-info-t">
+                  <BadgeDollarSign className="size-[18px]" aria-hidden="true" />
+                </span>
+                Em negociação
+              </dt>
+              <dd className="mt-3 font-titulo text-3xl font-bold tabular-nums">
                 {dados.data ? moeda(dados.data.resumo.em_negociacao_cents) : "–"}
               </dd>
               <dd className="mt-1 text-[13.5px] text-hub-suave">Diagnósticos e propostas</dd>
@@ -108,7 +118,7 @@ function Painel() {
                       key={i.deal_id}
                       className="flex flex-col gap-3 border-b border-hub-borda px-5 py-4 last:border-b-0 sm:flex-row sm:items-center"
                     >
-                      <span className="font-rotulo text-[13px] text-hub-suave tabular-nums">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#FFF1D6] text-[13px] font-semibold text-[#7A4200] tabular-nums">
                         {n + 1}
                       </span>
                       <div className="flex min-w-0 flex-1 flex-col gap-1">

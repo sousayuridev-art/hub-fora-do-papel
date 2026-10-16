@@ -16,7 +16,7 @@ export function CabecalhoPagina({
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex min-w-0 flex-col gap-1">
         {grupo && (
-          <span className="font-rotulo text-[12.5px] uppercase tracking-[0.1em] text-hub-suave">
+          <span className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.1em] text-marca-escura">
             {grupo}
           </span>
         )}

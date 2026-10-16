@@ -37,21 +37,35 @@ export function ContaUsuario({ cartao = false }: { cartao?: boolean }) {
     <div
       className={
         cartao
-          ? "flex min-h-14 items-center gap-3 rounded-xl bg-hub-fundo py-2 pl-3 pr-1"
+          ? "flex min-h-14 items-center gap-3 rounded-xl bg-hub-tinta py-2 pl-3 pr-1 text-white"
           : "flex min-h-12 items-center gap-3 px-3"
       }
     >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E5EDFF] text-[13px] font-semibold text-[#1E3FA8]">
+      <span
+        className={
+          cartao
+            ? "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#FFB020] text-[13px] font-bold text-hub-tinta"
+            : "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E5EDFF] text-[13px] font-semibold text-[#1E3FA8]"
+        }
+      >
         {iniciais(nome)}
       </span>
       <span className="flex min-w-0 flex-1 flex-col leading-tight" title={email}>
-        <span className="truncate text-[14px] font-semibold text-hub-tinta">{nome}</span>
-        {cartao && <span className="truncate text-[12.5px] text-menu-rotulo">Operador</span>}
+        <span
+          className={`truncate text-[14px] font-semibold ${cartao ? "text-white" : "text-hub-tinta"}`}
+        >
+          {nome}
+        </span>
+        {cartao && <span className="truncate text-[12.5px] text-[#C9CBD0]">Operador</span>}
       </span>
       <button
         type="button"
         onClick={() => void sair()}
-        className="flex size-11 shrink-0 items-center justify-center rounded-lg text-hub-suave hover:bg-white hover:text-hub-tinta"
+        className={
+          cartao
+            ? "flex size-11 shrink-0 items-center justify-center rounded-lg text-[#C9CBD0] hover:bg-white/10 hover:text-white"
+            : "flex size-11 shrink-0 items-center justify-center rounded-lg text-hub-suave hover:bg-white hover:text-hub-tinta"
+        }
         aria-label="Sair"
         title="Sair"
       >

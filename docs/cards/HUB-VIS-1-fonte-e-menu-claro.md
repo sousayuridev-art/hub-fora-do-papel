@@ -25,3 +25,13 @@ Telas internas (funil, clientes, ficha) e cores de situação não mudam; só he
 - Painel, Funil, Clientes e Ficha abrem com a nova fonte e sem texto cortado (computador 1440 px e celular 390 px).
 - Menu claro com item ativo visível, foco por teclado visível e alvos de toque de 44 px.
 - `bun run build`, `bun run lint`, testes e e2e locais passam.
+
+## HUB-VIS-2 · Mais cores da marca (16/10)
+Pedido do Yuri depois de publicar o HUB-VIS-1: "ficou muito branco, traga mais cores da marca".
+- Menu em creme #FFF8EA, borda #F1E3BF; item ativo em âmbar claro #FFE4A3 com ícone #9A5B00; passar o mouse em #FFF0CC.
+- Cartão da conta em #0E1013 com as iniciais em âmbar #FFB020.
+- Barra do topo no celular no mesmo creme.
+- Rótulo do grupo nos cabeçalhos (ex.: VENDER) em #9A5B00.
+- Painel: ícones nos indicadores (âmbar claro e azul de informação) e números da fila em âmbar claro.
+- O âmbar cheio #FFB020 continua só no botão principal, no logotipo e nas iniciais da conta.
+**Aceite:** contraste de texto ≥ 4,5:1; build, lint e e2e passam.
