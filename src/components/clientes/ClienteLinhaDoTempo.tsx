@@ -1,7 +1,7 @@
 import { Globe, StickyNote } from "lucide-react";
 
 import { rotuloAtividade } from "@/lib/clientes";
-import { diaMes, hora } from "@/lib/formatar";
+import { diaMes, hora, moeda } from "@/lib/formatar";
 import { rotuloEtapa, rotuloMotivo, type ItemLinhaDoTempo, type MotivoPerda } from "@/lib/funil";
 
 function descricao(i: ItemLinhaDoTempo): string | null {
@@ -19,6 +19,12 @@ function descricao(i: ItemLinhaDoTempo): string | null {
     ];
     return partes.filter(Boolean).join(" · ") || null;
   }
+  if (i.kind === "proposta_enviada" && typeof d["total_cents"] === "number")
+    return `${moeda(d["total_cents"])} · versão ${String(d["versao"] ?? 1)}`;
+  if (i.kind === "proposta_aceita" && typeof d["nome"] === "string")
+    return `Aceita por ${d["nome"]}${typeof d["total_cents"] === "number" ? ` · ${moeda(d["total_cents"])}` : ""}`;
+  if (i.kind === "proposta_recusada")
+    return typeof d["motivo"] === "string" && d["motivo"] ? `Motivo: ${d["motivo"]}` : null;
   if (i.kind === "oportunidade_atualizada" && typeof d["proximo_passo"] === "string")
     return `Próximo passo: ${d["proximo_passo"]}`;
   return null;
@@ -59,6 +65,9 @@ export function ClienteLinhaDoTempo({ itens }: { itens: ItemLinhaDoTempo[] }) {
                 <span className="text-[15px] font-medium">
                   {i.tipo === "anotacao" ? "Anotação" : rotuloAtividade(i.kind)}
                   {i.origem === "site" && <span className="text-hub-suave"> · pelo site</span>}
+                  {i.origem === "cliente" && (
+                    <span className="text-hub-suave"> · pelo cliente</span>
+                  )}
                 </span>
                 <time dateTime={i.quando} className="font-rotulo text-[12.5px] text-hub-suave">
                   {diaMes(i.quando)}, {hora(i.quando)}

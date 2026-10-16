@@ -1,63 +1,68 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
-import { PlugZap, TriangleAlert } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { PlugZap } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { EmConstrucao } from "@/components/paginas/EmConstrucao";
-import { supabase } from "@/lib/supabase";
+import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
+import { EstadoErro } from "@/components/hub/EstadoErro";
+import { PrecosFormulario } from "@/components/precos/PrecosFormulario";
+import { classeBotaoSecundario } from "@/lib/estilos";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
+import { chavesPrecos, lerPrecos } from "@/lib/precos";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações · Hub Fora do Papel" }] }),
   component: Configuracoes,
 });
 
-/**
- * Sprint 0: além do título, um teste de conexão que exercita o padrão de mutação
- * (aviso de sucesso e aviso de erro com "Tentar de novo").
- */
+/** Configurações: Preços (card S2) e teste de conexão. */
 function Configuracoes() {
+  const precos = useQuery({ queryKey: chavesPrecos.tudo, queryFn: lerPrecos });
   const testarConexao = useMutation({
-    mutationFn: async (simularErro: boolean) => {
-      const { error } = simularErro
-        ? await supabase.rpc("funcao_que_nao_existe" as never)
-        : await supabase.rpc("my_access");
+    mutationFn: async () => {
+      const { error } = await supabase.rpc("my_access");
       if (error) throw error;
     },
     onSuccess: () => ok("Conexão com o banco funcionando."),
-    onError: (e, simularErro) =>
-      erro(mensagemDeErro(e), { tentarDeNovo: () => testarConexao.mutate(simularErro) }),
+    onError: (e) => erro(mensagemDeErro(e), { tentarDeNovo: () => testarConexao.mutate() }),
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      <EmConstrucao titulo="Configurações" />
-      <section className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-white p-5 md:p-6">
-        <h2 className="font-titulo text-xl font-semibold tracking-tight">Conexão com o banco</h2>
-        <p className="text-[15px] text-hub-suave">
-          Confere se o Hub consegue falar com o Supabase usando o seu acesso.
-        </p>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            className="h-11"
-            disabled={testarConexao.isPending}
-            onClick={() => testarConexao.mutate(false)}
-          >
-            <PlugZap aria-hidden="true" />
-            Testar conexão
-          </Button>
-          {import.meta.env.DEV && (
-            <Button
-              variant="outline"
-              className="h-11"
-              disabled={testarConexao.isPending}
-              onClick={() => testarConexao.mutate(true)}
-            >
-              <TriangleAlert aria-hidden="true" />
-              Simular erro (só em desenvolvimento)
-            </Button>
-          )}
+    <div className="flex flex-col gap-6">
+      <CabecalhoPagina
+        titulo="Configurações"
+        resumo="Preços que as propostas usam e a conexão com o banco."
+      />
+      <h2 className="font-titulo text-xl font-bold">Preços</h2>
+      {precos.isPending ? (
+        <div className="flex flex-col gap-4" aria-busy="true">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="h-56 animate-pulse rounded-2xl bg-white" />
+          ))}
         </div>
+      ) : precos.isError ? (
+        <EstadoErro
+          titulo="Não foi possível carregar os preços"
+          aoTentarDeNovo={() => void precos.refetch()}
+        />
+      ) : (
+        <PrecosFormulario dados={precos.data} />
+      )}
+
+      <section className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-white p-5 md:p-6">
+        <h2 className="font-titulo text-lg font-bold">Conexão com o banco</h2>
+        <p className="text-[15px] text-hub-suave">
+          Confere se o Hub consegue falar com o banco usando o seu acesso.
+        </p>
+        <button
+          type="button"
+          className={`${classeBotaoSecundario} self-start`}
+          disabled={testarConexao.isPending}
+          onClick={() => testarConexao.mutate()}
+        >
+          <PlugZap className="size-4" aria-hidden="true" />
+          Testar conexão
+        </button>
       </section>
     </div>
   );

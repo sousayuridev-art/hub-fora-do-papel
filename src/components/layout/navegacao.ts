@@ -39,7 +39,7 @@ export const menuOperador: GrupoMenu[] = [
     itens: [
       { rotulo: "Pipeline", para: "/app/pipeline", icone: KanbanSquare },
       { rotulo: "Clientes", para: "/app/clientes", icone: Users },
-      { rotulo: "Propostas", para: "/app/propostas", icone: FileText, emBreve: true },
+      { rotulo: "Propostas", para: "/app/propostas", icone: FileText },
       { rotulo: "Tráfego pago", para: "/app/trafego", icone: Megaphone, emBreve: true },
     ],
   },

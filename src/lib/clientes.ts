@@ -71,6 +71,12 @@ const atividades: Record<string, string> = {
   desarquivada: "Voltou ao funil",
   cliente_atualizado: "Ficha atualizada",
   pedido_do_site: "Pedido pelo site",
+  proposta_criada: "Proposta criada",
+  proposta_enviada: "Proposta enviada",
+  proposta_vista: "Cliente abriu a proposta",
+  proposta_aceita: "Proposta aceita",
+  proposta_recusada: "Proposta recusada",
+  proposta_reaberta: "Proposta reaberta",
 };
 
 export function ultimaAtividade(c: ClienteLinha): { texto: string; quando: string } {

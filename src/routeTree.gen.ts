@@ -30,8 +30,10 @@ import { Route as PortalAprovacoesRouteImport } from './routes/portal/aprovacoes
 import { Route as PortalArquivosRouteImport } from './routes/portal/arquivos'
 import { Route as PortalPagamentosRouteImport } from './routes/portal/pagamentos'
 import { Route as PortalPedidosRouteImport } from './routes/portal/pedidos'
+import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as AppClientesIndexRouteImport } from './routes/app/clientes/index'
 import { Route as AppClientesIdRouteImport } from './routes/app/clientes/$id'
+import { Route as PreviaPropostaIdRouteImport } from './routes/previa.proposta.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -138,6 +140,11 @@ const PortalPedidosRoute = PortalPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => PortalRoute,
 } as any)
+const PropostaTokenRoute = PropostaTokenRouteImport.update({
+  id: '/proposta/$token',
+  path: '/proposta/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppClientesIndexRoute = AppClientesIndexRouteImport.update({
   id: '/clientes/',
   path: '/clientes/',
@@ -147,6 +154,11 @@ const AppClientesIdRoute = AppClientesIdRouteImport.update({
   id: '/clientes/$id',
   path: '/clientes/$id',
   getParentRoute: () => AppRoute,
+} as any)
+const PreviaPropostaIdRoute = PreviaPropostaIdRouteImport.update({
+  id: '/previa/proposta/$id',
+  path: '/previa/proposta/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -169,9 +181,11 @@ export interface FileRoutesByFullPath {
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
   '/portal/pedidos': typeof PortalPedidosRoute
+  '/proposta/$token': typeof PropostaTokenRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
+  '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -192,9 +206,11 @@ export interface FileRoutesByTo {
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
   '/portal/pedidos': typeof PortalPedidosRoute
+  '/proposta/$token': typeof PropostaTokenRoute
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
+  '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes': typeof AppClientesIndexRoute
 }
 export interface FileRoutesById {
@@ -218,9 +234,11 @@ export interface FileRoutesById {
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
   '/portal/pedidos': typeof PortalPedidosRoute
+  '/proposta/$token': typeof PropostaTokenRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
+  '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
 }
 export interface FileRouteTypes {
@@ -245,9 +263,11 @@ export interface FileRouteTypes {
     | '/portal/arquivos'
     | '/portal/pagamentos'
     | '/portal/pedidos'
+    | '/proposta/$token'
     | '/app/'
     | '/portal/'
     | '/app/clientes/$id'
+    | '/previa/proposta/$id'
     | '/app/clientes/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -268,9 +288,11 @@ export interface FileRouteTypes {
     | '/portal/arquivos'
     | '/portal/pagamentos'
     | '/portal/pedidos'
+    | '/proposta/$token'
     | '/app'
     | '/portal'
     | '/app/clientes/$id'
+    | '/previa/proposta/$id'
     | '/app/clientes'
   id:
     | '__root__'
@@ -293,9 +315,11 @@ export interface FileRouteTypes {
     | '/portal/arquivos'
     | '/portal/pagamentos'
     | '/portal/pedidos'
+    | '/proposta/$token'
     | '/app/'
     | '/portal/'
     | '/app/clientes/$id'
+    | '/previa/proposta/$id'
     | '/app/clientes/'
   fileRoutesById: FileRoutesById
 }
@@ -306,6 +330,8 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   SemAcessoRoute: typeof SemAcessoRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  PropostaTokenRoute: typeof PropostaTokenRoute
+  PreviaPropostaIdRoute: typeof PreviaPropostaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -457,6 +483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalPedidosRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/proposta/$token': {
+      id: '/proposta/$token'
+      path: '/proposta/$token'
+      fullPath: '/proposta/$token'
+      preLoaderRoute: typeof PropostaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/clientes/': {
       id: '/app/clientes/'
       path: '/clientes'
@@ -470,6 +503,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/clientes/$id'
       preLoaderRoute: typeof AppClientesIdRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/previa/proposta/$id': {
+      id: '/previa/proposta/$id'
+      path: '/previa/proposta/$id'
+      fullPath: '/previa/proposta/$id'
+      preLoaderRoute: typeof PreviaPropostaIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -532,6 +572,8 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   SemAcessoRoute: SemAcessoRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  PropostaTokenRoute: PropostaTokenRoute,
+  PreviaPropostaIdRoute: PreviaPropostaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

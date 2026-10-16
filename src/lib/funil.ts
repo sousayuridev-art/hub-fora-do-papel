@@ -146,7 +146,7 @@ export type ItemLinhaDoTempo = {
   para: Etapa | null;
   detalhe: Record<string, unknown>;
   texto: string | null;
-  origem: "hub" | "site";
+  origem: "hub" | "site" | "cliente";
 };
 
 export const chavesFunil = {

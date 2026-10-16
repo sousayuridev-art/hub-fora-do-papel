@@ -1,6 +1,7 @@
 import { ArrowRight, CalendarClock } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
+import { BotaoAbrirProposta } from "@/components/propostas/BotaoAbrirProposta";
 import { diaComHora, moeda, prazoRelativo } from "@/lib/formatar";
 import {
   etapas,
@@ -137,6 +138,7 @@ export function ClienteOportunidade({
             <button type="button" className={botao} onClick={() => aoAgir("valor")}>
               Valor e diagnóstico
             </button>
+            {o.stage !== "fechado" && <BotaoAbrirProposta dealId={o.id} className={botao} />}
             {o.stage !== "fechado" && (
               <button
                 type="button"
