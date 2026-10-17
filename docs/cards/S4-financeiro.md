@@ -132,3 +132,18 @@
 - **Fluxo de caixa:** o fluxo dos próximos 3 meses mostra entradas, saídas e saldo.
 - **Celular:** a 390 px, sem rolagem lateral.
 - **Verificações:** build, lint, vitest, pgTAP e e2e passam.
+
+## Notas da implementação (17/10)
+- **Revisão de segurança independente**, antes de publicar. Não houve vazamento entre empresas. Corrigido:
+  - pausar uma mensalidade passa a não cobrar os meses pausados (antes só adiava); a pausa fica registrada em `subscription_pauses`;
+  - mensalidade encerrada antes de começar não cobra nada;
+  - cobrança de diagnóstico cancelada de propósito não volta numa edição do funil;
+  - tirar o pacote no funil cancela a cobrança aberta;
+  - serviço adicional já aprovado não volta para o cliente decidir;
+  - desfazer um pagamento registra o número do recibo anulado na linha do tempo e na fila do n8n;
+  - toda cobrança criada, inclusive as automáticas, vai para a fila do n8n;
+  - o portal não mostra a observação interna do pagamento;
+  - a geração das mensalidades continua do último mês gerado.
+- **Ficou registrado:**
+  - o restante de um pagamento parcial vira cobrança avulsa (não soma como parcela do projeto);
+  - mudar o pacote do diagnóstico depois de pago mantém o valor pago.

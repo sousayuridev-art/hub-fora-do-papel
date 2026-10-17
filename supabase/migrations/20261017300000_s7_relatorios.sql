@@ -31,7 +31,8 @@ begin
     select c.id, c.origin, d.id as deal_id, d.stage, d.archived_at, d.archived_from_stage, d.diagnostic_paid,
            d.value_cents, d.closed_at,
            public._ordem_etapa(coalesce(d.archived_from_stage, d.stage)) as alcancou
-      from public.clients c left join public.deals d on d.client_id = c.id
+      from public.clients c
+      left join lateral (select * from public.deals x where x.client_id = c.id order by x.created_at desc limit 1) d on true
      where c.tenant_id = t and (c.created_at at time zone tz)::date between ini and fim
   ), etapas as (
     select e.id as etapa, e.ord,
@@ -59,6 +60,7 @@ begin
                    'receita_cents', coalesce(sum(value_cents) filter (where stage = 'fechado'), 0)
                                    + coalesce((select sum(ch.paid_cents) from public.charges ch
                                                 where ch.kind = 'diagnostico' and ch.status = 'paga'
+                                                  and ch.paid_at between ini and fim
                                                   and ch.deal_id in (select deal_id from contatos c2 where c2.origin = contatos.origin)), 0)) x
             from contatos group by origin) q), '[]'::jsonb),
       'perdas', coalesce((select jsonb_agg(jsonb_build_object('motivo', lost_reason, 'quantidade', n) order by n desc)
@@ -67,7 +69,8 @@ begin
                  group by lost_reason) q), '[]'::jsonb),
       'dias_ate_aceite', (select round(avg(extract(epoch from (p.accepted_at - c.created_at)) / 86400))
           from public.proposals p join public.clients c on c.id = p.client_id
-         where p.tenant_id = t and p.status = 'aceita' and (p.accepted_at at time zone tz)::date between ini and fim),
+         where p.tenant_id = t and p.status = 'aceita' and (p.accepted_at at time zone tz)::date between ini and fim
+           and p.accepted_at >= c.created_at),
       'anuncios_cents', (select coalesce(sum(amount_cents), 0) from public.ad_spend
                           where tenant_id = t and spent_on between ini and fim),
       'diagnosticos_por_anuncio', (select count(*) from contatos

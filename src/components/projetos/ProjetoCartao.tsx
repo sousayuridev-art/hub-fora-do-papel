@@ -38,7 +38,11 @@ export function ProjetoCartao({ p }: { p: ProjetoResumo }) {
               {p.contato ? ` · ${p.contato}` : ""}
             </span>
             <h2 className="font-titulo text-[19px] font-bold leading-snug">
-              <Link to="/app/projetos/$id" params={{ id: p.id }} className="hover:underline">
+              <Link
+                to="/app/projetos/$id"
+                params={{ id: p.id }}
+                className="-my-2 inline-block py-2 hover:underline"
+              >
                 {p.nome}
               </Link>
             </h2>

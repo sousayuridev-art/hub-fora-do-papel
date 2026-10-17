@@ -43,6 +43,17 @@ create table public.subscriptions (
   constraint subscriptions_fim_depois check (ended_month is null or ended_month >= start_month)
 );
 create index subscriptions_tenant_idx on public.subscriptions (tenant_id, status);
+
+-- Meses em que a mensalidade fica sem cobrança (pausa ou encerramento antes de começar)
+create table public.subscription_pauses (
+  id               uuid primary key default gen_random_uuid(),
+  tenant_id        uuid not null references public.tenants (id) on delete cascade,
+  subscription_id  uuid not null references public.subscriptions (id) on delete cascade,
+  from_month       date not null check (extract(day from from_month) = 1),
+  to_month         date check (to_month is null or (extract(day from to_month) = 1 and to_month >= from_month)),
+  created_at       timestamptz not null default now()
+);
+create index subscription_pauses_sub_idx on public.subscription_pauses (subscription_id);
 create index subscriptions_client_idx on public.subscriptions (client_id);
 create trigger subscriptions_touch before update on public.subscriptions for each row execute function public.touch_updated_at();
 
@@ -86,6 +97,19 @@ create index charges_tenant_status_idx on public.charges (tenant_id, status, due
 create index charges_client_idx on public.charges (client_id, status);
 create index charges_project_idx on public.charges (project_id);
 create index charges_paid_idx on public.charges (tenant_id, paid_at) where status = 'paga';
+
+create or replace function public.charges_evento_criada()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.event_outbox (tenant_id, event, payload)
+  values (new.tenant_id, 'financeiro.cobranca_criada', jsonb_build_object('cobranca_id', new.id, 'client_id', new.client_id,
+          'tipo', new.kind, 'valor_cents', new.amount_cents, 'vencimento', new.due_date));
+  return new;
+end;
+$$;
+revoke all on function public.charges_evento_criada() from public, anon, authenticated;
+create trigger charges_evento_criada after insert on public.charges
+  for each row execute function public.charges_evento_criada();
 create trigger charges_touch before update on public.charges for each row execute function public.touch_updated_at();
 
 create table public.expenses (
@@ -112,7 +136,7 @@ create trigger expenses_touch before update on public.expenses for each row exec
 do $$
 declare t text;
 begin
-  foreach t in array array['finance_settings', 'subscriptions', 'charges', 'expenses'] loop
+  foreach t in array array['finance_settings', 'subscriptions', 'subscription_pauses', 'charges', 'expenses'] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('create policy %I on public.%I for select to authenticated using (public.is_tenant_owner(tenant_id))',
                    t || '_owner_select', t);
@@ -185,12 +209,19 @@ $$;
 -- Mensalidades: gera as cobranças que faltam até o mês corrente (sem duplicar)
 create or replace function public._mensalidades_gerar(p_tenant uuid)
 returns void language plpgsql security definer set search_path = public as $$
-declare s public.subscriptions; m date; ate date; hoje date := public._hoje(p_tenant);
+declare s public.subscriptions; m date; ate date; hoje date := public._hoje(p_tenant); ultimo date;
 begin
-  for s in select * from public.subscriptions where tenant_id = p_tenant and status <> 'pausada' loop
+  for s in select * from public.subscriptions where tenant_id = p_tenant loop
     ate := least(public._mes_de(hoje), coalesce(s.ended_month, public._mes_de(hoje)));
-    m := s.start_month;
+    -- Continua do último mês já gerado (não refaz o histórico a cada chamada)
+    select max(period) into ultimo from public.charges where subscription_id = s.id and kind = 'mensalidade';
+    m := greatest(s.start_month, coalesce((ultimo + interval '1 month')::date, s.start_month));
     while m <= ate loop
+      if exists (select 1 from public.subscription_pauses z
+                  where z.subscription_id = s.id and m >= z.from_month and (z.to_month is null or m <= z.to_month)) then
+        m := (m + interval '1 month')::date;
+        continue;
+      end if;
       insert into public.charges (tenant_id, client_id, project_id, subscription_id, kind, description,
                                   amount_cents, due_date, period)
       values (s.tenant_id, s.client_id, s.project_id, s.id, 'mensalidade',
@@ -223,13 +254,14 @@ returns void language plpgsql security definer set search_path = public as $$
 declare it jsonb; i int := 0; n int; proj uuid; aceite date;
 begin
   if exists (select 1 from public.charges where proposal_id = pr.id and kind = 'parcela') then return; end if;
-  n := jsonb_array_length(coalesce(pr.snapshot->'investimento'->'parcelas', '[]'::jsonb));
+  select count(*) into n from jsonb_array_elements(coalesce(pr.snapshot->'investimento'->'parcelas', '[]'::jsonb)) x
+   where coalesce((x->>'cents')::bigint, 0) > 0;
   if n = 0 then return; end if;
   select id into proj from public.projects where proposal_id = pr.id;
   aceite := (coalesce(pr.accepted_at, now()) at time zone (select timezone from public.tenants where id = pr.tenant_id))::date;
-  for it in select * from jsonb_array_elements(pr.snapshot->'investimento'->'parcelas') loop
+  for it in select * from jsonb_array_elements(pr.snapshot->'investimento'->'parcelas') x
+            where coalesce((x->>'cents')::bigint, 0) > 0 loop
     i := i + 1;
-    if coalesce((it->>'cents')::bigint, 0) <= 0 then continue; end if;
     insert into public.charges (tenant_id, client_id, project_id, proposal_id, deal_id, kind, description, amount_cents,
                                 due_date, due_label, sequence, sequence_total)
     values (pr.tenant_id, pr.client_id, proj, pr.id, pr.deal_id, 'parcela',
@@ -263,10 +295,18 @@ create or replace function public._diagnostico_sincronizar(d public.deals, p_era
 returns void language plpgsql security definer set search_path = public as $$
 declare c public.charges; valor int; s public.pricing_settings;
 begin
-  if d.diagnostic_tier is null then return; end if;
+  select * into c from public.charges where deal_id = d.id and kind = 'diagnostico'
+   order by (status <> 'cancelada') desc, created_at desc limit 1;
+  if d.diagnostic_tier is null then
+    if c.status = 'aberta' then
+      update public.charges set status = 'cancelada', canceled_reason = 'Diagnóstico retirado no funil' where id = c.id;
+    end if;
+    return;
+  end if;
+  -- Cancelada de propósito (cortesia, por exemplo): não volta sozinha
+  if c.status = 'cancelada' then return; end if;
   s := public._precos(d.tenant_id);
   valor := case d.diagnostic_tier when 'essencial' then s.diag_essencial_cents else s.diag_ampliado_cents end;
-  select * into c from public.charges where deal_id = d.id and kind = 'diagnostico' and status <> 'cancelada';
   if c.id is null then
     if valor is null or valor <= 0 then return; end if;
     insert into public.charges (tenant_id, client_id, deal_id, kind, description, amount_cents, due_date)
@@ -282,6 +322,8 @@ begin
       (coalesce(d.diagnostic_paid_at, now()) at time zone (select timezone from public.tenants where id = d.tenant_id))::date,
       c.amount_cents, 'pix', 'Marcado como pago no funil');
   elsif not d.diagnostic_paid and c.status = 'paga' and p_era_pago then
+    perform public._cobranca_evento(c, 'pagamento_desfeito', 'hub', 'financeiro.pagamento_desfeito',
+      jsonb_build_object('recibo', c.receipt_number, 'motivo', 'Desmarcado no funil'));
     update public.charges set status = 'aberta', paid_at = null, paid_cents = null, paid_method = null,
            receipt_number = null, payment_note = null where id = c.id;
   end if;
@@ -292,6 +334,11 @@ revoke all on function public._diagnostico_sincronizar(public.deals, boolean) fr
 create or replace function public.deals_cobranca_diagnostico()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
+  -- Só quando o pacote ou o "pago" mudam de fato (o funil regrava as colunas a cada edição)
+  if tg_op = 'UPDATE' and new.diagnostic_tier is not distinct from old.diagnostic_tier
+     and new.diagnostic_paid is not distinct from old.diagnostic_paid then
+    return new;
+  end if;
   perform public._diagnostico_sincronizar(new, case when tg_op = 'UPDATE' then coalesce(old.diagnostic_paid, false) else false end);
   return new;
 end;
@@ -429,7 +476,7 @@ begin
       'despesas_mes_cents', (select coalesce(sum(amount_cents), 0) from public.expenses
                                where tenant_id = t and ((kind = 'avulsa' and public._mes_de(spent_on) = mes)
                                   or (kind = 'fixa' and start_month <= mes and (end_month is null or end_month >= mes))))
-                          + (select coalesce(sum(amount_cents), 0) from public.ad_spend where tenant_id = t and spent_on >= mes),
+                          + (select coalesce(sum(amount_cents), 0) from public.ad_spend where tenant_id = t and spent_on between mes and hoje),
       'avisos_cliente', (select count(*) from public.charges where tenant_id = t and status = 'aberta' and client_reported_at is not null)),
     'cobrancas', coalesce((select jsonb_agg(public._cobranca_json(c, hoje, s) || jsonb_build_object(
                     'empresa', cl.company_name, 'contato', cl.contact_name, 'whatsapp', cl.whatsapp,
@@ -528,7 +575,7 @@ begin
   insert into public.charges (tenant_id, client_id, project_id, kind, description, amount_cents, due_date)
   values (t, p_cliente, p_projeto, 'avulsa', left(trim(p_descricao), 160), p_valor_cents, p_vencimento)
   returning * into c;
-  perform public._cobranca_evento(c, 'cobranca_criada', 'hub', 'financeiro.cobranca_criada');
+  perform public._cobranca_evento(c, 'cobranca_criada', 'hub', null);
   return jsonb_build_object('id', c.id);
 end;
 $$;
@@ -590,12 +637,14 @@ returns jsonb language plpgsql volatile security definer set search_path = publi
 declare c public.charges := public._cobranca_do_dono(p_id);
 begin
   if c.status <> 'paga' then raise exception 'cobranca_nao_paga' using errcode = '22023'; end if;
+  -- O número do recibo anulado fica registrado na linha do tempo e na fila do n8n
+  perform public._cobranca_evento(c, 'pagamento_desfeito', 'hub', 'financeiro.pagamento_desfeito',
+    jsonb_build_object('recibo', c.receipt_number, 'pago_cents', c.paid_cents, 'pago_em', c.paid_at));
   update public.charges set status = 'aberta', paid_at = null, paid_cents = null, paid_method = null,
          receipt_number = null, payment_note = null where id = c.id returning * into c;
   if c.kind = 'diagnostico' and c.deal_id is not null then
     update public.deals set diagnostic_paid = false where id = c.deal_id and diagnostic_paid;
   end if;
-  perform public._cobranca_evento(c, 'pagamento_desfeito', 'hub', 'financeiro.pagamento_desfeito');
   return jsonb_build_object('ok', true);
 end;
 $$;
@@ -636,16 +685,32 @@ $$;
 
 create or replace function public.mensalidade_situacao(p_id uuid, p_situacao public.subscription_status)
 returns jsonb language plpgsql volatile security definer set search_path = public as $$
-declare s public.subscriptions; hoje date;
+declare s public.subscriptions; hoje date; mes date;
 begin
   select * into s from public.subscriptions where id = p_id for update;
   if s.id is null or not public.is_tenant_owner(s.tenant_id) then raise exception 'mensalidade_inexistente' using errcode = 'P0002'; end if;
   if s.status = 'encerrada' then raise exception 'mensalidade_encerrada' using errcode = '22023'; end if;
-  hoje := public._hoje(s.tenant_id);
+  if s.status = p_situacao then return jsonb_build_object('ok', true); end if;
+  hoje := public._hoje(s.tenant_id); mes := public._mes_de(hoje);
   -- Gera o mês corrente antes de mudar (o mês em curso continua cobrado)
   perform public._mensalidades_gerar(s.tenant_id);
+  if p_situacao = 'pausada' then
+    -- Pausa a partir do mês seguinte (ou do início, se ainda não começou)
+    insert into public.subscription_pauses (tenant_id, subscription_id, from_month)
+    values (s.tenant_id, s.id, greatest(s.start_month, (mes + interval '1 month')::date));
+  else
+    -- Retomou antes da pausa começar: a pausa some. Senão, fecha a pausa no mês da retomada.
+    delete from public.subscription_pauses where subscription_id = s.id and to_month is null and from_month > mes;
+    update public.subscription_pauses set to_month = mes
+     where subscription_id = s.id and to_month is null;
+  end if;
+  if p_situacao = 'encerrada' and s.start_month > mes then
+    -- Encerrada antes de começar: nenhum mês é cobrado
+    insert into public.subscription_pauses (tenant_id, subscription_id, from_month, to_month)
+    values (s.tenant_id, s.id, s.start_month, s.start_month);
+  end if;
   update public.subscriptions set status = p_situacao,
-         ended_month = case when p_situacao = 'encerrada' then greatest(start_month, public._mes_de(hoje)) end
+         ended_month = case when p_situacao = 'encerrada' then greatest(start_month, mes) end
    where id = s.id returning * into s;
   perform public._projeto_evento(s.tenant_id, s.client_id, s.project_id, null, 'mensalidade_' || p_situacao::text,
     jsonb_build_object('plano', s.plan_name), 'hub', 'financeiro.mensalidade_' || p_situacao::text);
@@ -746,7 +811,7 @@ begin
   perform public._mensalidades_gerar(t);
   hoje := public._hoje(t); s := public._precos(t); f := public._financas(t);
   select * into proj from public.projects where client_id = c order by (status = 'andamento') desc, created_at desc limit 1;
-  select coalesce(jsonb_agg(public._cobranca_json(x, hoje, s) order by x.kind, x.sequence, x.period desc, x.created_at), '[]'::jsonb)
+  select coalesce(jsonb_agg((public._cobranca_json(x, hoje, s) - 'nota') order by x.kind, x.sequence, x.period desc, x.created_at), '[]'::jsonb)
     into cob from public.charges x where x.client_id = c and x.status <> 'cancelada';
   return jsonb_build_object(
     'hoje', hoje,
@@ -825,6 +890,16 @@ begin
   d := pg_get_functiondef('public.painel_novidades()'::regprocedure);
   novo := replace(d, '''pendencia_feita'', ''pedido_recebido'')', '''pendencia_feita'', ''pedido_recebido'', ''pagamento_avisado'')');
   if novo = d then raise exception 'painel_novidades: ponto de troca não encontrado'; end if;
+  execute novo;
+end $$;
+
+do $$
+declare d text; novo text;
+begin
+  d := pg_get_functiondef('public.pedido_enviar_cliente(uuid)'::regprocedure);
+  novo := replace(d, 'if r.classification is distinct from ''adicional'' or r.status <> ''em_analise'' then',
+                     'if r.classification is distinct from ''adicional'' or r.status <> ''em_analise'' or r.client_decision = ''aprovado'' then');
+  if novo = d then raise exception 'pedido_enviar_cliente: ponto de troca não encontrado'; end if;
   execute novo;
 end $$;
 

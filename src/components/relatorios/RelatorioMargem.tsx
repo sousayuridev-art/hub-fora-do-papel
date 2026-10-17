@@ -39,7 +39,7 @@ export function RelatorioMargem({ m }: { m: Relatorio["margem"] }) {
                   <Link
                     to="/app/projetos/$id"
                     params={{ id: p.id }}
-                    className="font-semibold hover:underline"
+                    className="inline-flex min-h-11 items-center font-semibold hover:underline"
                   >
                     {p.empresa} · {p.nome}
                   </Link>

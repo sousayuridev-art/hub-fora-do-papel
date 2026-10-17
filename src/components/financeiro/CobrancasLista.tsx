@@ -42,7 +42,7 @@ export function CobrancasLista({
                 <button
                   type="button"
                   onClick={() => aoAbrir(c)}
-                  className="grid w-full gap-1.5 px-5 py-3.5 text-left hover:bg-hub-fundo md:grid-cols-[minmax(0,1fr)_170px_120px] md:items-center md:gap-4"
+                  className="grid w-full gap-1.5 px-5 py-3.5 text-left hover:bg-hub-fundo md:grid-cols-[minmax(0,1fr)_220px_120px] md:items-center md:gap-4"
                 >
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate font-semibold">{c.empresa}</span>

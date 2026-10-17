@@ -43,3 +43,8 @@
 - Trocar o período recalcula tudo no banco.
 - Celular a 390 px sem rolagem lateral.
 - Verificações: build, lint, vitest, pgTAP e e2e passam.
+
+## Notas da implementação (17/10)
+- Cada cliente conta uma vez no funil, pela oportunidade mais recente.
+- O diagnóstico por origem conta só o que foi pago no período.
+- O tempo até o aceite ignora registros com data inconsistente.

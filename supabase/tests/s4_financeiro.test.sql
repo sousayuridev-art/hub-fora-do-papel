@@ -2,7 +2,7 @@
 -- mensalidade sem duplicar, recibo sequencial, portal só da própria empresa, isolamento.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(34);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -141,6 +141,49 @@ select is((select amount_cents || ':' || start_month from public.subscriptions
             where project_id = (select id from public.projects where proposal_id = '40000000-0000-0000-0000-000000000001')),
   '124500:' || (date_trunc('month', current_date) + interval '1 month')::date::text,
   'Lançar com plano cria a mensalidade (plano + infraestrutura) a partir do mês seguinte');
+
+-- Correções da revisão de segurança
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select throws_ok(format($$ select public.pedido_enviar_cliente(%L) $$, (select valor->>'id' from t where chave = 'ped')),
+  '22023', null, 'Serviço adicional já aprovado não volta para o cliente decidir');
+insert into t select 'm3', public.mensalidade_criar('20000000-0000-0000-0000-000000000002', 'Futura', 30000,
+  (date_trunc('month', current_date) + interval '1 month')::date, 10, 6);
+select public.mensalidade_situacao((select (valor->>'id')::uuid from t where chave = 'm3'), 'encerrada');
+reset role;
+update public.subscriptions set start_month = start_month where id = (select (valor->>'id')::uuid from t where chave = 'm3');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select public.financeiro_painel();
+reset role;
+select is((select count(*) from public.charges where subscription_id = (select (valor->>'id')::uuid from t where chave = 'm3'))::int, 0,
+  'Mensalidade encerrada antes de começar não cobra nenhum mês');
+-- Pausar e retomar no mesmo mês não deixa mês sem cobrar nem cobra a mais
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select public.mensalidade_situacao((select (valor->>'id')::uuid from t where chave = 'mens'), 'pausada');
+select public.mensalidade_situacao((select (valor->>'id')::uuid from t where chave = 'mens'), 'ativa');
+reset role;
+select is((select count(*) from public.subscription_pauses where subscription_id = (select (valor->>'id')::uuid from t where chave = 'mens'))::int, 0,
+  'Pausa desfeita no mesmo mês some');
+-- Mês pausado não é cobrado depois (simula uma pausa no mês passado)
+insert into public.subscription_pauses (tenant_id, subscription_id, from_month, to_month)
+select tenant_id, id, start_month, start_month from public.subscriptions where id = (select (valor->>'id')::uuid from t where chave = 'mens');
+delete from public.charges where subscription_id = (select (valor->>'id')::uuid from t where chave = 'mens');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select public.financeiro_painel();
+reset role;
+select is((select count(*) from public.charges where subscription_id = (select (valor->>'id')::uuid from t where chave = 'mens'))::int, 1,
+  'Mês pausado não é cobrado (só o mês atual)');
+-- Diagnóstico cancelado de propósito não volta numa edição do funil
+update public.deals set diagnostic_tier = 'ampliado' where id = '30000000-0000-0000-0000-000000000002';
+update public.charges set status = 'cancelada', canceled_reason = 'Cortesia ao cliente'
+ where deal_id = '30000000-0000-0000-0000-000000000002' and kind = 'diagnostico';
+update public.deals set next_step = 'Outro passo', diagnostic_tier = diagnostic_tier, diagnostic_paid = diagnostic_paid
+ where id = '30000000-0000-0000-0000-000000000002';
+select is((select count(*) from public.charges where deal_id = '30000000-0000-0000-0000-000000000002'
+            and kind = 'diagnostico' and status <> 'cancelada')::int, 0, 'Diagnóstico cancelado não volta sozinho');
 
 select is((select count(*) from public.event_outbox where event = 'financeiro.pagamento')::int, 2,
   'Cada pagamento vai para a fila do n8n');
