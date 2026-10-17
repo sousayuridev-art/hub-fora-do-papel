@@ -12,7 +12,8 @@ export type Novidade = {
     | "adicional_aprovado"
     | "adicional_recusado"
     | "pendencia_feita"
-    | "pedido_recebido";
+    | "pedido_recebido"
+    | "pagamento_avisado";
   quando: string;
   client_id: string;
   project_id?: string | null;
@@ -37,4 +38,20 @@ export async function novidadesDoPainel(): Promise<NovidadesPainel> {
   const { data, error } = await supabase.rpc("painel_novidades");
   if (error) throw error;
   return data as NovidadesPainel;
+}
+
+export type EntregaAtencao = {
+  id: string;
+  nome: string;
+  empresa: string;
+  lancamento: string | null;
+  saude: import("@/lib/projetos").Saude;
+};
+
+export const chavesEntregas = ["painel", "entregas"] as const;
+
+export async function entregasDoPainel(): Promise<EntregaAtencao[]> {
+  const { data, error } = await supabase.rpc("painel_entregas");
+  if (error) throw error;
+  return (data ?? []) as EntregaAtencao[];
 }

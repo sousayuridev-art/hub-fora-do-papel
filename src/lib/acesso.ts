@@ -62,3 +62,11 @@ export async function exigirPapel(queryClient: QueryClient, papel: Papel, caminh
   if (acesso.papel !== papel) throw redirect({ to: inicioDoPapel[acesso.papel] });
   return { acesso };
 }
+
+/** Páginas que servem aos dois papéis (ex.: recibo): só exige estar logado com algum acesso. */
+export async function exigirAcesso(queryClient: QueryClient, caminho: string) {
+  const { session, acesso } = await carregarAcesso(queryClient);
+  if (!session) throw redirect({ to: "/entrar", search: { volta: caminho } });
+  if (!acesso?.papel) throw redirect({ to: "/sem-acesso" });
+  return { acesso };
+}

@@ -1,4 +1,4 @@
-import { Check, MoreHorizontal, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { Check, MessageCircle, MoreHorizontal, Plus, RotateCcw, Trash2, X } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
 import {
@@ -8,8 +8,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { dataLocal, diaMes, moeda } from "@/lib/formatar";
-import type { DetalheProjeto } from "@/lib/projetos";
+import { dataLocal, diaMes, linkWhatsapp, moeda } from "@/lib/formatar";
+import { diasDesde, textoLembrete, type DetalheProjeto } from "@/lib/projetos";
 import { cn } from "@/lib/utils";
 
 type Acoes = {
@@ -18,6 +18,8 @@ type Acoes = {
   aoMarcarPendencia: (id: string, feita: boolean) => void;
   aoRemoverPendencia: (id: string) => void;
   aoCancelarAprovacao: (id: string) => void;
+  aoReenviar: (titulo: string, faseId: string | null) => void;
+  remetente: string;
 };
 
 /**
@@ -26,12 +28,24 @@ type Acoes = {
  */
 export function AguardandoCliente({ d, ...a }: { d: DetalheProjeto } & Acoes) {
   const aprovacoes = d.aprovacoes.filter((x) => x.status === "aguardando");
-  const ajustes = d.aprovacoes.filter((x) => x.status === "ajuste").slice(0, 3);
+  // Ajustes pedidos que ainda não ganharam uma nova versão enviada
+  const ajustes = d.aprovacoes
+    .filter(
+      (x) =>
+        x.status === "ajuste" &&
+        !d.aprovacoes.some((y) => x.decided_at !== null && y.sent_at > x.decided_at),
+    )
+    .slice(0, 3);
   const pendencias = d.pendencias.filter((x) => x.status === "aberta");
   const feitas = d.pendencias.filter((x) => x.status === "feita").slice(0, 3);
   const adicionais = d.pedidos.filter((x) => x.status === "aguardando_cliente");
   const total = aprovacoes.length + pendencias.length + adicionais.length;
   const nome = d.cliente.contato?.split(" ")[0] ?? "o cliente";
+  const portal = typeof window !== "undefined" ? `${window.location.origin}/portal` : "/portal";
+  const wpp = total > 0 ? linkWhatsapp(d.cliente.whatsapp) : null;
+  const lembrete = wpp
+    ? `${wpp}?text=${encodeURIComponent(textoLembrete(d, portal, a.remetente))}`
+    : null;
 
   return (
     <section
@@ -48,6 +62,16 @@ export function AguardandoCliente({ d, ...a }: { d: DetalheProjeto } & Acoes) {
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
+          {lembrete && (
+            <a
+              href={lembrete}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={classeBotaoSecundario}
+            >
+              <MessageCircle className="size-4" aria-hidden="true" /> Lembrar pelo WhatsApp
+            </a>
+          )}
           <button type="button" className={classeBotaoSecundario} onClick={a.aoNovaPendencia}>
             <Plus className="size-4" aria-hidden="true" /> Pendência
           </button>
@@ -69,7 +93,13 @@ export function AguardandoCliente({ d, ...a }: { d: DetalheProjeto } & Acoes) {
                 {x.title}"
               </span>
               {x.decision_note && <span className="text-[14px]">"{x.decision_note}"</span>}
-              <span className="text-[13px]">Ajuste e envie de novo com "Pedir aprovação".</span>
+              <button
+                type="button"
+                onClick={() => a.aoReenviar(x.title, x.phase_id)}
+                className="inline-flex min-h-11 items-center self-start font-semibold underline"
+              >
+                Enviar a nova versão
+              </button>
             </li>
           ))}
         </ul>
@@ -104,7 +134,12 @@ export function AguardandoCliente({ d, ...a }: { d: DetalheProjeto } & Acoes) {
               </div>
               <span className="font-semibold">{x.title}</span>
               <span className="text-[13.5px] text-hub-suave">
-                Enviado {diaMes(x.sent_at)} · fica aqui até {nome} responder
+                {(() => {
+                  const dias = diasDesde(x.sent_at, d.hoje);
+                  return dias === 0
+                    ? `Enviado hoje · fica aqui até ${nome} responder`
+                    : `Enviado ${diaMes(x.sent_at)} · esperando há ${dias} ${dias === 1 ? "dia" : "dias"}`;
+                })()}
               </span>
             </li>
           ))}

@@ -23,6 +23,7 @@ export function PedirAprovacaoPainel({
   aoMudar,
   fases,
   faseInicial,
+  tituloInicial = null,
   aoEnviar,
   aoConcluirSemAprovacao,
 }: {
@@ -30,6 +31,7 @@ export function PedirAprovacaoPainel({
   aoMudar: (v: boolean) => void;
   fases: Fase[];
   faseInicial: string | null;
+  tituloInicial?: string | null;
   aoEnviar: (v: AprovacaoNova) => void;
   aoConcluirSemAprovacao: (faseId: string) => void;
 }) {
@@ -42,12 +44,12 @@ export function PedirAprovacaoPainel({
   useEffect(() => {
     if (!aberto) return;
     const f = fases.find((x) => x.id === faseInicial);
-    setTitulo(f ? `Entrega da fase ${f.name}` : "");
+    setTitulo(tituloInicial ?? (f ? `Entrega da fase ${f.name}` : ""));
     setDescricao("");
     setItens([""]);
     setPrevia("");
     setFase(faseInicial ?? "");
-  }, [aberto, faseInicial, fases]);
+  }, [aberto, faseInicial, fases, tituloInicial]);
 
   const previaOk = previa.trim() === "" || /^https:\/\/\S{3,}$/.test(previa.trim());
   const valido = titulo.trim().length >= 2 && previaOk;

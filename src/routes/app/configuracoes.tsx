@@ -5,6 +5,7 @@ import { PlugZap } from "lucide-react";
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { PrecosFormulario } from "@/components/precos/PrecosFormulario";
+import { SecaoRecebimento } from "@/components/financeiro/SecaoRecebimento";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import { chavesPrecos, lerPrecos } from "@/lib/precos";
@@ -31,7 +32,7 @@ function Configuracoes() {
     <div className="flex flex-col gap-6">
       <CabecalhoPagina
         titulo="Configurações"
-        resumo="Preços que as propostas usam e a conexão com o banco."
+        resumo="Preços que as propostas usam, como você recebe e a conexão com o banco."
       />
       <h2 className="font-titulo text-xl font-bold">Preços</h2>
       {precos.isPending ? (
@@ -48,6 +49,8 @@ function Configuracoes() {
       ) : (
         <PrecosFormulario dados={precos.data} />
       )}
+
+      <SecaoRecebimento />
 
       <section className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-white p-5 md:p-6">
         <h2 className="font-titulo text-lg font-bold">Conexão com o banco</h2>

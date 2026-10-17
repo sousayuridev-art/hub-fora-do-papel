@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Mail, X } from "lucide-react";
+import { Copy, Mail, MessageCircle, X } from "lucide-react";
 
 import {
   acessosDoPortal,
@@ -12,7 +12,8 @@ import {
   type AcessosPortal,
 } from "@/lib/acessoPortal";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { diaMes } from "@/lib/formatar";
+import { diaMes, linkWhatsapp } from "@/lib/formatar";
+import { useSession } from "@/hooks/useSession";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 
 /**
@@ -22,10 +23,17 @@ import { erro, mensagemDeErro, ok } from "@/lib/notify";
 export function ClienteAcessoPortal({
   clienteId,
   emailSugerido,
+  whatsapp,
+  contato,
 }: {
   clienteId: string;
   emailSugerido: string | null;
+  whatsapp: string | null;
+  contato: string | null;
 }) {
+  const { session } = useSession();
+  const remetente =
+    ((session?.user.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] ?? "";
   const qc = useQueryClient();
   const chave = chavesAcessoPortal.doCliente(clienteId);
   const dados = useQuery({ queryKey: chave, queryFn: () => acessosDoPortal(clienteId) });
@@ -55,7 +63,7 @@ export function ClienteAcessoPortal({
       return { antes };
     },
     onSuccess: () => {
-      ok("Convite registrado. Mande o endereço do portal para o cliente entrar com este e-mail.");
+      ok("Convite registrado. Avise o cliente pelo WhatsApp no ícone ao lado do convite.");
       setEmail("");
     },
     onError: (e, v, ctx) => {
@@ -148,6 +156,23 @@ export function ClienteAcessoPortal({
                   {c.vale_ate ? ` · vale até ${diaMes(c.vale_ate)}` : ""}
                 </span>
               </span>
+              {linkWhatsapp(whatsapp) && !c.id.startsWith("temp-") && (
+                <a
+                  href={`${linkWhatsapp(whatsapp)}?text=${encodeURIComponent(
+                    [
+                      `Oi${contato ? `, ${contato.split(" ")[0]}` : ""}! Aqui é ${remetente ? `o ${remetente}` : "a equipe"}, da Fora do Papel.`,
+                      `Liberamos o seu acesso ao portal do projeto: ${endereco}`,
+                      `Entre com o e-mail ${c.email}. Você recebe um link de acesso, sem senha.`,
+                    ].join("\n"),
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Enviar convite de ${c.email} pelo WhatsApp`}
+                  className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/60"
+                >
+                  <MessageCircle className="size-4" aria-hidden="true" />
+                </a>
+              )}
               <button
                 type="button"
                 disabled={c.id.startsWith("temp-")}

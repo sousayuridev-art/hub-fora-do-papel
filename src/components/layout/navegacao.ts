@@ -57,8 +57,8 @@ export const menuOperador: GrupoMenu[] = [
   {
     titulo: "Gestão",
     itens: [
-      { rotulo: "Financeiro", para: "/app/financeiro", icone: Wallet, emBreve: true },
-      { rotulo: "Relatórios", para: "/app/relatorios", icone: BarChart3, emBreve: true },
+      { rotulo: "Financeiro", para: "/app/financeiro", icone: Wallet },
+      { rotulo: "Relatórios", para: "/app/relatorios", icone: BarChart3 },
     ],
   },
 ];

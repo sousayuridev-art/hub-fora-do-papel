@@ -1,3 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
+
+import { chavesFinanceiro, financeiroDoProjeto } from "@/lib/financeiro";
 import { dataLocal, diaMes, moeda } from "@/lib/formatar";
 import { horasMin, type DetalheProjeto } from "@/lib/projetos";
 import { cn } from "@/lib/utils";
@@ -5,6 +8,10 @@ import { cn } from "@/lib/utils";
 /** Horas usadas, valor e lançamento. */
 export function ProjetoNumeros({ d }: { d: DetalheProjeto }) {
   const p = d.projeto;
+  const fin = useQuery({
+    queryKey: chavesFinanceiro.projeto(p.id),
+    queryFn: () => financeiroDoProjeto(p.id),
+  });
   const pct =
     p.hours_estimated > 0 ? Math.round((d.minutos_usados / 60 / p.hours_estimated) * 100) : null;
   const dias = p.launch_date
@@ -42,7 +49,19 @@ export function ProjetoNumeros({ d }: { d: DetalheProjeto }) {
       <div className="flex flex-col gap-2 rounded-2xl border border-hub-borda bg-white p-5">
         <dt className={rotulo}>Valor do projeto</dt>
         <dd className="font-titulo text-2xl font-bold tabular-nums">{moeda(p.value_cents)}</dd>
-        <dd className="text-[13.5px] text-hub-suave">Parcelas e cobranças entram no Financeiro.</dd>
+        <dd className="text-[13.5px] text-hub-suave">
+          {fin.data && fin.data.total_cents > 0
+            ? `Recebido ${moeda(fin.data.pago_cents)} de ${moeda(fin.data.total_cents)}${
+                fin.data.proxima
+                  ? ` · próxima: ${moeda(fin.data.proxima.valor_cents)} ${
+                      fin.data.proxima.vencimento
+                        ? `em ${diaMes(dataLocal(fin.data.proxima.vencimento))}`
+                        : "na entrega"
+                    }`
+                  : ""
+              }`
+            : "Parcelas e cobranças ficam no Financeiro."}
+        </dd>
       </div>
       <div className="flex flex-col gap-2 rounded-2xl border border-hub-borda bg-white p-5">
         <dt className={rotulo}>Lançamento</dt>

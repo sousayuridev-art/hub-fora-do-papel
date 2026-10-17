@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Selo, Sigla } from "@/components/hub/Selo";
 import { LinhaFases } from "@/components/projetos/LinhaFases";
+import { SaudeEntrega } from "@/components/projetos/SaudeEntrega";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { dataLocal, diaMes, moeda, sigla } from "@/lib/formatar";
 import { faseAtual, horasMin, type ProjetoResumo } from "@/lib/projetos";
@@ -36,7 +37,15 @@ export function ProjetoCartao({ p }: { p: ProjetoResumo }) {
               {p.empresa}
               {p.contato ? ` · ${p.contato}` : ""}
             </span>
-            <h2 className="font-titulo text-[19px] font-bold leading-snug">{p.nome}</h2>
+            <h2 className="font-titulo text-[19px] font-bold leading-snug">
+              <Link
+                to="/app/projetos/$id"
+                params={{ id: p.id }}
+                className="-my-2 inline-block py-2 hover:underline"
+              >
+                {p.nome}
+              </Link>
+            </h2>
           </div>
         </div>
         <div className="flex flex-col gap-1 sm:items-end">
@@ -62,6 +71,11 @@ export function ProjetoCartao({ p }: { p: ProjetoResumo }) {
         </div>
       </header>
 
+      {p.saude.nivel !== "ok" && (
+        <div className="px-5 pb-4">
+          <SaudeEntrega saude={p.saude} />
+        </div>
+      )}
       {fases.length > 0 && (
         <div className="px-5 pb-5">
           <LinhaFases fases={fases} compacta />
