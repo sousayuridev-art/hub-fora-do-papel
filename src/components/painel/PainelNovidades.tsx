@@ -1,5 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, CheckSquare, Eye, Globe, Inbox, RotateCcw, XCircle } from "lucide-react";
+import {
+  BellRing,
+  CheckCircle2,
+  CheckSquare,
+  Eye,
+  Globe,
+  Inbox,
+  RotateCcw,
+  XCircle,
+} from "lucide-react";
 
 import { diaComHora, moeda } from "@/lib/formatar";
 import type { Novidade } from "@/lib/painel";
@@ -52,6 +61,11 @@ const tipos = {
     cor: "bg-[#FFF1D6] text-[#7A4200]",
     texto: "fez um pedido pelo portal",
   },
+  pagamento_avisado: {
+    icone: BellRing,
+    cor: "bg-sit-info text-sit-info-t",
+    texto: "avisou que pagou",
+  },
 } as const;
 
 function complemento(n: Novidade): string | null {
@@ -79,6 +93,10 @@ function complemento(n: Novidade): string | null {
     return `${String(d["codigo"] ?? "")} ${String(d["titulo"] ?? "")}${
       typeof d["valor_cents"] === "number" ? ` · ${moeda(d["valor_cents"])}` : ""
     }`.trim();
+  if (n.tipo === "pagamento_avisado")
+    return `${String(d["descricao"] ?? "")}${
+      typeof d["valor_cents"] === "number" ? ` · ${moeda(d["valor_cents"])}` : ""
+    } · confira e registre em Financeiro`;
   if (n.tipo === "pedido_recebido")
     return `${String(d["codigo"] ?? "")} ${String(d["titulo"] ?? "")}`.trim();
   return null;
@@ -130,7 +148,15 @@ export function PainelNovidades({ itens }: { itens: Novidade[] }) {
             );
             return (
               <li key={`${n.quando}-${k}`} className="border-b border-hub-borda last:border-b-0">
-                {n.project_id ? (
+                {n.tipo === "pagamento_avisado" && typeof n.detalhe["cobranca_id"] === "string" ? (
+                  <Link
+                    to="/app/financeiro"
+                    search={{ cobranca: n.detalhe["cobranca_id"] }}
+                    className={classe}
+                  >
+                    {conteudo}
+                  </Link>
+                ) : n.project_id ? (
                   <Link to="/app/projetos/$id" params={{ id: n.project_id }} className={classe}>
                     {conteudo}
                   </Link>

@@ -30,6 +30,7 @@ import { Route as PortalArquivosRouteImport } from './routes/portal/arquivos'
 import { Route as PortalPagamentosRouteImport } from './routes/portal/pagamentos'
 import { Route as PortalPedidosRouteImport } from './routes/portal/pedidos'
 import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
+import { Route as ReciboIdRouteImport } from './routes/recibo.$id'
 import { Route as AppClientesIndexRouteImport } from './routes/app/clientes/index'
 import { Route as AppClientesIdRouteImport } from './routes/app/clientes/$id'
 import { Route as AppProjetosIndexRouteImport } from './routes/app/projetos/index'
@@ -141,6 +142,11 @@ const PropostaTokenRoute = PropostaTokenRouteImport.update({
   path: '/proposta/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReciboIdRoute = ReciboIdRouteImport.update({
+  id: '/recibo/$id',
+  path: '/recibo/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppClientesIndexRoute = AppClientesIndexRouteImport.update({
   id: '/clientes/',
   path: '/clientes/',
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/portal/pagamentos': typeof PortalPagamentosRoute
   '/portal/pedidos': typeof PortalPedidosRoute
   '/proposta/$token': typeof PropostaTokenRoute
+  '/recibo/$id': typeof ReciboIdRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/portal/pagamentos': typeof PortalPagamentosRoute
   '/portal/pedidos': typeof PortalPedidosRoute
   '/proposta/$token': typeof PropostaTokenRoute
+  '/recibo/$id': typeof ReciboIdRoute
   '/app': typeof AppIndexRoute
   '/portal': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/portal/pagamentos': typeof PortalPagamentosRoute
   '/portal/pedidos': typeof PortalPedidosRoute
   '/proposta/$token': typeof PropostaTokenRoute
+  '/recibo/$id': typeof ReciboIdRoute
   '/app/': typeof AppIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
@@ -272,6 +281,7 @@ export interface FileRouteTypes {
     | '/portal/pagamentos'
     | '/portal/pedidos'
     | '/proposta/$token'
+    | '/recibo/$id'
     | '/app/'
     | '/portal/'
     | '/app/clientes/$id'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/portal/pagamentos'
     | '/portal/pedidos'
     | '/proposta/$token'
+    | '/recibo/$id'
     | '/app'
     | '/portal'
     | '/app/clientes/$id'
@@ -326,6 +337,7 @@ export interface FileRouteTypes {
     | '/portal/pagamentos'
     | '/portal/pedidos'
     | '/proposta/$token'
+    | '/recibo/$id'
     | '/app/'
     | '/portal/'
     | '/app/clientes/$id'
@@ -343,6 +355,7 @@ export interface RootRouteChildren {
   SemAcessoRoute: typeof SemAcessoRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   PropostaTokenRoute: typeof PropostaTokenRoute
+  ReciboIdRoute: typeof ReciboIdRoute
   PreviaPropostaIdRoute: typeof PreviaPropostaIdRoute
 }
 
@@ -495,6 +508,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropostaTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recibo/$id': {
+      id: '/recibo/$id'
+      path: '/recibo/$id'
+      fullPath: '/recibo/$id'
+      preLoaderRoute: typeof ReciboIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/clientes/': {
       id: '/app/clientes/'
       path: '/clientes'
@@ -594,6 +614,7 @@ const rootRouteChildren: RootRouteChildren = {
   SemAcessoRoute: SemAcessoRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   PropostaTokenRoute: PropostaTokenRoute,
+  ReciboIdRoute: ReciboIdRoute,
   PreviaPropostaIdRoute: PreviaPropostaIdRoute,
 }
 export const routeTree = rootRouteImport

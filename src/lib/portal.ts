@@ -167,3 +167,36 @@ export function mensagemDoPortal(e: unknown): string | null {
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;
 }
+
+export type PagamentosPortal = {
+  hoje: string;
+  projeto: {
+    nome: string;
+    total_cents: number;
+    pago_cents: number;
+    diagnostico_cents: number;
+  } | null;
+  mensalidade: {
+    plano: string;
+    valor_cents: number;
+    inicio: string;
+    dia: number;
+    minimo_meses: number;
+    situacao: "ativa" | "pausada";
+    horas_mes: number | null;
+  } | null;
+  mensalidade_prevista: {
+    plano: string;
+    valor_cents: number | null;
+    lancamento: string | null;
+  } | null;
+  cobrancas: import("@/lib/financeiro").Cobranca[];
+  pix: { chave: string; nome: string; cidade: string } | null;
+  regras: { multa_pct: number; juros_pct: number };
+  responsavel: string | null;
+};
+
+export const chavePagamentos = ["portal", "pagamentos"] as const;
+export const pagamentosDoPortal = () => rpc<PagamentosPortal>("portal_pagamentos");
+export const avisarPagamento = (id: string) =>
+  rpc<{ repetido: boolean }>("portal_cobranca_avisar", { p_id: id });

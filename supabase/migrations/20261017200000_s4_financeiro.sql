@@ -494,6 +494,7 @@ begin
     r := r || jsonb_build_object('mes', m, 'tipo', case when i < 0 then 'passado' when i = 0 then 'atual' else 'futuro' end,
       'recebido_cents', recebido, 'a_receber_cents', previsto + mensal_proj, 'em_atraso_cents', atrasado,
       'despesas_fixas_cents', fixas, 'despesas_avulsas_cents', avulsas, 'anuncios_cents', anuncios,
+      'entradas_cents', recebido + previsto + mensal_proj, 'saidas_cents', fixas + avulsas + anuncios,
       'saldo_cents', recebido + previsto + mensal_proj - fixas - avulsas - anuncios);
   end loop;
   return jsonb_build_object('hoje', hoje, 'meses', r);

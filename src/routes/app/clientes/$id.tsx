@@ -13,6 +13,7 @@ import { ClienteContato } from "@/components/clientes/ClienteContato";
 import { ClientePropostas } from "@/components/clientes/ClientePropostas";
 import { ClienteProjetos } from "@/components/clientes/ClienteProjetos";
 import { ClienteAcessoPortal } from "@/components/clientes/ClienteAcessoPortal";
+import { ClienteFinanceiro } from "@/components/clientes/ClienteFinanceiro";
 import { ClienteAnotacoes } from "@/components/clientes/ClienteAnotacoes";
 import { ClienteLinhaDoTempo } from "@/components/clientes/ClienteLinhaDoTempo";
 import { EditarClientePainel } from "@/components/clientes/EditarClientePainel";
@@ -168,6 +169,7 @@ function Ficha() {
           </div>
           <div className="flex flex-col gap-4">
             <ClienteContato c={c} />
+            <ClienteFinanceiro clienteId={c.id} />
             <ClienteAcessoPortal
               clienteId={c.id}
               emailSugerido={c.email}
