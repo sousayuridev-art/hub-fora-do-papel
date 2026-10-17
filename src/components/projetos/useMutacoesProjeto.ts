@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { chavesPainel } from "@/lib/painel";
 import { chavesPedidos } from "@/lib/pedidos";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
@@ -61,7 +60,7 @@ export function useMutacoesProjeto(projetoId: string) {
       onSettled: () => {
         void qc.invalidateQueries({ queryKey: chavesProjetos.tudo });
         void qc.invalidateQueries({ queryKey: chavesPedidos.tudo });
-        void qc.invalidateQueries({ queryKey: chavesPainel.novidades });
+        void qc.invalidateQueries({ queryKey: ["painel"] });
       },
     });
     return m;
@@ -173,8 +172,18 @@ export function useMutacoesProjeto(projetoId: string) {
         : "Projeto lançado e concluído.",
   });
   const atualizar = useAcao(
-    (campos: Record<string, unknown>) => atualizarProjeto(projetoId, campos),
+    (campos: { nome?: string; horas_estimadas?: number; lancamento?: string }) =>
+      atualizarProjeto(projetoId, campos),
     {
+      otimista: (d, c) => ({
+        ...d,
+        projeto: {
+          ...d.projeto,
+          ...(c.nome !== undefined ? { name: c.nome } : {}),
+          ...(c.horas_estimadas !== undefined ? { hours_estimated: c.horas_estimadas } : {}),
+          ...(c.lancamento !== undefined ? { launch_date: c.lancamento || null } : {}),
+        },
+      }),
       sucesso: "Projeto atualizado.",
     },
   );

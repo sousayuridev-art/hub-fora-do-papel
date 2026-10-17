@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, MessageCircle } from "lucide-react";
+import { ChevronRight, MessageCircle, Pencil } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
@@ -7,7 +7,7 @@ import { dataLocal, diaMes, linkWhatsapp, moeda } from "@/lib/formatar";
 import { faseAtual, rotuloProjeto, type DetalheProjeto } from "@/lib/projetos";
 
 /** Caminho, selos, nome do projeto e atalhos para o cliente. */
-export function ProjetoCabecalho({ d }: { d: DetalheProjeto }) {
+export function ProjetoCabecalho({ d, aoEditar }: { d: DetalheProjeto; aoEditar: () => void }) {
   const p = d.projeto;
   const atual = faseAtual(d.fases);
   const wpp = linkWhatsapp(d.cliente.whatsapp);
@@ -63,12 +63,22 @@ export function ProjetoCabecalho({ d }: { d: DetalheProjeto }) {
               .join(" · ")}
           </p>
         </div>
-        {wpp && (
-          <a href={wpp} target="_blank" rel="noopener noreferrer" className={classeBotaoSecundario}>
-            <MessageCircle className="size-4" aria-hidden="true" /> WhatsApp de{" "}
-            {d.cliente.contato?.split(" ")[0] ?? "contato"}
-          </a>
-        )}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button type="button" className={classeBotaoSecundario} onClick={aoEditar}>
+            <Pencil className="size-4" aria-hidden="true" /> Editar
+          </button>
+          {wpp && (
+            <a
+              href={wpp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={classeBotaoSecundario}
+            >
+              <MessageCircle className="size-4" aria-hidden="true" /> WhatsApp de{" "}
+              {d.cliente.contato?.split(" ")[0] ?? "contato"}
+            </a>
+          )}
+        </div>
       </div>
     </header>
   );

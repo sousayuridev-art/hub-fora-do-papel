@@ -3,6 +3,12 @@ import { supabase } from "@/lib/supabase";
 /** Projetos (card S3): tipos, chaves e chamadas. Contas (horas, semana, pendências) vêm do banco. */
 
 export type SituacaoProjeto = "andamento" | "mensalidade" | "concluido";
+
+/** Sinal da entrega calculado no banco (REV-2). */
+export type Saude = {
+  nivel: "ok" | "atencao" | "risco";
+  motivos: { chave: string; texto: string }[];
+};
 export type SituacaoFase = "pendente" | "andamento" | "concluida";
 export type SituacaoTarefa = "a_fazer" | "fazendo" | "para_aprovar" | "pronto";
 export type SituacaoAprovacao = "aguardando" | "aprovada" | "ajuste" | "cancelada";
@@ -54,6 +60,7 @@ export type ProjetoResumo = {
   pendencias_atrasadas: number;
   checklist: { feitos: number; total: number };
   lancado_em: string | null;
+  saude: Saude;
 };
 
 export type ListaProjetos = {
@@ -146,6 +153,7 @@ export type DetalheProjeto = {
     launched_at: string | null;
   };
   hoje: string;
+  saude: Saude;
   cliente: {
     id: string;
     empresa: string;
@@ -284,6 +292,33 @@ export const criarItemEncerramento = (projetoId: string, titulo: string) =>
   rpc("encerramento_item_criar", { p_projeto: projetoId, p_titulo: titulo });
 export const lancarProjeto = (id: string) =>
   rpc<{ status: SituacaoProjeto }>("projeto_lancar", { p_id: id });
+
+/** Dias corridos entre uma data/hora e hoje (no fuso da agência, vindo do banco). */
+export function diasDesde(iso: string, hojeIso: string): number {
+  const d = new Date(iso);
+  const dia = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
+  const [a, m, x] = hojeIso.split("-").map(Number);
+  const hoje = new Date(a ?? 1970, (m ?? 1) - 1, x ?? 1, 12);
+  return Math.max(0, Math.round((hoje.getTime() - dia.getTime()) / 86_400_000));
+}
+
+/** Mensagem de WhatsApp com o que espera o cliente no portal (enquanto os avisos automáticos não existem). */
+export function textoLembrete(d: DetalheProjeto, portal: string, remetente: string): string {
+  const nome = d.cliente.contato?.split(" ")[0] ?? "";
+  const itens = [
+    ...d.aprovacoes.filter((a) => a.status === "aguardando").map((a) => `• Aprovar: ${a.title}`),
+    ...d.pedidos
+      .filter((p) => p.status === "aguardando_cliente")
+      .map((p) => `• Decidir o serviço adicional: ${p.title}`),
+    ...d.pendencias.filter((p) => p.status === "aberta").map((p) => `• ${p.title}`),
+  ];
+  return [
+    `Oi${nome ? `, ${nome}` : ""}! Aqui é ${remetente ? `o ${remetente}` : "a equipe"}, da Fora do Papel.`,
+    `No seu portal há ${itens.length === 1 ? "1 item esperando" : `${itens.length} itens esperando`} você:`,
+    ...itens,
+    `É só entrar em ${portal} com o seu e-mail.`,
+  ].join("\n");
+}
 
 /** "90" → "1h30"; "60" → "1h"; "30" → "30 min". */
 export function horasMin(minutos: number): string {

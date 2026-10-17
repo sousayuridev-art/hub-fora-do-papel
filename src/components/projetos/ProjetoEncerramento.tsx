@@ -26,6 +26,21 @@ export function ProjetoEncerramento({
   const feitos = d.checklist.filter((i) => i.done).length;
   const completo = feitos === d.checklist.length && d.checklist.length > 0;
   const lancado = d.projeto.status !== "andamento";
+  const abertos = [
+    [d.aprovacoes.filter((a) => a.status === "aguardando").length, "aprovação", "aprovações"],
+    [
+      d.pendencias.filter((p) => p.status === "aberta").length,
+      "pendência do cliente",
+      "pendências do cliente",
+    ],
+    [
+      d.pedidos.filter((p) => !["pronto", "recusado"].includes(p.status)).length,
+      "pedido",
+      "pedidos",
+    ],
+  ]
+    .filter(([n]) => (n as number) > 0)
+    .map(([n, um, varios]) => `${n} ${(n as number) === 1 ? um : varios}`);
   const destino = d.projeto.plan_name ? `mensalidade ${d.projeto.plan_name}` : "concluído";
 
   return (
@@ -103,6 +118,11 @@ export function ProjetoEncerramento({
               Lançar agora? Todas as fases ficam concluídas e o projeto vai para {destino}. O
               cliente vê no portal.
             </p>
+            {abertos.length > 0 && (
+              <p className="text-[14.5px] font-semibold">
+                Ainda em aberto: {abertos.join(", ")}. Eles continuam valendo depois do lançamento.
+              </p>
+            )}
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"

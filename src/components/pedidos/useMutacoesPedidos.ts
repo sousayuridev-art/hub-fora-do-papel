@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
-import { chavesPainel } from "@/lib/painel";
 import {
   chavesPedidos,
   classificarPedido,
@@ -24,7 +23,7 @@ export function useMutacoesPedidos() {
   const recarregar = () => {
     void qc.invalidateQueries({ queryKey: chavesPedidos.tudo });
     void qc.invalidateQueries({ queryKey: chavesProjetos.tudo });
-    void qc.invalidateQueries({ queryKey: chavesPainel.novidades });
+    void qc.invalidateQueries({ queryKey: ["painel"] });
   };
 
   function useMudanca<V extends { p: PedidoLinha }>(

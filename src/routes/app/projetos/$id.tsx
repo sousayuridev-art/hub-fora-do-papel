@@ -5,6 +5,9 @@ import { z } from "zod";
 
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { AguardandoCliente } from "@/components/projetos/AguardandoCliente";
+import { EditarProjetoPainel } from "@/components/projetos/EditarProjetoPainel";
+import { SaudeEntrega } from "@/components/projetos/SaudeEntrega";
+import { useSession } from "@/hooks/useSession";
 import { LancarHorasPainel } from "@/components/projetos/LancarHorasPainel";
 import { NovaPendenciaPainel } from "@/components/projetos/NovaPendenciaPainel";
 import { NovaTarefaPainel } from "@/components/projetos/NovaTarefaPainel";
@@ -39,6 +42,11 @@ function Projeto() {
   const m = useMutacoesProjeto(id);
   const [painel, setPainel] = useState<null | "aprovacao" | "pendencia" | "tarefa" | "horas">(null);
   const [faseDoPedido, setFaseDoPedido] = useState<string | null>(null);
+  const [tituloDoPedido, setTituloDoPedido] = useState<string | null>(null);
+  const [editar, setEditar] = useState(false);
+  const { session } = useSession();
+  const remetente =
+    ((session?.user.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] ?? "";
   const [ciclo, setCiclo] = useState<number | null>(null);
 
   if (q.isError) {
@@ -90,11 +98,13 @@ function Projeto() {
 
   return (
     <div className="flex flex-col gap-5">
-      <ProjetoCabecalho d={d} />
+      <ProjetoCabecalho d={d} aoEditar={() => setEditar(true)} />
+      <SaudeEntrega saude={d.saude} />
       <ProjetoFases
         d={d}
         aoConcluir={() => {
           setFaseDoPedido(atual?.fase.id ?? null);
+          setTituloDoPedido(null);
           setPainel("aprovacao");
         }}
       />
@@ -137,12 +147,19 @@ function Projeto() {
             d={d}
             aoPedirAprovacao={() => {
               setFaseDoPedido(null);
+              setTituloDoPedido(null);
               setPainel("aprovacao");
             }}
             aoNovaPendencia={() => setPainel("pendencia")}
             aoMarcarPendencia={(pid, feita) => m.marcar.mutate({ id: pid, feita })}
             aoRemoverPendencia={(pid) => m.removerPend.mutate(pid)}
             aoCancelarAprovacao={(aid) => m.cancelar.mutate(aid)}
+            remetente={remetente}
+            aoReenviar={(titulo, faseId) => {
+              setFaseDoPedido(faseId);
+              setTituloDoPedido(titulo);
+              setPainel("aprovacao");
+            }}
           />
           <QuadroCiclo
             tarefas={d.tarefas}
@@ -178,6 +195,7 @@ function Projeto() {
         aoMudar={(v) => !v && setPainel(null)}
         fases={d.fases}
         faseInicial={faseDoPedido}
+        tituloInicial={tituloDoPedido}
         aoEnviar={(v) => m.aprovacao.mutate({ projetoId: id, ...v })}
         aoConcluirSemAprovacao={(fid) => m.fase.mutate(fid)}
       />
@@ -191,6 +209,18 @@ function Projeto() {
         aoMudar={(v) => !v && setPainel(null)}
         ciclo={cicloAtual}
         aoCriar={(v) => m.tarefa.mutate({ projetoId: id, ciclo: cicloAtual, ...v })}
+      />
+      <EditarProjetoPainel
+        d={d}
+        aberto={editar}
+        aoMudar={setEditar}
+        aoSalvar={(v) =>
+          m.atualizar.mutate({
+            nome: v.nome,
+            horas_estimadas: v.horas_estimadas,
+            lancamento: v.lancamento,
+          })
+        }
       />
       <LancarHorasPainel
         aberto={painel === "horas"}

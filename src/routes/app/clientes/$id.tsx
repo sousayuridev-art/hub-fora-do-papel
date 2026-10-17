@@ -168,7 +168,12 @@ function Ficha() {
           </div>
           <div className="flex flex-col gap-4">
             <ClienteContato c={c} />
-            <ClienteAcessoPortal clienteId={c.id} emailSugerido={c.email} />
+            <ClienteAcessoPortal
+              clienteId={c.id}
+              emailSugerido={c.email}
+              whatsapp={c.whatsapp}
+              contato={c.contact_name}
+            />
             <ClienteAnotacoes clienteId={c.id} linha={linha.data} />
           </div>
         </div>

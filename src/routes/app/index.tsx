@@ -15,6 +15,7 @@ import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
+import { PainelEntregas } from "@/components/painel/PainelEntregas";
 import { PainelNovidades } from "@/components/painel/PainelNovidades";
 import { linkWhatsapp, moeda, prazoRelativo } from "@/lib/formatar";
 import { chavesPainel, novidadesDoPainel } from "@/lib/painel";
@@ -226,6 +227,8 @@ function Painel() {
               </ol>
             )}
           </section>
+
+          <PainelEntregas />
 
           {extra.isError ? (
             <EstadoErro
