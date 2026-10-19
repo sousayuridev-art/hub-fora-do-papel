@@ -95,6 +95,8 @@ select lives_ok(format($$ select public.material_lixeira(%L, true) $$, (select v
   'Arquivo vai para a lixeira');
 select throws_ok(format($$ select public.material_excluir(%L) $$, (select valor->>'id' from t where chave = 'arq')),
   '22023', null, 'Não exclui o registro enquanto o arquivo existe');
+-- no Supabase só a API do Storage apaga; ela liga esta chave e aplica as policies (como aqui)
+select set_config('storage.allow_delete_query', 'true', true);
 delete from storage.objects where name = (select valor->>'caminho' from t where chave = 'arq');
 select is((select count(*) from storage.objects where name = (select valor->>'caminho' from t where chave = 'arq'))::int, 0,
   'Dono apaga o arquivo que está na lixeira');
