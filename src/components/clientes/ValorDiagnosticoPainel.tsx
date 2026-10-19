@@ -5,7 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { centavosDoTexto } from "@/lib/formatar";
-import type { CamposOportunidade, Diagnostico, Oportunidade } from "@/lib/funil";
+import { CampoEscolha } from "@/components/hub/Campo";
+import {
+  frentes,
+  type CamposOportunidade,
+  type Diagnostico,
+  type Frente,
+  type Oportunidade,
+} from "@/lib/funil";
 import { cn } from "@/lib/utils";
 
 const opcoes: { id: Diagnostico | null; rotulo: string; detalhe: string }[] = [
@@ -27,7 +34,9 @@ export function ValorDiagnosticoPainel({
   const [valor, setValor] = useState("");
   const [tipo, setTipo] = useState<Diagnostico | null>(null);
   const [pago, setPago] = useState(false);
+  const [frente, setFrente] = useState<Frente | "">("");
   useEffect(() => {
+    setFrente(o?.frente ?? "");
     setValor(o?.value_cents != null ? String(o.value_cents / 100) : "");
     setTipo(o?.diagnostic_tier ?? null);
     setPago(o?.diagnostic_paid ?? false);
@@ -37,7 +46,7 @@ export function ValorDiagnosticoPainel({
     <PainelLateral
       aberto={o !== null}
       aoMudar={(v) => !v && aoFechar()}
-      titulo="Valor e diagnóstico"
+      titulo="Frente, valor e diagnóstico"
       descricao={o?.company_name}
       rodape={
         <>
@@ -52,6 +61,7 @@ export function ValorDiagnosticoPainel({
                 valor_cents: centavosDoTexto(valor),
                 diagnostico: tipo,
                 diagnostico_pago: tipo ? pago : false,
+                frente,
               });
               aoFechar();
             }}
@@ -62,6 +72,13 @@ export function ValorDiagnosticoPainel({
       }
     >
       <div className="flex flex-col gap-5">
+        <CampoEscolha<Frente | "">
+          rotulo="Frente"
+          valor={frente}
+          aoMudar={setFrente}
+          opcoes={[{ id: "", rotulo: "Ainda não definida" }, ...frentes]}
+          ajuda="Vem do assunto escolhido no site. Serve para os relatórios por frente."
+        />
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="vd-valor">Valor (R$)</Label>
           <Input

@@ -1,3 +1,4 @@
+import { CampoArea } from "@/components/hub/Campo";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { SecaoPreco } from "@/components/precos/SecaoPreco";
 import { Switch } from "@/components/ui/switch";
@@ -19,7 +20,7 @@ export function SecaoMensalidade({
     <SecaoPreco
       id="mensalidade"
       titulo="Mensalidade"
-      texto="Horas por mês para ajustes e melhorias depois do lançamento. Começa no lançamento."
+      texto="Vendida pelo que o cliente recebe em cada nível. As horas são a regra interna para calcular e controlar. Começa no lançamento."
       usadoEm={["Propostas", "Pedidos", "Cobranças"]}
     >
       {planos.map((pl) => {
@@ -59,6 +60,22 @@ export function SecaoMensalidade({
               valor={pl.min_months}
               aoMudar={(n) => mudarPlano(pl.id, { min_months: Math.max(1, Math.round(n ?? 1)) })}
             />
+            <CampoArea
+              className="sm:col-span-4"
+              rotulo={`O que o cliente recebe no ${pl.name} (uma linha por item)`}
+              valor={pl.includes ?? ""}
+              aoMudar={(v) => mudarPlano(pl.id, { includes: v })}
+              linhas={3}
+              maxLength={600}
+              ajuda="Aparece na proposta, em Depois do lançamento."
+            />
+            <label className="flex min-h-11 cursor-pointer items-center gap-3 sm:col-span-4">
+              <Switch
+                checked={pl.rollover_months > 0}
+                onCheckedChange={(v) => mudarPlano(pl.id, { rollover_months: v ? 1 : 0 })}
+              />
+              <span className="text-[14.5px]">Horas não usadas valem por mais 1 mês</span>
+            </label>
           </fieldset>
         );
       })}

@@ -53,7 +53,23 @@ export type FilaPainel = { total: number; itens: ItemFila[] };
 export const chavesPainel = {
   novidades: ["painel", "novidades"] as const,
   fila: ["painel", "fila"] as const,
+  capacidade: ["painel", "capacidade"] as const,
 };
+
+/** Capacidade do mês (S9): horas para vender contra o que já está vendido. Conta feita no banco. */
+export type Capacidade = {
+  capacidade_h: number;
+  mensalidades_h: number;
+  projetos_restantes_h: number;
+  lancadas_mes_h: number;
+  livre_mes_h: number;
+};
+
+export async function capacidadeDoMes(): Promise<Capacidade> {
+  const { data, error } = await supabase.rpc("capacidade_resumo");
+  if (error) throw error;
+  return data as Capacidade;
+}
 
 /** O que precisa do Yuri fora do funil: dinheiro e serviços adicionais (REV-3). */
 export async function filaDoPainel(): Promise<FilaPainel> {

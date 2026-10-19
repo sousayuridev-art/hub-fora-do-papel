@@ -281,6 +281,10 @@ export type DocumentoPublico = {
     minimo_meses: number;
     infra_cents: number | null;
     infra_pelo_custo: boolean;
+    /** O que o nível inclui, uma linha por item (propostas a partir do S9). */
+    inclui?: string | null;
+    /** Meses que as horas não usadas continuam valendo (S9). */
+    acumula_meses?: number;
   } | null;
   condicoes: {
     pix: boolean;
@@ -289,6 +293,8 @@ export type DocumentoPublico = {
     multa_pct: number;
     juros_pct: number;
     reajuste: string;
+    /** Garantia depois da entrega; presente nas propostas feitas com a política de 19/10 (S9). */
+    garantia_dias?: number;
   };
   enviada_em: string;
   vence_em: string;

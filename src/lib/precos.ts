@@ -19,6 +19,10 @@ export type Precos = {
   validity_days: number;
   adjustment_index: "IPCA" | "IGP-M" | "nenhum";
   infra_at_cost: boolean;
+  /** Horas por mês que a agência tem para vender (S9; decisão de 19/10: 200 h). */
+  capacity_hours: number;
+  /** Dias de correção sem custo depois da entrega (S9; 30 dias). */
+  warranty_days: number;
   updated_at: string;
   /** Quando o Yuri salvou os preços pela última vez. Vazio = nunca conferidos (propostas não saem). */
   confirmed_at: string | null;
@@ -32,6 +36,10 @@ export type PlanoPreco = {
   min_months: number;
   position: number;
   active: boolean;
+  /** O que o cliente recebe no nível, uma linha por item (aparece na proposta). */
+  includes: string | null;
+  /** Meses que as horas não usadas continuam valendo (0 = não acumulam). */
+  rollover_months: number;
 };
 
 export type DadosPrecos = { precos: Precos; planos: PlanoPreco[] };
@@ -56,6 +64,8 @@ export async function salvarPrecos(
       price_cents: p.price_cents,
       min_months: p.min_months,
       active: p.active,
+      includes: p.includes ?? "",
+      rollover_months: p.rollover_months,
     })),
   });
   if (error) throw error;

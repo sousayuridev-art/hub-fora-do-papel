@@ -105,48 +105,99 @@ export function SecaoInvestimento({ doc }: { doc: DocumentoPublico }) {
 /** 06 Depois do lançamento */
 export function SecaoDepois({ doc }: { doc: DocumentoPublico }) {
   const m = doc.mensalidade;
-  if (!m) return null;
-  const horas = m.horas_mes.toLocaleString("pt-BR");
-  const reajuste =
-    doc.condicoes.reajuste === "nenhum" ? "" : ` Reajuste anual pelo ${doc.condicoes.reajuste}.`;
+  const garantia = doc.condicoes.garantia_dias;
+  if (!m && garantia === undefined) return null;
   return (
     <section id="depois" aria-labelledby="depois-t" className="flex flex-col gap-5">
       <TituloSecao numero={6} id="depois">
         Depois do lançamento
       </TituloSecao>
-      <div className="grid gap-6 rounded-3xl bg-hub-tinta p-6 text-white md:grid-cols-2 md:p-8">
-        <div className="flex flex-col gap-3">
-          <span className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-[#C9CBD0]">
-            Mensalidade · plano {m.nome}
-          </span>
-          <p className="font-titulo text-[36px] font-bold leading-none tabular-nums">
-            {moeda(m.cents)}
-            <span className="text-[15px] font-normal text-[#C9CBD0]"> /mês</span>
-          </p>
-          {m.infra_pelo_custo && (
-            <p className="text-[14.5px] text-[#C9CBD0]">
-              + infraestrutura pelo custo{m.infra_cents ? `, hoje ${moeda(m.infra_cents)}/mês` : ""}
-            </p>
-          )}
-          <p className="border-t border-white/10 pt-3 text-[14.5px] text-[#C9CBD0]">
-            Começa no lançamento
-            {doc.lancamento ? `, previsto para ${dataCurta(doc.lancamento)}` : ""}. Contrato mínimo
-            de {m.minimo_meses} meses.{reajuste}
+      {m && <BlocoMensalidade doc={doc} m={m} />}
+      {garantia !== undefined && <BlocoGarantia dias={garantia} />}
+    </section>
+  );
+}
+
+/** Garantia e o que é seu (política de 19/10, card S9). */
+function BlocoGarantia({ dias }: { dias: number }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {dias > 0 && (
+        <div className="flex flex-col gap-2 rounded-2xl border border-hub-borda bg-white p-5">
+          <h3 className="font-titulo text-[18px] font-bold">Garantia de {dias} dias</h3>
+          <p className="text-[15px] leading-relaxed text-hub-suave">
+            Depois da entrega, corrigimos sem custo qualquer falha no que foi combinado nesta
+            proposta.
           </p>
         </div>
-        <ul className="flex flex-col gap-3 text-[15px]">
-          {[
-            `${horas} h por mês para ajustes e melhorias`,
-            "Tudo no ar, atualizado e com cópias de segurança",
-            `Pedidos de ajuste com resposta de ${doc.responsavel}`,
-          ].map((t) => (
-            <li key={t} className="flex gap-3">
-              <Check className="mt-0.5 size-5 shrink-0 text-[#FFB020]" aria-hidden="true" />
-              {t}
-            </li>
-          ))}
-        </ul>
+      )}
+      <div className="flex flex-col gap-2 rounded-2xl border border-hub-borda bg-white p-5">
+        <h3 className="font-titulo text-[18px] font-bold">O que é seu</h3>
+        <p className="text-[15px] leading-relaxed text-hub-suave">
+          O domínio, o banco de dados, o código e as contas das ferramentas ficam em nome da sua
+          empresa desde o início. Nós administramos enquanto trabalharmos juntos; se a parceria
+          acabar, você leva tudo, com os acessos documentados.
+        </p>
       </div>
-    </section>
+    </div>
+  );
+}
+
+function BlocoMensalidade({
+  doc,
+  m,
+}: {
+  doc: DocumentoPublico;
+  m: NonNullable<DocumentoPublico["mensalidade"]>;
+}) {
+  const horas = m.horas_mes.toLocaleString("pt-BR");
+  const itens = m.inclui
+    ? m.inclui
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+    : [
+        `${horas} h por mês para ajustes e melhorias`,
+        "Tudo no ar, atualizado e com cópias de segurança",
+        `Pedidos de ajuste com resposta de ${doc.responsavel}`,
+      ];
+  if (m.acumula_meses && m.acumula_meses > 0)
+    itens.push(
+      m.acumula_meses === 1
+        ? "Horas não usadas valem por mais 1 mês"
+        : `Horas não usadas valem por mais ${m.acumula_meses} meses`,
+    );
+  const reajuste =
+    doc.condicoes.reajuste === "nenhum" ? "" : ` Reajuste anual pelo ${doc.condicoes.reajuste}.`;
+  return (
+    <div className="grid gap-6 rounded-3xl bg-hub-tinta p-6 text-white md:grid-cols-2 md:p-8">
+      <div className="flex flex-col gap-3">
+        <span className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-[#C9CBD0]">
+          Mensalidade · plano {m.nome}
+        </span>
+        <p className="font-titulo text-[36px] font-bold leading-none tabular-nums">
+          {moeda(m.cents)}
+          <span className="text-[15px] font-normal text-[#C9CBD0]"> /mês</span>
+        </p>
+        {m.infra_pelo_custo && (
+          <p className="text-[14.5px] text-[#C9CBD0]">
+            + infraestrutura pelo custo{m.infra_cents ? `, hoje ${moeda(m.infra_cents)}/mês` : ""}
+          </p>
+        )}
+        <p className="border-t border-white/10 pt-3 text-[14.5px] text-[#C9CBD0]">
+          Começa no lançamento
+          {doc.lancamento ? `, previsto para ${dataCurta(doc.lancamento)}` : ""}. Contrato mínimo de{" "}
+          {m.minimo_meses} meses.{reajuste}
+        </p>
+      </div>
+      <ul className="flex flex-col gap-3 text-[15px]">
+        {itens.map((t) => (
+          <li key={t} className="flex gap-3">
+            <Check className="mt-0.5 size-5 shrink-0 text-[#FFB020]" aria-hidden="true" />
+            {t}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
