@@ -179,6 +179,24 @@ export function CobrancaPainel({
           <Selo tom={s.tom}>{s.texto}</Selo>
           <span className="text-[13.5px] text-hub-suave">{rotuloTipoCobranca[c.tipo]}</span>
         </div>
+        <div className="flex flex-wrap gap-x-4">
+          <Link
+            to="/app/clientes/$id"
+            params={{ id: c.client_id }}
+            className="inline-flex min-h-11 items-center text-[14.5px] font-medium text-[#1E3FA8] underline"
+          >
+            Ficha de {c.empresa}
+          </Link>
+          {c.project_id && (
+            <Link
+              to="/app/projetos/$id"
+              params={{ id: c.project_id }}
+              className="inline-flex min-h-11 items-center text-[14.5px] font-medium text-[#1E3FA8] underline"
+            >
+              Abrir o projeto
+            </Link>
+          )}
+        </div>
         <dl className="grid grid-cols-2 gap-3 rounded-xl bg-hub-fundo p-4 text-[14.5px]">
           <div>
             <dt className="text-hub-suave">Valor</dt>

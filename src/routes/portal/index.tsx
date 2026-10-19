@@ -49,6 +49,7 @@ function Inicio() {
       <PortalResumo p={d.pendencias} />
       <PortalAcoes
         acoes={d.acoes}
+        pagamentos={d.pendencias.pagamentos}
         enviando={m.pendencia.isPending}
         aoMarcarFeita={(id) => m.pendencia.mutate(id)}
       />

@@ -46,7 +46,8 @@ function Pagamentos() {
       if (ctx?.antes) qc.setQueryData(chavePagamentos, ctx.antes);
       erro(mensagemDeErro(e), { tentarDeNovo: () => avisar.mutate(id) });
     },
-    onSettled: () => void qc.invalidateQueries({ queryKey: chavePagamentos }),
+    // o selo de Pagamentos e o "Precisa de você" também mudam
+    onSettled: () => void qc.invalidateQueries({ queryKey: ["portal"] }),
   });
 
   if (q.isError)

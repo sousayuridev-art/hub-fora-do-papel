@@ -129,9 +129,11 @@ export function ClienteOportunidade({
           </button>
         ) : (
           <>
-            <button type="button" className={botao} onClick={() => aoAgir("mover")}>
-              Mover de etapa
-            </button>
+            {o.stage !== "fechado" && (
+              <button type="button" className={botao} onClick={() => aoAgir("mover")}>
+                Mover de etapa
+              </button>
+            )}
             <button type="button" className={botao} onClick={() => aoAgir("passo")}>
               Editar próximo passo
             </button>

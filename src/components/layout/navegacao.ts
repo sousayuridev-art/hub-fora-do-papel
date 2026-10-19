@@ -47,7 +47,7 @@ export const menuOperador: GrupoMenu[] = [
     titulo: "Entregar",
     itens: [
       { rotulo: "Projetos", para: "/app/projetos", icone: FolderKanban },
-      { rotulo: "Pedidos", para: "/app/pedidos", icone: Inbox },
+      { rotulo: "Pedidos de ajuste", para: "/app/pedidos", icone: Inbox },
     ],
   },
   {
@@ -70,12 +70,12 @@ export const itemConfiguracoes: ItemMenu = {
 };
 
 /** Seções do portal do cliente (menu de cima no computador, abas embaixo no celular). */
-export type SecaoPortal = ItemMenu & { selo?: "inicio" | "aprovacoes" | "arquivos" };
+export type SecaoPortal = ItemMenu & { selo?: "inicio" | "aprovacoes" | "pagamentos" | "arquivos" };
 
 export const menuPortal: SecaoPortal[] = [
   { rotulo: "Início", para: "/portal", icone: Home, exato: true, selo: "inicio" },
   { rotulo: "Aprovações", para: "/portal/aprovacoes", icone: CheckSquare, selo: "aprovacoes" },
   { rotulo: "Pedidos", para: "/portal/pedidos", icone: MessageSquarePlus },
-  { rotulo: "Pagamentos", para: "/portal/pagamentos", icone: CreditCard },
+  { rotulo: "Pagamentos", para: "/portal/pagamentos", icone: CreditCard, selo: "pagamentos" },
   { rotulo: "Arquivos", para: "/portal/arquivos", icone: Folder, selo: "arquivos" },
 ];

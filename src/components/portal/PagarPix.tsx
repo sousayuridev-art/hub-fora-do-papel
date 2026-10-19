@@ -104,7 +104,7 @@ export function PagarPix({
                 readOnly
                 value={codigo}
                 onFocus={(e) => e.currentTarget.select()}
-                className="h-11 w-full min-w-0 rounded-xl border border-[#DADAD3] bg-hub-fundo px-3 font-rotulo text-[13px]"
+                className="h-11 w-full min-w-0 rounded-xl border border-[#DADAD3] bg-hub-fundo px-3 font-rotulo text-base md:text-[13px]"
               />
             </label>
             <button

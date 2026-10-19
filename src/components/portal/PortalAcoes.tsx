@@ -8,10 +8,13 @@ import type { AcaoPortal } from "@/lib/portal";
 /** "Precisa da sua ação": entregas e serviços adicionais (vão para Aprovações) e pendências (marca aqui). */
 export function PortalAcoes({
   acoes,
+  pagamentos = 0,
   enviando,
   aoMarcarFeita,
 }: {
   acoes: AcaoPortal[];
+  /** Contas vencidas ou vencendo (entram no "Precisa de você"; o pagamento é feito em Pagamentos). */
+  pagamentos?: number;
   enviando: boolean;
   aoMarcarFeita: (id: string) => void;
 }) {
@@ -20,7 +23,21 @@ export function PortalAcoes({
       <h2 id="precisa-t" className="font-titulo text-[20px] font-bold md:text-2xl">
         Precisa da sua ação
       </h2>
-      {acoes.length === 0 ? (
+      {pagamentos > 0 && (
+        <Link
+          to="/portal/pagamentos"
+          className="flex min-h-14 items-center gap-3 rounded-2xl border border-[#F2D9A6] bg-[#FFF8EA] p-4 text-[15px] hover:bg-[#FFF1D6]"
+        >
+          <span className="flex-1">
+            <strong className="font-semibold">
+              {pagamentos === 1 ? "1 conta a pagar" : `${pagamentos} contas a pagar`}
+            </strong>{" "}
+            vencida ou vencendo nos próximos dias. Pague pelo Pix ou avise se já pagou.
+          </span>
+          <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+        </Link>
+      )}
+      {acoes.length === 0 && pagamentos === 0 ? (
         <p className="rounded-2xl border border-hub-borda bg-white p-5 text-[15px] text-hub-suave">
           Tudo em dia. Quando houver algo para você ver ou fazer, aparece aqui.
         </p>

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import type { PendenciasDoPortal } from "@/lib/portal";
 
-/** Bloco escuro do Início com os 3 números (mesma conta dos selos). */
+/** Bloco escuro do Início: os 3 números somam o "Precisa de você" (mesma conta dos selos). */
 export function PortalResumo({ p }: { p: PendenciasDoPortal }) {
   const itens = [
     {
@@ -17,9 +17,9 @@ export function PortalResumo({ p }: { p: PendenciasDoPortal }) {
       hash: "precisa",
     },
     {
-      n: p.pedidos_andamento,
-      rotulo: p.pedidos_andamento === 1 ? "pedido em andamento" : "pedidos em andamento",
-      para: "/portal/pedidos" as const,
+      n: p.pagamentos,
+      rotulo: p.pagamentos === 1 ? "conta a pagar" : "contas a pagar",
+      para: "/portal/pagamentos" as const,
     },
   ];
   return (
@@ -47,6 +47,15 @@ export function PortalResumo({ p }: { p: PendenciasDoPortal }) {
           </li>
         ))}
       </ul>
+      {p.pedidos_andamento > 0 && (
+        <Link
+          to="/portal/pedidos"
+          className="mt-3 inline-flex min-h-11 items-center text-[14px] text-[#C9CBD0] underline-offset-4 hover:underline"
+        >
+          Acompanhando: {p.pedidos_andamento}{" "}
+          {p.pedidos_andamento === 1 ? "pedido em andamento" : "pedidos em andamento"}
+        </Link>
+      )}
     </section>
   );
 }

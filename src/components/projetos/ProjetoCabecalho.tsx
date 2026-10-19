@@ -32,7 +32,9 @@ export function ProjetoCabecalho({ d, aoEditar }: { d: DetalheProjeto; aoEditar:
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
           <div className="flex flex-wrap gap-2">
-            {atual ? (
+            {p.canceled_at ? (
+              <Selo tom="risco">Cancelado em {diaMes(p.canceled_at)}</Selo>
+            ) : atual ? (
               <Selo tom="info">
                 {atual.fase.name} · fase {atual.numero} de {atual.total}
               </Selo>

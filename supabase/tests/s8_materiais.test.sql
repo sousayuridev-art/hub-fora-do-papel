@@ -2,7 +2,7 @@
 -- portal só da própria empresa, envio do cliente fecha a pendência, isolamento.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(27);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -71,7 +71,15 @@ insert into storage.objects (bucket_id, name, owner, metadata)
 values ('materiais', (select valor->>'caminho' from t where chave = 'env'), auth.uid(), '{"size": 2000}');
 select lives_ok(format($$ select public.material_confirmar(%L) $$, (select valor->>'id' from t where chave = 'env')),
   'Cliente confirma o envio');
+select throws_ok($$ select public.portal_arquivo_preparar('Logo', 'logo.svg', 'image/svg+xml', 500) $$,
+  '22023', null, 'Cliente não envia SVG (pode ter script)');
+select ok((public.portal_arquivo_preparar('x', 'cardapio.pdf', 'application/pdf', 500)) ? 'id',
+  'Título curto não impede o envio do cliente');
+select throws_ok($$ select public.portal_arquivo_preparar('Ruim', '..', 'application/pdf', 500) $$,
+  '22023', null, 'Nome de arquivo só com pontos é recusado');
 reset role;
+select is((select title from public.materials where file_name = 'cardapio.pdf'), 'cardapio.pdf',
+  'Título curto demais vira o nome do arquivo');
 select is((select status from public.client_tasks where id = '60000000-0000-0000-0000-000000000001'), 'feita',
   'Envio ligado à pendência marca a pendência como feita');
 set local role authenticated;

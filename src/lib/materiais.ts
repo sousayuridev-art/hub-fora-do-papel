@@ -231,8 +231,13 @@ export async function excluirDeVez(m: Material) {
 }
 
 /** Abre ou baixa um arquivo com link temporário (5 minutos). */
-export async function abrirArquivo(m: Pick<Material, "caminho" | "arquivo">, baixar: boolean) {
+export async function abrirArquivo(
+  m: Pick<Material, "caminho" | "arquivo" | "mime">,
+  baixar: boolean,
+) {
   if (!m.caminho) return;
+  // SVG e texto podem conter script ou HTML: sempre baixar, nunca abrir no navegador
+  if (m.mime === "image/svg+xml" || m.mime?.startsWith("text/")) baixar = true;
   const { data, error } = await supabase.storage
     .from("materiais")
     .createSignedUrl(m.caminho, 300, baixar ? { download: m.arquivo ?? true } : undefined);

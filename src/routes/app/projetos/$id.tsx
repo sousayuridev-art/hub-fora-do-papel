@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { AguardandoCliente } from "@/components/projetos/AguardandoCliente";
+import { CancelarProjetoPainel } from "@/components/projetos/CancelarProjetoPainel";
 import { EditarProjetoPainel } from "@/components/projetos/EditarProjetoPainel";
 import { SaudeEntrega } from "@/components/projetos/SaudeEntrega";
 import { useSession } from "@/hooks/useSession";
@@ -22,6 +23,7 @@ import { ProjetoPedidos } from "@/components/projetos/ProjetoPedidos";
 import { QuadroCiclo } from "@/components/projetos/QuadroCiclo";
 import { useMutacoesProjeto } from "@/components/projetos/useMutacoesProjeto";
 import { chavesProjetos, detalheProjeto, faseAtual } from "@/lib/projetos";
+import { diaMes } from "@/lib/formatar";
 import { cn } from "@/lib/utils";
 
 const abas = ["andamento", "pedidos", "horas", "encerramento", "linha"] as const;
@@ -44,6 +46,7 @@ function Projeto() {
   const [faseDoPedido, setFaseDoPedido] = useState<string | null>(null);
   const [tituloDoPedido, setTituloDoPedido] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
+  const [cancelar, setCancelar] = useState(false);
   const { session } = useSession();
   const remetente =
     ((session?.user.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] ?? "";
@@ -188,6 +191,25 @@ function Projeto() {
           aoMudarData={(data) => m.atualizar.mutate({ lancamento: data ?? "" })}
         />
       )}
+      {aba === "encerramento" && d.projeto.canceled_at && (
+        <p className="rounded-2xl bg-sit-risco p-4 text-[14.5px] text-sit-risco-t">
+          Cancelado em {diaMes(d.projeto.canceled_at)}. Motivo: {d.projeto.cancel_reason}
+        </p>
+      )}
+      {aba === "encerramento" && !d.projeto.canceled_at && d.projeto.status !== "concluido" && (
+        <div className="flex flex-col gap-1 rounded-2xl border border-dashed border-[#E3B4AE] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[14px] text-hub-suave">
+            O cliente desistiu ou o projeto foi criado por engano?
+          </p>
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center self-start px-2 text-[14.5px] font-medium text-sit-risco-t"
+            onClick={() => setCancelar(true)}
+          >
+            Cancelar projeto
+          </button>
+        </div>
+      )}
       {aba === "linha" && <ProjetoLinhaDoTempo itens={d.linha} />}
 
       <PedirAprovacaoPainel
@@ -222,6 +244,7 @@ function Projeto() {
           })
         }
       />
+      <CancelarProjetoPainel projetoId={id} aberto={cancelar} aoMudar={setCancelar} />
       <LancarHorasPainel
         aberto={painel === "horas"}
         aoMudar={(v) => !v && setPainel(null)}

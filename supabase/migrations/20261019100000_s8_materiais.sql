@@ -87,7 +87,9 @@ create or replace function public._material_pode_enviar(p_path text)
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.materials m
                   where m.storage_path = p_path and m.kind = 'arquivo' and m.ready_at is null and m.deleted_at is null
-                    and m.uploaded_by = auth.uid() and m.created_at > now() - interval '1 day');
+                    and m.uploaded_by = auth.uid() and m.created_at > now() - interval '1 day'
+                    and (public.is_tenant_owner(m.tenant_id)
+                         or (m.origin = 'cliente' and public.is_client_member(m.client_id))));
 $$;
 
 create or replace function public._material_pode_apagar(p_path text)
@@ -128,7 +130,8 @@ revoke all on function public._material_json(public.materials) from public, anon
 
 create or replace function public._nome_arquivo(p text)
 returns text language sql immutable as $$
-  select left(nullif(regexp_replace(regexp_replace(coalesce(p, ''), '[/\\]', '-', 'g'), '[^A-Za-z0-9._ -]', '', 'g'), ''), 120);
+  select case when x ~ '^[. ]*$' then null else x end
+    from (select left(nullif(trim(regexp_replace(regexp_replace(coalesce(p, ''), '[/\\]', '-', 'g'), '[^A-Za-z0-9._ -]', '', 'g')), ''), 120) x) n;
 $$;
 revoke all on function public._nome_arquivo(text) from public, anon, authenticated;
 
@@ -210,7 +213,8 @@ returns jsonb language plpgsql volatile security definer set search_path = publi
 declare m public.materials; o record;
 begin
   select * into m from public.materials where id = p_id for update;
-  if m.id is null or m.kind <> 'arquivo' or m.uploaded_by is distinct from auth.uid() then
+  if m.id is null or m.kind <> 'arquivo' or m.uploaded_by is distinct from auth.uid() or m.deleted_at is not null
+     or not (public.is_tenant_owner(m.tenant_id) or (m.origin = 'cliente' and public.is_client_member(m.client_id))) then
     raise exception 'material_inexistente' using errcode = 'P0002';
   end if;
   if m.ready_at is not null then return public._material_json(m); end if;
@@ -241,6 +245,11 @@ create or replace function public.material_salvar(p_id uuid, p_tipo public.mater
 returns jsonb language plpgsql volatile security definer set search_path = public as $$
 declare t uuid := public._tenant_do_dono(); m public.materials;
 begin
+  if p_id is not null then
+    m := public._material_do_dono(p_id);
+    -- arquivo do cliente: o cliente não muda, e o projeto precisa ser dele
+    if m.origin = 'cliente' then p_cliente := m.client_id; end if;
+  end if;
   perform public._material_vinculos(t, p_cliente, p_projeto);
   if length(trim(coalesce(p_titulo, ''))) < 2 then raise exception 'titulo_obrigatorio' using errcode = '22023'; end if;
   if coalesce(p_compartilhado, false) and p_cliente is null then raise exception 'compartilhar_sem_cliente' using errcode = '22023'; end if;
@@ -257,7 +266,6 @@ begin
             coalesce(p_compartilhado, false), auth.uid(), now())
     returning * into m;
   else
-    m := public._material_do_dono(p_id);
     if m.origin = 'cliente' and coalesce(p_compartilhado, false) is distinct from m.shared then
       raise exception 'material_do_cliente' using errcode = '22023';
     end if;
@@ -334,7 +342,7 @@ begin
     raise exception 'pendencia_inexistente' using errcode = 'P0002';
   end if;
   if nome is null then raise exception 'arquivo_invalido' using errcode = '22023'; end if;
-  if not public._material_tipo_ok(p_mime) then raise exception 'tipo_nao_aceito' using errcode = '22023'; end if;
+  if not public._material_tipo_ok(p_mime) or p_mime = 'image/svg+xml' then raise exception 'tipo_nao_aceito' using errcode = '22023'; end if;
   if coalesce(p_tamanho, 0) < 1 or p_tamanho > 26214400 then raise exception 'arquivo_grande' using errcode = '22023'; end if;
   perform pg_advisory_xact_lock(hashtext('arquivo:' || c::text));
   if (select count(*) from public.materials where client_id = c and origin = 'cliente' and created_at > now() - interval '1 day') >= 60 then
@@ -346,7 +354,7 @@ begin
   insert into public.materials (id, tenant_id, client_id, project_id, client_task_id, category, kind, origin, title,
                                 storage_path, file_name, mime_type, size_bytes, shared, uploaded_by)
   values (novo_id, t, c, proj, p_pendencia, 'cliente', 'arquivo', 'cliente',
-          left(coalesce(nullif(trim(coalesce(p_titulo, '')), ''), nome), 120),
+          left(case when length(trim(coalesce(p_titulo, ''))) >= 2 then trim(p_titulo) else nome end, 120),
           t || '/' || novo_id || '/' || nome, nome, p_mime, p_tamanho, false, auth.uid())
   returning * into m;
   return jsonb_build_object('id', m.id, 'caminho', m.storage_path);

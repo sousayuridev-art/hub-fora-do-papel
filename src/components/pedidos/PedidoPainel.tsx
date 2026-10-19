@@ -39,6 +39,7 @@ export function PedidoPainel({
   const [nota, setNota] = useState("");
   const [recusando, setRecusando] = useState(false);
   const [motivo, setMotivo] = useState("");
+  const [confirmarEnvio, setConfirmarEnvio] = useState(false);
 
   useEffect(() => {
     setClasse(p?.classification ?? null);
@@ -46,6 +47,7 @@ export function PedidoPainel({
     setNota(p?.owner_note ?? "");
     setRecusando(false);
     setMotivo("");
+    setConfirmarEnvio(false);
   }, [p]);
 
   const podeClassificar =
@@ -99,8 +101,17 @@ export function PedidoPainel({
       p.classification === "adicional" &&
       p.client_decision !== "aprovado"
     ) {
-      acao = (
-        <Button className={amarelo} onClick={fechar(() => a.aoEnviar(p))}>
+      acao = confirmarEnvio ? (
+        <>
+          <Button variant="outline" className="h-11" onClick={() => setConfirmarEnvio(false)}>
+            Voltar
+          </Button>
+          <Button className={amarelo} onClick={fechar(() => a.aoEnviar(p))}>
+            Confirmar envio
+          </Button>
+        </>
+      ) : (
+        <Button className={amarelo} onClick={() => setConfirmarEnvio(true)}>
           Enviar ao cliente ({moeda(p.value_cents)})
         </Button>
       );
@@ -188,6 +199,20 @@ export function PedidoPainel({
             </p>
           )}
 
+          {confirmarEnvio && (
+            <p className="rounded-xl bg-sit-atencao p-4 text-[14.5px] text-sit-atencao-t">
+              O cliente vai ver {moeda(p.value_cents)} ({p.hours_estimated?.toLocaleString("pt-BR")}{" "}
+              h) no portal e pode aprovar na hora. Depois de enviado, o valor não muda: confira
+              antes.
+            </p>
+          )}
+          {recusando && p.classification === "adicional" && p.client_decision === "aprovado" && (
+            <p className="rounded-xl bg-sit-atencao p-4 text-[14.5px] text-sit-atencao-t">
+              O cliente já aprovou este serviço adicional. A parte ainda não paga é cancelada; se a
+              1ª parte já foi paga, ela continua registrada e o Painel lembra você de combinar
+              crédito ou devolução.
+            </p>
+          )}
           {recusando ? (
             <CampoArea
               rotulo="Motivo (o cliente vê no portal)"

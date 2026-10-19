@@ -394,6 +394,8 @@ export function mensagemDoFunil(e: unknown): string | null {
     sem_permissao: "Você não tem permissão para essa ação.",
     oportunidade_fechada_por_aceite:
       "O cliente aceitou a proposta desta oportunidade. Ela fica em Fechado; para um novo trabalho, crie um novo contato.",
+    valor_fechado_por_aceite:
+      "O valor desta oportunidade é o da proposta aceita e não muda. Para algo a mais, use um serviço adicional.",
     tenant_ambiguo:
       "Seu acesso está em mais de uma empresa. Fale com o suporte para escolher a principal.",
   };

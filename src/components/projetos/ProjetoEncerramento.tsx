@@ -116,7 +116,7 @@ export function ProjetoEncerramento({
           <div className="flex flex-col gap-3 rounded-xl bg-sit-atencao p-4 text-sit-atencao-t">
             <p className="text-[14.5px]">
               Lançar agora? Todas as fases ficam concluídas e o projeto vai para {destino}. O
-              cliente vê no portal.
+              cliente vê no portal. Partes de pagamento "na entrega" passam a vencer em 3 dias.
             </p>
             {abertos.length > 0 && (
               <p className="text-[14.5px] font-semibold">

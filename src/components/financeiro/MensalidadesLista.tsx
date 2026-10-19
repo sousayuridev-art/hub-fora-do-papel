@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
@@ -21,6 +22,7 @@ export function MensalidadesLista({
   itens: Mensalidade[];
   aoMudar: (m: Mensalidade, s: Mensalidade["situacao"]) => void;
 }) {
+  const [encerrando, setEncerrando] = useState<string | null>(null);
   if (itens.length === 0)
     return (
       <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-6 text-[15px] text-hub-suave">
@@ -33,7 +35,7 @@ export function MensalidadesLista({
       {itens.map((m) => (
         <li
           key={m.id}
-          className="flex flex-col gap-2 border-b border-hub-borda px-5 py-4 last:border-b-0 sm:flex-row sm:items-center sm:gap-4"
+          className="flex flex-col gap-2 border-b border-hub-borda px-5 py-4 last:border-b-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
         >
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="font-semibold">
@@ -76,7 +78,7 @@ export function MensalidadesLista({
                   )}
                   <DropdownMenuItem
                     className="min-h-11 text-sit-risco-t"
-                    onSelect={() => aoMudar(m, "encerrada")}
+                    onSelect={() => setEncerrando(m.id)}
                   >
                     Encerrar (o mês atual continua cobrado)
                   </DropdownMenuItem>
@@ -84,6 +86,37 @@ export function MensalidadesLista({
               </DropdownMenu>
             )}
           </span>
+          {encerrando === m.id && (
+            <div
+              role="alert"
+              className="flex w-full flex-col gap-3 rounded-xl bg-sit-risco p-4 text-[14.5px] text-sit-risco-t sm:basis-full"
+            >
+              <p>
+                Encerrar a mensalidade de {m.empresa}? O mês atual continua cobrado, os próximos não
+                são gerados e o projeto passa para concluído. Não dá para desfazer: para voltar,
+                crie uma nova mensalidade.
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-[#DADAD3] bg-white px-4 font-medium text-hub-tinta"
+                  onClick={() => setEncerrando(null)}
+                >
+                  Manter
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex h-11 items-center justify-center rounded-xl bg-[#9A1C12] px-4 font-semibold text-white"
+                  onClick={() => {
+                    aoMudar(m, "encerrada");
+                    setEncerrando(null);
+                  }}
+                >
+                  Encerrar mensalidade
+                </button>
+              </div>
+            </div>
+          )}
         </li>
       ))}
     </ul>

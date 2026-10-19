@@ -32,6 +32,7 @@ const busca = z.object({
   aba: z.enum(abas).optional().catch(undefined),
   filtro: z.enum(filtros).optional().catch(undefined),
   cobranca: z.string().uuid().optional().catch(undefined),
+  cliente: z.string().uuid().optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/app/financeiro")({
@@ -48,7 +49,7 @@ const rotulosAba: Record<Aba, string> = {
 };
 
 function Financeiro() {
-  const { aba = "cobrancas", filtro = "abertas", cobranca } = Route.useSearch();
+  const { aba = "cobrancas", filtro = "abertas", cobranca, cliente } = Route.useSearch();
   const navigate = Route.useNavigate();
   const q = useQuery({ queryKey: chavesFinanceiro.painel, queryFn: painelFinanceiro });
   const m = useMutacoesFinanceiro();
@@ -60,13 +61,17 @@ function Financeiro() {
 
   const d = q.data;
   const grupos = useMemo(() => {
-    const c = d?.cobrancas ?? [];
+    // filtro de exibição; números e somas vêm prontos do banco
+    const c = (d?.cobrancas ?? []).filter((x) => !cliente || x.client_id === cliente);
     return {
       abertas: c.filter((x) => x.situacao === "aberta" && x.vencimento !== null),
       sem_data: c.filter((x) => x.situacao === "aberta" && x.vencimento === null),
       recebidas: c.filter((x) => x.situacao === "paga"),
     };
-  }, [d?.cobrancas]);
+  }, [d?.cobrancas, cliente]);
+  const empresaFiltrada = cliente
+    ? (d?.cobrancas.find((x) => x.client_id === cliente)?.empresa ?? "este cliente")
+    : null;
   const aberta = cobranca ? (d?.cobrancas.find((c) => c.id === cobranca) ?? null) : null;
   const abrir = (id: string | undefined) =>
     void navigate({ search: (s) => ({ ...s, cobranca: id }), replace: true });
@@ -185,6 +190,23 @@ function Financeiro() {
                   },
                 ]}
               />
+              {empresaFiltrada && (
+                <p className="flex flex-wrap items-center gap-2 text-[14.5px]">
+                  Só as cobranças de <strong>{empresaFiltrada}</strong>.
+                  <button
+                    type="button"
+                    className="inline-flex min-h-11 items-center font-medium text-[#1E3FA8] underline"
+                    onClick={() =>
+                      void navigate({
+                        search: (s) => ({ ...s, cliente: undefined }),
+                        replace: true,
+                      })
+                    }
+                  >
+                    Ver todas
+                  </button>
+                </p>
+              )}
               {filtro === "sem_data" && grupos.sem_data.length > 0 && (
                 <p className="text-[14px] text-hub-suave">
                   Partes cobradas "na entrega". Defina o vencimento quando a entrega acontecer.
