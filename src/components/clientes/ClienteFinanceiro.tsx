@@ -61,6 +61,7 @@ export function ClienteFinanceiro({ clienteId }: { clienteId: string }) {
       )}
       <Link
         to="/app/financeiro"
+        search={{ cliente: clienteId }}
         className="inline-flex min-h-11 items-center self-start text-[14.5px] font-medium text-[#1E3FA8] underline"
       >
         Abrir o financeiro

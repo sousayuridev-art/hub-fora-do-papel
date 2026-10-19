@@ -16,9 +16,10 @@ import { EstadoErro } from "@/components/hub/EstadoErro";
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { PainelEntregas } from "@/components/painel/PainelEntregas";
+import { PainelFila } from "@/components/painel/PainelFila";
 import { PainelNovidades } from "@/components/painel/PainelNovidades";
 import { linkWhatsapp, moeda, prazoRelativo } from "@/lib/formatar";
-import { chavesPainel, novidadesDoPainel } from "@/lib/painel";
+import { chavesPainel, filaDoPainel, novidadesDoPainel } from "@/lib/painel";
 import { chavesFunil, painelHoje, rotuloEtapa } from "@/lib/funil";
 import { useSession } from "@/hooks/useSession";
 
@@ -40,6 +41,8 @@ function Painel() {
   const primeiroNome = nomeCompleto.split(" ")[0];
   const extra = useQuery({ queryKey: chavesPainel.novidades, queryFn: novidadesDoPainel });
   const n = extra.data;
+  const fila = useQuery({ queryKey: chavesPainel.fila, queryFn: filaDoPainel });
+  const totalHoje = (dados.data?.itens.length ?? 0) + (fila.data?.total ?? 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,9 +50,9 @@ function Painel() {
         titulo={primeiroNome ? `${saudacao()}, ${primeiroNome}` : saudacao()}
         resumo={
           dados.data
-            ? dados.data.itens.length === 0
-              ? "Nenhum passo vencido ou para hoje."
-              : `${dados.data.itens.length} ${dados.data.itens.length === 1 ? "item precisa" : "itens precisam"} de você hoje.`
+            ? totalHoje === 0
+              ? "Nada vencido ou para hoje."
+              : `${totalHoje} ${totalHoje === 1 ? "item precisa" : "itens precisam"} de você hoje.`
             : " "
         }
       />
@@ -159,7 +162,7 @@ function Painel() {
           <section aria-labelledby="titulo-hoje" className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h2 id="titulo-hoje" className="font-titulo text-xl font-bold">
-                Precisa de você hoje
+                Funil: próximos passos
               </h2>
               <Link
                 to="/app/pipeline"
@@ -227,6 +230,15 @@ function Painel() {
               </ol>
             )}
           </section>
+
+          {fila.isError ? (
+            <EstadoErro
+              titulo="Não foi possível carregar cobranças e adicionais"
+              aoTentarDeNovo={() => void fila.refetch()}
+            />
+          ) : (
+            fila.data && <PainelFila itens={fila.data.itens} />
+          )}
 
           <PainelEntregas />
 

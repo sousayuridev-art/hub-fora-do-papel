@@ -28,7 +28,7 @@ export function PortalTabs({ selos }: { selos: PendenciasPortal }) {
               <Icone className="size-5" aria-hidden="true" />
               {total > 0 && (
                 <span
-                  className="absolute -top-1 right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-hub-destaque px-1 text-[11px] font-bold tabular-nums text-hub-tinta ring-2 ring-white"
+                  className="absolute -top-1 right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-hub-destaque px-1 text-[12.5px] font-bold tabular-nums text-hub-tinta ring-2 ring-white"
                   aria-label={`${total} pendentes`}
                 >
                   {total}

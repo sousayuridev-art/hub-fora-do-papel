@@ -7,6 +7,8 @@ import type { SituacaoPedido } from "@/lib/pedidos";
 export type PendenciasDoPortal = {
   aprovacoes: number;
   pendencias: number;
+  /** Contas vencidas ou vencendo em 3 dias que o cliente ainda não avisou que pagou (REV-3). */
+  pagamentos: number;
   total: number;
   pedidos_andamento: number;
 };

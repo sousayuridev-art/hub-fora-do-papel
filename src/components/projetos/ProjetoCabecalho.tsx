@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, MessageCircle, Pencil } from "lucide-react";
+import { ChevronRight, Library, MessageCircle, Pencil } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
@@ -32,7 +32,9 @@ export function ProjetoCabecalho({ d, aoEditar }: { d: DetalheProjeto; aoEditar:
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
           <div className="flex flex-wrap gap-2">
-            {atual ? (
+            {p.canceled_at ? (
+              <Selo tom="risco">Cancelado em {diaMes(p.canceled_at)}</Selo>
+            ) : atual ? (
               <Selo tom="info">
                 {atual.fase.name} · fase {atual.numero} de {atual.total}
               </Selo>
@@ -67,6 +69,13 @@ export function ProjetoCabecalho({ d, aoEditar }: { d: DetalheProjeto; aoEditar:
           <button type="button" className={classeBotaoSecundario} onClick={aoEditar}>
             <Pencil className="size-4" aria-hidden="true" /> Editar
           </button>
+          <Link
+            to="/app/materiais"
+            search={{ cliente: d.cliente.id }}
+            className={classeBotaoSecundario}
+          >
+            <Library className="size-4" aria-hidden="true" /> Materiais
+          </Link>
           {wpp && (
             <a
               href={wpp}

@@ -146,7 +146,7 @@ function Ficha() {
           <ClienteLinhaDoTempo itens={linha.data} />
         )
       ) : (
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-4">
             {dealId ? (
               o ? (
@@ -170,6 +170,20 @@ function Ficha() {
           <div className="flex flex-col gap-4">
             <ClienteContato c={c} />
             <ClienteFinanceiro clienteId={c.id} />
+            <Link
+              to="/app/materiais"
+              search={{ cliente: c.id }}
+              className="flex min-h-11 items-center justify-between rounded-2xl border border-hub-borda bg-white px-5 py-3 text-[15px] font-medium hover:bg-hub-fundo"
+            >
+              Materiais deste cliente <span aria-hidden="true">→</span>
+            </Link>
+            <Link
+              to="/app/pedidos"
+              search={{ cliente: c.id }}
+              className="flex min-h-11 items-center justify-between rounded-2xl border border-hub-borda bg-white px-5 py-3 text-[15px] font-medium hover:bg-hub-fundo"
+            >
+              Pedidos deste cliente <span aria-hidden="true">→</span>
+            </Link>
             <ClienteAcessoPortal
               clienteId={c.id}
               emailSugerido={c.email}

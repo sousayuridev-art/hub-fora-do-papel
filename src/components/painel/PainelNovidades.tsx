@@ -3,6 +3,7 @@ import {
   BellRing,
   CheckCircle2,
   CheckSquare,
+  FileUp,
   Eye,
   Globe,
   Inbox,
@@ -66,6 +67,11 @@ const tipos = {
     cor: "bg-sit-info text-sit-info-t",
     texto: "avisou que pagou",
   },
+  arquivo_enviado: {
+    icone: FileUp,
+    cor: "bg-sit-info text-sit-info-t",
+    texto: "enviou um arquivo",
+  },
 } as const;
 
 function complemento(n: Novidade): string | null {
@@ -97,6 +103,10 @@ function complemento(n: Novidade): string | null {
     return `${String(d["descricao"] ?? "")}${
       typeof d["valor_cents"] === "number" ? ` · ${moeda(d["valor_cents"])}` : ""
     } · confira e registre em Financeiro`;
+  if (n.tipo === "arquivo_enviado")
+    return [d["titulo"], d["arquivo"] !== d["titulo"] ? d["arquivo"] : null]
+      .filter((x): x is string => typeof x === "string" && x !== "")
+      .join(" · ");
   if (n.tipo === "pedido_recebido")
     return `${String(d["codigo"] ?? "")} ${String(d["titulo"] ?? "")}`.trim();
   return null;
@@ -152,6 +162,14 @@ export function PainelNovidades({ itens }: { itens: Novidade[] }) {
                   <Link
                     to="/app/financeiro"
                     search={{ cobranca: n.detalhe["cobranca_id"] }}
+                    className={classe}
+                  >
+                    {conteudo}
+                  </Link>
+                ) : n.tipo === "arquivo_enviado" && typeof n.detalhe["material_id"] === "string" ? (
+                  <Link
+                    to="/app/materiais"
+                    search={{ material: n.detalhe["material_id"] }}
                     className={classe}
                   >
                     {conteudo}

@@ -13,7 +13,8 @@ export type Novidade = {
     | "adicional_recusado"
     | "pendencia_feita"
     | "pedido_recebido"
-    | "pagamento_avisado";
+    | "pagamento_avisado"
+    | "arquivo_enviado";
   quando: string;
   client_id: string;
   project_id?: string | null;
@@ -32,7 +33,34 @@ export type NovidadesPainel = {
   pedidos_novos: number;
 };
 
-export const chavesPainel = { novidades: ["painel", "novidades"] as const };
+export type ItemFila = {
+  tipo:
+    | "pagamento_avisado"
+    | "cobranca_atrasada"
+    | "adicional_aprovado"
+    | "parcela_sem_data"
+    | "adicional_pago_recusado";
+  id: string;
+  empresa: string;
+  client_id: string;
+  titulo: string;
+  valor_cents: number | null;
+  quando: string;
+  dias?: number;
+};
+export type FilaPainel = { total: number; itens: ItemFila[] };
+
+export const chavesPainel = {
+  novidades: ["painel", "novidades"] as const,
+  fila: ["painel", "fila"] as const,
+};
+
+/** O que precisa do Yuri fora do funil: dinheiro e serviços adicionais (REV-3). */
+export async function filaDoPainel(): Promise<FilaPainel> {
+  const { data, error } = await supabase.rpc("painel_fila");
+  if (error) throw error;
+  return data as FilaPainel;
+}
 
 export async function novidadesDoPainel(): Promise<NovidadesPainel> {
   const { data, error } = await supabase.rpc("painel_novidades");

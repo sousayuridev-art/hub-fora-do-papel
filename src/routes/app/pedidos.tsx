@@ -31,6 +31,7 @@ const busca = z.object({
     .optional()
     .catch(undefined),
   pedido: z.string().uuid().optional().catch(undefined),
+  cliente: z.string().uuid().optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/app/pedidos")({
@@ -40,9 +41,14 @@ export const Route = createFileRoute("/app/pedidos")({
 });
 
 function Pedidos() {
-  const { aba = "todos", pedido } = Route.useSearch();
+  const { aba = "todos", pedido, cliente: clienteNaUrl } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const [cliente, setCliente] = useState("todos");
+  const cliente = clienteNaUrl ?? "todos";
+  const setCliente = (v: string) =>
+    void navigate({
+      search: (s) => ({ ...s, cliente: v === "todos" ? undefined : v }),
+      replace: true,
+    });
   const [texto, setTexto] = useState("");
   const termo = useDeferredValue(texto.trim().toLowerCase());
   const [registrar, setRegistrar] = useState(false);
@@ -56,10 +62,12 @@ function Pedidos() {
   const clientes = useMemo(() => {
     const vistos = new Map<string, string>();
     for (const p of lista.data ?? []) vistos.set(p.client_id, p.company_name);
+    // veio da ficha de um cliente sem pedidos: a opção existe para o filtro aparecer
+    if (cliente !== "todos" && !vistos.has(cliente)) vistos.set(cliente, "Cliente escolhido");
     return [...vistos]
       .map(([id, rotulo]) => ({ id, rotulo }))
       .sort((a, b) => a.rotulo.localeCompare(b.rotulo));
-  }, [lista.data]);
+  }, [lista.data, cliente]);
 
   const visiveis = useMemo(() => {
     const sit = situacoesDaAba[aba];

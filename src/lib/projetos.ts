@@ -151,6 +151,8 @@ export type DetalheProjeto = {
     monthly_cents: number | null;
     started_at: string;
     launched_at: string | null;
+    canceled_at: string | null;
+    cancel_reason: string | null;
   };
   hoje: string;
   saude: Saude;
@@ -223,6 +225,20 @@ export const criarProjeto = (v: {
 
 export const atualizarProjeto = (id: string, campos: Record<string, unknown>) =>
   rpc("projeto_atualizar", { p_id: id, p_campos: campos });
+export type PreviaCancelamento = {
+  cobrancas: number;
+  cobrancas_cents: number;
+  pagas_cents: number;
+  mensalidade: boolean;
+  aprovacoes: number;
+  pendencias: number;
+  pedidos: number;
+};
+export const previaCancelamento = (id: string) =>
+  rpc<PreviaCancelamento>("projeto_cancelar_previa", { p_id: id });
+export const cancelarProjeto = (id: string, motivo: string) =>
+  rpc<PreviaCancelamento>("projeto_cancelar", { p_id: id, p_motivo: motivo });
+
 export const concluirFase = (faseId: string) => rpc("projeto_fase_concluir", { p_fase: faseId });
 
 export const pedirAprovacao = (v: {
