@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, MessageCircle, Pencil } from "lucide-react";
+import { ChevronRight, Library, MessageCircle, Pencil } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
@@ -67,6 +67,13 @@ export function ProjetoCabecalho({ d, aoEditar }: { d: DetalheProjeto; aoEditar:
           <button type="button" className={classeBotaoSecundario} onClick={aoEditar}>
             <Pencil className="size-4" aria-hidden="true" /> Editar
           </button>
+          <Link
+            to="/app/materiais"
+            search={{ cliente: d.cliente.id }}
+            className={classeBotaoSecundario}
+          >
+            <Library className="size-4" aria-hidden="true" /> Materiais
+          </Link>
           {wpp && (
             <a
               href={wpp}

@@ -13,7 +13,8 @@ export type Novidade = {
     | "adicional_recusado"
     | "pendencia_feita"
     | "pedido_recebido"
-    | "pagamento_avisado";
+    | "pagamento_avisado"
+    | "arquivo_enviado";
   quando: string;
   client_id: string;
   project_id?: string | null;

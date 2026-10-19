@@ -7,7 +7,8 @@ export type PendenciasPortal = { inicio: number; aprovacoes: number; arquivos: n
 /**
  * Selos do portal (card P, M11): a soma dos selos é igual ao contador "Precisa de você".
  * Aprovações = entregas + serviços adicionais aguardando; Início = pendências do cliente.
- * Conta feita no banco (portal_pendencias). Arquivos ainda não existe (S3b).
+ * Conta feita no banco (portal_pendencias). Arquivos não tem selo próprio: o que falta enviar
+ * já conta em Início (pendências), para a soma bater com "Precisa de você" (card S8).
  */
 export function usePendenciasPortal(): PendenciasPortal {
   const q = useQuery({

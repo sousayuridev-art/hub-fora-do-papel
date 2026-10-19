@@ -170,6 +170,13 @@ function Ficha() {
           <div className="flex flex-col gap-4">
             <ClienteContato c={c} />
             <ClienteFinanceiro clienteId={c.id} />
+            <Link
+              to="/app/materiais"
+              search={{ cliente: c.id }}
+              className="flex min-h-11 items-center justify-between rounded-2xl border border-hub-borda bg-white px-5 py-3 text-[15px] font-medium hover:bg-hub-fundo"
+            >
+              Materiais deste cliente <span aria-hidden="true">→</span>
+            </Link>
             <ClienteAcessoPortal
               clienteId={c.id}
               emailSugerido={c.email}

@@ -52,7 +52,7 @@ export const menuOperador: GrupoMenu[] = [
   },
   {
     titulo: "Biblioteca",
-    itens: [{ rotulo: "Materiais", para: "/app/materiais", icone: Library, emBreve: true }],
+    itens: [{ rotulo: "Materiais", para: "/app/materiais", icone: Library }],
   },
   {
     titulo: "Gestão",
