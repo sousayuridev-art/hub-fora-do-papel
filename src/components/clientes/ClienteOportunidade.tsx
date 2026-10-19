@@ -6,6 +6,7 @@ import { diaComHora, moeda, prazoRelativo } from "@/lib/formatar";
 import {
   etapas,
   rotuloDiagnostico,
+  rotuloFrente,
   rotuloEtapa,
   rotuloMotivo,
   type Oportunidade,
@@ -72,6 +73,18 @@ export function ClienteOportunidade({
       </ol>
 
       <dl className="grid gap-4 px-5 py-5 sm:grid-cols-2">
+        <div className="flex flex-col gap-1 sm:col-span-2">
+          <dt className="font-rotulo text-[12.5px] uppercase tracking-[0.08em] text-hub-suave">
+            Frente
+          </dt>
+          <dd className="text-[15px]">
+            {o.frente ? (
+              rotuloFrente[o.frente]
+            ) : (
+              <span className="text-hub-suave">Ainda não definida</span>
+            )}
+          </dd>
+        </div>
         <div className="flex flex-col gap-1">
           <dt className="font-rotulo text-[12.5px] uppercase tracking-[0.08em] text-hub-suave">
             Valor
@@ -138,7 +151,7 @@ export function ClienteOportunidade({
               Editar próximo passo
             </button>
             <button type="button" className={botao} onClick={() => aoAgir("valor")}>
-              Valor e diagnóstico
+              Frente, valor e diagnóstico
             </button>
             {o.stage !== "fechado" && <BotaoAbrirProposta dealId={o.id} className={botao} />}
             {o.stage !== "fechado" && (

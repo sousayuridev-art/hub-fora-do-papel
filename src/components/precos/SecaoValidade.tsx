@@ -7,8 +7,8 @@ export function SecaoValidade({ p, mudar }: PropsSecao) {
   return (
     <SecaoPreco
       id="validade"
-      titulo="Validade da proposta e reajuste"
-      texto="Depois do prazo, a proposta precisa ser renovada com os preços do dia."
+      titulo="Validade, reajuste, garantia e capacidade"
+      texto="Depois do prazo, a proposta precisa ser renovada com os preços do dia. A garantia aparece nas propostas novas."
       usadoEm={["Propostas", "Mensalidade"]}
     >
       <div className="grid gap-4 sm:grid-cols-2">
@@ -19,6 +19,24 @@ export function SecaoValidade({ p, mudar }: PropsSecao) {
           valor={p.validity_days}
           aoMudar={(n) => mudar("validity_days", Math.min(90, Math.max(1, Math.round(n ?? 15))))}
           ajuda="Conta a partir do envio."
+        />
+        <CampoNumero
+          rotulo="Garantia depois da entrega"
+          sufixo="dias"
+          casas={0}
+          valor={p.warranty_days}
+          aoMudar={(n) => mudar("warranty_days", Math.min(365, Math.max(0, Math.round(n ?? 30))))}
+          ajuda="Correção sem custo do que foi combinado."
+        />
+        <CampoNumero
+          rotulo="Horas por mês para vender"
+          sufixo="h"
+          casas={0}
+          valor={p.capacity_hours}
+          aoMudar={(n) =>
+            mudar("capacity_hours", Math.min(2000, Math.max(1, Math.round(n ?? 200))))
+          }
+          ajuda="O Painel compara com as horas já vendidas."
         />
         <div className="flex flex-col gap-1.5">
           <label htmlFor="reajuste" className="text-[14px] font-medium">

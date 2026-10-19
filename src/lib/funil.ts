@@ -6,6 +6,18 @@ export type Etapa = "contato" | "diagnostico" | "mapeamento" | "proposta" | "fec
 export type Origem =
   "indicacao" | "instagram" | "site" | "anuncio_meta" | "anuncio_google" | "outro";
 export type Diagnostico = "essencial" | "ampliado";
+/** Frente de serviço da oportunidade (S9): as quatro frentes do site. */
+export type Frente = "sistemas" | "ia" | "sites" | "automacoes";
+export const frentes: { id: Frente; rotulo: string }[] = [
+  { id: "sistemas", rotulo: "Sistemas sob medida e portais" },
+  { id: "ia", rotulo: "Inteligência artificial aplicada" },
+  { id: "sites", rotulo: "Sites e lojas virtuais" },
+  { id: "automacoes", rotulo: "Automações e integrações" },
+];
+export const rotuloFrente = Object.fromEntries(frentes.map((f) => [f.id, f.rotulo])) as Record<
+  Frente,
+  string
+>;
 export type MotivoPerda =
   "preco" | "prazo" | "escolheu_outro" | "sem_resposta" | "nao_era_o_momento" | "outro";
 export type FiltroFunil = "todos" | "este_mes" | "vencidos" | "arquivados";
@@ -92,6 +104,7 @@ export type Oportunidade = {
   vencido: boolean;
   para_hoje: boolean;
   deste_mes: boolean;
+  frente: Frente | null;
 };
 
 export type ResumoFunil = {
@@ -304,6 +317,7 @@ export type CamposOportunidade = Partial<{
   valor_cents: number | null;
   diagnostico: Diagnostico | null;
   diagnostico_pago: boolean;
+  frente: Frente | "";
   proximo_passo: string;
   data: string;
   hora: string | null;

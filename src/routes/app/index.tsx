@@ -16,10 +16,11 @@ import { EstadoErro } from "@/components/hub/EstadoErro";
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { PainelEntregas } from "@/components/painel/PainelEntregas";
+import { PainelCapacidade } from "@/components/painel/PainelCapacidade";
 import { PainelFila } from "@/components/painel/PainelFila";
 import { PainelNovidades } from "@/components/painel/PainelNovidades";
 import { linkWhatsapp, moeda, prazoRelativo } from "@/lib/formatar";
-import { chavesPainel, filaDoPainel, novidadesDoPainel } from "@/lib/painel";
+import { capacidadeDoMes, chavesPainel, filaDoPainel, novidadesDoPainel } from "@/lib/painel";
 import { chavesFunil, painelHoje, rotuloEtapa } from "@/lib/funil";
 import { useSession } from "@/hooks/useSession";
 
@@ -42,6 +43,7 @@ function Painel() {
   const extra = useQuery({ queryKey: chavesPainel.novidades, queryFn: novidadesDoPainel });
   const n = extra.data;
   const fila = useQuery({ queryKey: chavesPainel.fila, queryFn: filaDoPainel });
+  const capacidade = useQuery({ queryKey: chavesPainel.capacidade, queryFn: capacidadeDoMes });
   const totalHoje = (dados.data?.itens.length ?? 0) + (fila.data?.total ?? 0);
 
   return (
@@ -238,6 +240,15 @@ function Painel() {
             />
           ) : (
             fila.data && <PainelFila itens={fila.data.itens} />
+          )}
+
+          {capacidade.isError ? (
+            <EstadoErro
+              titulo="Não foi possível carregar a capacidade do mês"
+              aoTentarDeNovo={() => void capacidade.refetch()}
+            />
+          ) : (
+            capacidade.data && <PainelCapacidade c={capacidade.data} />
           )}
 
           <PainelEntregas />
