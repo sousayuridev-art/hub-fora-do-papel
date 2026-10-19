@@ -234,7 +234,10 @@ function Financeiro() {
           <p className="text-[13.5px] text-hub-suave">
             Por enquanto o pagamento é registrado à mão. Multa ({d.regras.multa_pct}%) e juros (
             {d.regras.juros_pct}% ao mês) aparecem só como referência.{" "}
-            <Link to="/app/configuracoes" className="underline">
+            <Link
+              to="/app/configuracoes"
+              className="inline-flex min-h-11 items-center underline sm:min-h-0"
+            >
               Chave Pix e regras em Configurações
             </Link>
             .

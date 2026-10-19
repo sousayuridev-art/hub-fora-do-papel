@@ -146,7 +146,7 @@ function Ficha() {
           <ClienteLinhaDoTempo itens={linha.data} />
         )
       ) : (
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-4">
             {dealId ? (
               o ? (
