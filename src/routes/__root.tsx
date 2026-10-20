@@ -63,6 +63,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "robots", content: "noindex" },
+      { name: "theme-color", content: "#F5F5F2" },
+      { name: "apple-mobile-web-app-title", content: "Portal" },
       { title: "Hub Fora do Papel" },
       { name: "description", content: "Hub Fora do Papel" },
       { property: "og:title", content: "Hub Fora do Papel" },
@@ -75,6 +77,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/site.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

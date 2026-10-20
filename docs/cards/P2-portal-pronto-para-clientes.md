@@ -2,7 +2,7 @@
 
 > **Pedido do Yuri em 20/10:** fechar o que falta para abrir o portal a clientes de verdade.
 > **Base:** card P (portal no celular), itens "Antes de publicar para clientes" e critérios de aceite gerais, ainda abertos; card S3 (notas da implementação).
-> **Status:** para implementar.
+> **Status:** itens 1 e 2 (parte de código) implementados em 20/10; itens 3, 4 e 5 dependem do Yuri com o celular e o painel do Supabase.
 
 **Objetivo:** o primeiro cliente entra pelo convite, aprova, pede ajuste e paga pelo celular sem travar em nada, e consegue fixar o portal na tela inicial.
 
@@ -56,3 +56,9 @@ Feito no ambiente local primeiro (Supabase CLI, `supabase db reset`) e depois em
 - [ ] `bun run build`, `bun run lint`, `bun run test` (vitest) e `supabase test db` passam.
 - [ ] Nada de chave ou token no frontend nem em logs.
 - [ ] Card P com os critérios gerais marcados.
+
+## Notas da implementação (20/10)
+- **Item 1 feito:** `public/site.webmanifest` (abre em `/portal`), `icon-192.png`, `icon-512.png`, `icon-512-maskable.png` e `apple-touch-icon.png` gerados do símbolo oficial; `theme-color`, `manifest` e `apple-touch-icon` no `__root.tsx`. Conferido: arquivos e marcas servidos pelo servidor local.
+- **Item 2:** nenhum `backdrop-filter` em `PortalLayout`, `PortalTabs` e `ActionBar` (conferido). Retorno ao toque em todos os botões, só em telas de toque, por uma regra em `styles.css` (`@media (hover: none)`), no lugar de editar botão por botão. Os esqueletos já existem nas 5 telas; **a altura igual à do conteúdo só dá para medir com o portal logado e com dados**, então fica para o Lighthouse do item 4 (CLS abaixo de 0,1).
+- **Item 3:** não foi possível rodar o banco local daqui (sem Docker ativo, sem Supabase CLI). O roteiro da tabela fica para o Yuri, no celular, com o "Cliente teste".
+- **Observação:** o manifesto vale para o Hub inteiro; quem instalar pelo Hub também abre em `/portal`. O operador continua usando o Hub pelo navegador.

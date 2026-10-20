@@ -186,6 +186,14 @@
   html {
     -webkit-tap-highlight-color: transparent;
   }
+  /* Card P2 (M17): retorno ao toque em todos os botões, só em telas de toque. */
+  @media (hover: none) {
+    button:not(:disabled):active,
+    [role="button"]:not([aria-disabled="true"]):active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+  }
   body {
     font-family: var(--font-sans);
   }
