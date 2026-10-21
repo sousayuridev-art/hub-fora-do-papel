@@ -42,6 +42,15 @@ jobs:
       - name: Migrações (coluna Local = repositório, Remote = produção)
         run: supabase migration list --password "$SUPABASE_DB_PASSWORD"
 
+      # Card RE-0: confere só os NOMES dos segredos das funções; o valor nunca é lido nem impresso.
+      - name: Segredos das funções (só os nomes)
+        if: inputs.modo == 'verificar'
+        run: |
+          nomes=$(supabase secrets list --project-ref "$PROJECT_REF" -o json | jq -r '.[].name')
+          for s in GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET ANTHROPIC_API_KEY_HUB IA_TETO_MENSAL_CENTAVOS; do
+            if grep -qx "$s" <<< "$nomes"; then echo "ok: $s"; else echo "falta: $s"; fi
+          done
+
       - name: Simular (nada é gravado)
         if: inputs.modo == 'verificar'
         run: supabase db push --dry-run --password "$SUPABASE_DB_PASSWORD"
