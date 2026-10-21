@@ -2,7 +2,7 @@
 -- 1ª publicação cria a mensalidade uma vez; publicação final marca a garantia; portal vê sem dados internos.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(36);
+select plan(43);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -67,6 +67,7 @@ begin
     perform public.portal_pedir_ajuste(v, 'Falta o campo de banco de horas');
     perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
     if i < 3 then
+      perform public.modulo_mover((select id from public.project_modules where name = 'RH'), 'testes');
       perform public.modulo_pedir_aprovacao((select id from public.project_modules where name = 'RH'));
     end if;
     reset role;
@@ -75,9 +76,15 @@ end $$;
 select is((select status::text || '/' || rounds from public.project_modules where name = 'RH'), 'desenvolvimento/3',
   'Ajuste volta o módulo e conta rodadas');
 select is((select count(*)::int from public.event_outbox where event = 'modulo.rodadas_demais'), 1, 'Terceira rodada avisa o Yuri');
+select is((select count(*)::int from public.event_outbox where event = 'modulo.ajuste'), 3, 'Todo ajuste gera o evento de ajuste');
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select throws_ok($$ select public.modulo_editar((select id from public.project_modules where name = 'RH'), 'RH', 'direta') $$,
+  '22023', 'caminho_travado', 'Não troca para publicação direta para pular o ajuste do cliente');
+select throws_ok($$ select public.modulo_pedir_aprovacao((select id from public.project_modules where name = 'RH')) $$,
+  '22023', 'movimento_invalido', 'Aprovação só a partir de testes');
+select lives_ok($$ select public.modulo_mover((select id from public.project_modules where name = 'RH'), 'testes') $$, 'Volta para testes');
 select lives_ok($$ select public.modulo_pedir_aprovacao((select id from public.project_modules where name = 'RH')) $$, 'Pede de novo');
 select lives_ok($$ select public.aprovacao_cancelar((select id from public.approvals where status = 'aguardando')) $$, 'Cancela o pedido');
 select is((select status::text from public.project_modules where name = 'RH'), 'testes', 'Cancelar volta para testes');
@@ -116,6 +123,8 @@ select is((select count(*)::int from public.subscriptions where project_id = '50
   'Mensalidade não duplica');
 select ok((select final_release_at is not null from public.projects where id = '50000000-0000-0000-0000-000000000001'),
   'Publicação final marcada quando todos estão no ar ou fora');
+select is((select path::text from public.module_releases where module_id = (select id from public.project_modules where name = 'Financeiro')),
+  'direta', 'Publicação registra o caminho usado');
 
 -- ===== Portal e outra agência =====
 set local role authenticated;
@@ -127,7 +136,12 @@ select ok(not ((public.portal_inicio()) -> 'projeto' -> 'modulos' -> 0 ? 'link_t
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
 select throws_ok($$ select public.modulo_criar('50000000-0000-0000-0000-000000000001', 'Invasor') $$,
   'P0002', null, 'Outra agência não mexe nos módulos');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select lives_ok($$ select public.modulo_mover((select id from public.project_modules where name = 'Estoque'), 'planejado') $$,
+  'Estoque volta ao escopo');
 reset role;
+select ok((select final_release_at is null from public.projects where id = '50000000-0000-0000-0000-000000000001'),
+  'Voltar módulo ao escopo reabre a publicação final');
 
 select * from finish();
 rollback;

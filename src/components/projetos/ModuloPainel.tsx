@@ -73,6 +73,13 @@ export function ModuloPainel({
   }, [modo, modulo]);
 
   const t = titulos[modo ?? "novo"];
+  // Mesma regra do banco (SS-1): trocar o caminho não pode pular um ajuste pedido pelo cliente.
+  const caminhoLivre =
+    modo === "novo" ||
+    (modulo?.situacao === "planejado" &&
+      modulo.no_ar_desde === null &&
+      modulo.rodadas === 0 &&
+      modulo.aprovacao === null);
   const valido =
     modo === "novo" || modo === "editar"
       ? nome.trim().length >= 2
@@ -111,43 +118,50 @@ export function ModuloPainel({
         {(modo === "novo" || modo === "editar") && (
           <>
             <CampoTexto rotulo="Nome do módulo" valor={nome} aoMudar={setNome} maxLength={60} />
-            <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1.5 text-[14px] font-medium">Caminho até a produção</legend>
-              {(
-                [
+            {caminhoLivre ? (
+              <fieldset className="flex flex-col gap-2">
+                <legend className="mb-1.5 text-[14px] font-medium">Caminho até a produção</legend>
+                {(
                   [
-                    "homologacao",
-                    "Com homologação",
-                    "Testes, aprovação do cliente e depois produção. É o padrão.",
-                  ],
-                  [
-                    "direta",
-                    "Publicação direta",
-                    "Para ajuste pequeno combinado com o cliente. Não pede aprovação.",
-                  ],
-                ] as const
-              ).map(([id, rotulo, ajuda]) => (
-                <label
-                  key={id}
-                  className={cn(
-                    "flex min-h-11 cursor-pointer gap-3 rounded-xl border p-3",
-                    caminho === id ? "border-hub-tinta bg-hub-fundo" : "border-hub-borda",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="caminho"
-                    className="mt-1 size-4 accent-hub-tinta"
-                    checked={caminho === id}
-                    onChange={() => setCaminho(id)}
-                  />
-                  <span className="flex flex-col">
-                    <b className="text-[15px] font-semibold">{rotulo}</b>
-                    <span className="text-[13.5px] text-hub-suave">{ajuda}</span>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
+                    [
+                      "homologacao",
+                      "Com homologação",
+                      "Testes, aprovação do cliente e depois produção. É o padrão.",
+                    ],
+                    [
+                      "direta",
+                      "Publicação direta",
+                      "Para ajuste pequeno combinado com o cliente. Não pede aprovação.",
+                    ],
+                  ] as const
+                ).map(([id, rotulo, ajuda]) => (
+                  <label
+                    key={id}
+                    className={cn(
+                      "flex min-h-11 cursor-pointer gap-3 rounded-xl border p-3",
+                      caminho === id ? "border-hub-tinta bg-hub-fundo" : "border-hub-borda",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="caminho"
+                      className="mt-1 size-4 accent-hub-tinta"
+                      checked={caminho === id}
+                      onChange={() => setCaminho(id)}
+                    />
+                    <span className="flex flex-col">
+                      <b className="text-[15px] font-semibold">{rotulo}</b>
+                      <span className="text-[13.5px] text-hub-suave">{ajuda}</span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+            ) : (
+              <p className="text-[14px] text-hub-suave">
+                Caminho: {modulo?.caminho === "direta" ? "publicação direta" : "com homologação"}.
+                Ele só muda enquanto o módulo está planejado e nunca pediu aprovação.
+              </p>
+            )}
           </>
         )}
         {modo === "aprovacao" && (

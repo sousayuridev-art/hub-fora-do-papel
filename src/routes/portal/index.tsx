@@ -101,15 +101,15 @@ function Inicio() {
               </b>
               <span className="text-[14px] text-[#A3A6AD] max-md:hidden">{linhaDoProjeto(p)}</span>
             </div>
-            {p.tipo === "sob_medida" && (p.modulos?.length ?? 0) > 0 ? (
-              <LinhaProjeto
-                fases={marcosDosModulos(p.modulos ?? [])}
-                lancamento={p.lancamento}
-                rotuloEtapa="Módulo"
-              />
-            ) : (
-              p.fases.length > 0 && <LinhaProjeto fases={p.fases} lancamento={p.lancamento} />
-            )}
+            {p.tipo === "sob_medida"
+              ? (p.modulos?.length ?? 0) > 0 && (
+                  <LinhaProjeto
+                    fases={marcosDosModulos(p.modulos ?? [])}
+                    lancamento={p.lancamento}
+                    rotuloEtapa="Módulo"
+                  />
+                )
+              : p.fases.length > 0 && <LinhaProjeto fases={p.fases} lancamento={p.lancamento} />}
           </div>
         ) : (
           <p className="mt-8 text-[15px] text-[#C9CBD0] md:mt-[46px]">

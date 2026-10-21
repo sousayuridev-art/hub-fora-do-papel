@@ -32,7 +32,10 @@ O cliente começa a usar o que é prioridade (ex.: RH) sem esperar o sistema int
 - Projeto `sob_medida` sem módulos: aviso "Cadastre os módulos" e nada de linha vazia no portal.
 - Trocar o tipo de um projeto com fases concluídas: recusado (só sem fases concluídas).
 - Dois pedidos de aprovação abertos para o mesmo módulo: recusado.
-- Publicação direta: não exige aprovação, mas registra quem publicou e as notas.
+- Publicação direta: não exige aprovação, mas registra quem publicou, o caminho e as notas.
+- Trocar o caminho só vale com o módulo planejado e sem pedido de aprovação (revisão 21/10: impedia pular um ajuste do cliente).
+- Módulo novo ou que volta ao escopo depois da publicação final: a data sai (com evento na linha do tempo) e é marcada de novo quando tudo estiver no ar. A garantia passa a contar da nova data.
+- Plano de mensalidade preenchido depois do 1º módulo: a mensalidade nasce na próxima publicação.
 
 ## Critérios de aceite
 - [ ] Criar projeto sob medida com 3 módulos e ver cada um andar sozinho.

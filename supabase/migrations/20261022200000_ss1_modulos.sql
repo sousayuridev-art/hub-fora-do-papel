@@ -48,6 +48,7 @@ create table public.module_releases (
   module_id     uuid not null references public.project_modules (id) on delete cascade,
   notes         text not null check (length(trim(notes)) between 5 and 2000),
   url           text check (url is null or (url ~ '^https://[^\s]{3,}$' and length(url) <= 500)),
+  path          public.module_path not null,
   approval_id   uuid references public.approvals (id) on delete set null,
   published_by  uuid references auth.users (id) on delete set null,
   published_at  timestamptz not null default now()
@@ -178,6 +179,21 @@ begin
 end;
 $$;
 
+-- Módulo novo ou que voltou ao escopo depois da publicação final: a data sai (com evento) e é
+-- marcada de novo quando tudo estiver no ar outra vez.
+create or replace function public._projeto_reabrir_final(p_projeto uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare p public.projects;
+begin
+  select * into p from public.projects where id = p_projeto for update;
+  if p.final_release_at is null then return; end if;
+  update public.projects set final_release_at = null where id = p.id;
+  perform public._projeto_evento(p.tenant_id, p.client_id, p.id, null, 'publicacao_final_reaberta',
+    jsonb_build_object('antes', p.final_release_at), 'hub', null);
+end;
+$$;
+
+revoke all on function public._projeto_reabrir_final(uuid) from public, anon, authenticated;
 revoke all on function public._ss1_trocar(text, text, text) from public, anon, authenticated;
 revoke all on function public._modulo_do_dono(uuid) from public, anon, authenticated;
 revoke all on function public._projeto_criar_mensalidade(uuid) from public, anon, authenticated;
@@ -221,17 +237,26 @@ begin
   returning * into m;
   perform public._projeto_evento(p.tenant_id, p.client_id, p.id, null, 'modulo_criado',
     jsonb_build_object('modulo_id', m.id, 'nome', m.name), 'hub', null);
+  perform public._projeto_reabrir_final(p.id);
   return jsonb_build_object('id', m.id);
 end;
 $$;
 
+-- O caminho só muda enquanto o módulo está planejado e nunca pediu aprovação: assim a troca
+-- para "publicação direta" não serve para pular um ajuste pedido pelo cliente.
 create or replace function public.modulo_editar(p_id uuid, p_nome text, p_caminho public.module_path)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare m public.project_modules := public._modulo_do_dono(p_id);
+declare m public.project_modules := public._modulo_do_dono(p_id); p public.projects;
 begin
   if length(trim(coalesce(p_nome, ''))) < 2 then raise exception 'nome_obrigatorio' using errcode = '22023'; end if;
-  if p_caminho = 'direta' and m.status = 'aguardando_aprovacao' then
-    raise exception 'aprovacao_em_andamento' using errcode = '22023';
+  if p_caminho is not null and p_caminho <> m.path then
+    if m.status <> 'planejado' or m.live_since is not null
+       or exists (select 1 from public.approvals where module_id = m.id) then
+      raise exception 'caminho_travado' using errcode = '22023';
+    end if;
+    select * into p from public.projects where id = m.project_id;
+    perform public._projeto_evento(p.tenant_id, p.client_id, p.id, null, 'modulo_caminho_alterado',
+      jsonb_build_object('modulo_id', m.id, 'nome', m.name, 'caminho', p_caminho), 'hub', null);
   end if;
   update public.project_modules set name = left(trim(p_nome), 60), path = coalesce(p_caminho, path) where id = m.id;
   return jsonb_build_object('ok', true);
@@ -265,6 +290,7 @@ begin
   perform public._projeto_evento(p.tenant_id, p.client_id, p.id, null, 'modulo_movido',
     jsonb_build_object('modulo_id', m.id, 'nome', m.name, 'situacao', p_situacao), 'hub', null);
   if p_situacao = 'fora_do_escopo' then perform public._projeto_final(p.id); end if;
+  if p_situacao = 'planejado' and m.status = 'planejado' then perform public._projeto_reabrir_final(p.id); end if;
   return jsonb_build_object('situacao', m.status);
 end;
 $$;
@@ -276,7 +302,7 @@ returns jsonb language plpgsql security definer set search_path = public as $$
 declare m public.project_modules := public._modulo_do_dono(p_id); r jsonb;
 begin
   if m.path <> 'homologacao' then raise exception 'caminho_direto' using errcode = '22023'; end if;
-  if m.status not in ('desenvolvimento', 'testes') then raise exception 'movimento_invalido' using errcode = '22023'; end if;
+  if m.status <> 'testes' then raise exception 'movimento_invalido' using errcode = '22023'; end if;
   r := public.aprovacao_pedir(m.project_id, 'Módulo ' || m.name, p_descricao, p_itens,
                               coalesce(nullif(trim(coalesce(p_previa, '')), ''), m.test_url), null);
   update public.approvals set module_id = m.id where id = (r ->> 'id')::uuid;
@@ -293,7 +319,7 @@ declare
   p public.projects;
   link text := nullif(trim(coalesce(p_link, '')), '');
   aprov uuid;
-  primeira_do_projeto boolean;
+  tinha_mensalidade boolean;
 begin
   select * into p from public.projects where id = m.project_id for update;
   if m.path = 'homologacao' and m.status <> 'aprovado' then
@@ -308,20 +334,22 @@ begin
     raise exception 'link_invalido' using errcode = '22023';
   end if;
   select id into aprov from public.approvals where module_id = m.id and status = 'aprovada' order by decided_at desc limit 1;
-  primeira_do_projeto := not exists (select 1 from public.project_modules where project_id = p.id and live_since is not null);
+  tinha_mensalidade := exists (select 1 from public.subscriptions where project_id = p.id);
 
-  insert into public.module_releases (tenant_id, project_id, module_id, notes, url, approval_id, published_by)
-  values (m.tenant_id, p.id, m.id, left(trim(p_notas), 2000), link, case when m.path = 'homologacao' then aprov end, auth.uid());
+  insert into public.module_releases (tenant_id, project_id, module_id, notes, url, path, approval_id, published_by)
+  values (m.tenant_id, p.id, m.id, left(trim(p_notas), 2000), link, m.path,
+          case when m.path = 'homologacao' then aprov end, auth.uid());
   update public.project_modules
      set status = 'publicado', prod_url = link, live_since = coalesce(live_since, now()), last_release_at = now()
    where id = m.id returning * into m;
 
   perform public._projeto_evento(p.tenant_id, p.client_id, p.id, null, 'modulo_publicado',
     jsonb_build_object('modulo_id', m.id, 'nome', m.name), 'hub', 'modulo.publicado');
-  if primeira_do_projeto then perform public._projeto_criar_mensalidade(p.id); end if;
+  -- Mensalidade nasce com o 1º módulo no ar (ou na próxima publicação, se o plano entrou depois).
+  perform public._projeto_criar_mensalidade(p.id);
   perform public._projeto_final(p.id);
   return jsonb_build_object('situacao', m.status, 'mensalidade_iniciada',
-    primeira_do_projeto and exists (select 1 from public.subscriptions where project_id = p.id));
+    not tinha_mensalidade and exists (select 1 from public.subscriptions where project_id = p.id));
 end;
 $$;
 
@@ -358,11 +386,12 @@ select public._ss1_trocar('public.portal_pedir_ajuste(uuid, text)',
     update public.project_modules set status = ''desenvolvimento'', rounds = rounds + 1
      where id = a.module_id and status = ''aguardando_aprovacao'';
     insert into public.event_outbox (tenant_id, event, payload)
-    values (a.tenant_id,
-            case when (select rounds from public.project_modules where id = a.module_id) >= 3
-                 then ''modulo.rodadas_demais'' else ''modulo.ajuste'' end,
-            jsonb_build_object(''client_id'', a.client_id, ''project_id'', a.project_id, ''module_id'', a.module_id,
-                               ''rodadas'', (select rounds from public.project_modules where id = a.module_id)));
+    select a.tenant_id, e, jsonb_build_object(''client_id'', a.client_id, ''project_id'', a.project_id,
+                                              ''module_id'', a.module_id, ''rodadas'', pm.rounds)
+      from public.project_modules pm,
+           unnest(case when pm.rounds >= 3 then array[''modulo.ajuste'', ''modulo.rodadas_demais'']
+                       else array[''modulo.ajuste''] end) e
+     where pm.id = a.module_id;
   end if;');
 
 select public._ss1_trocar('public.aprovacao_cancelar(uuid)',
@@ -385,5 +414,10 @@ select public._ss1_trocar('public.portal_inicio(uuid)',
   '        ''tipo'', p.kind,
         ''modulos'', case when p.kind = ''sob_medida'' then public._modulos_json(p.id, false) else ''[]''::jsonb end,
         ''fases'', (select coalesce(jsonb_agg(jsonb_build_object(''nome'', f.name');
+
+select public._ss1_trocar('public.projeto_cancelar(uuid, text)',
+  '  update public.approvals set status = ''cancelada'' where project_id = p.id and status = ''aguardando'';',
+  '  update public.approvals set status = ''cancelada'' where project_id = p.id and status = ''aguardando'';
+  update public.project_modules set status = ''testes'' where project_id = p.id and status = ''aguardando_aprovacao'';');
 
 drop function public._ss1_trocar(text, text, text);

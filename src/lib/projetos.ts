@@ -438,6 +438,7 @@ export function mensagemDoProjeto(e: unknown): string | null {
     projeto_nao_sob_medida: "Mude o projeto para módulos antes de cadastrar um módulo.",
     nome_obrigatorio: "Dê um nome ao módulo (pelo menos 2 letras).",
     aprovacao_em_andamento: "Há um pedido de aprovação aberto. Cancele antes de mudar o caminho.",
+    caminho_travado: "O caminho só muda enquanto o módulo está planejado e nunca pediu aprovação.",
     modulo_inexistente: "Esse módulo não existe mais. Recarregue a página.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
