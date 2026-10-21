@@ -2,7 +2,7 @@
 -- aceite fecha a oportunidade, isolamento e anon sem tabelas.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(31);
+select plan(34);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -118,6 +118,15 @@ select is((public.proposta_aceitar((select valor->>'token' from t where chave = 
     '11.222.333/0001-81', 'Ótica Visão Clara Ltda', 'Rua das Flores, 100, Aracaju', null, null, true)) ->> 'repetido',
   'true', 'Aceitar de novo devolve o mesmo comprovante');
 reset role;
+
+-- CX-4: o aceite deixa o portal pronto para quem aceitou
+select is((select profile from public.portal_invites where client_id = '20000000-0000-0000-0000-000000000001'
+            and email = 'bruno@otica.test' and accepted_at is null), 'responsavel',
+  'Aceite cria convite do portal como responsável pelo contrato');
+select is((select count(*) from public.portal_invites where client_id = '20000000-0000-0000-0000-000000000001')::int, 1,
+  'Aceitar de novo não duplica o convite');
+select is(public.proposta_publica((select valor->>'token' from t where chave = 'env')) -> 'aceite' ->> 'email',
+  'bruno@otica.test', 'Proposta aceita devolve o e-mail para abrir o portal');
 
 select is((select stage::text from public.deals where id = '30000000-0000-0000-0000-000000000001'), 'fechado',
   'Aceite fecha a oportunidade no funil');

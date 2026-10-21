@@ -69,7 +69,7 @@ function Pedidos() {
                 <section aria-labelledby="andamento-t" className="flex flex-col gap-3">
                   <h2
                     id="andamento-t"
-                    className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.12em] text-hub-suave"
+                    className="font-rotulo text-[13.5px] font-medium text-hub-suave"
                   >
                     Em andamento · {andamento.length}
                   </h2>
@@ -82,7 +82,7 @@ function Pedidos() {
                 <section aria-labelledby="encerrados-t" className="flex flex-col gap-3">
                   <h2
                     id="encerrados-t"
-                    className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.12em] text-hub-suave"
+                    className="font-rotulo text-[13.5px] font-medium text-hub-suave"
                   >
                     Encerrados · {encerrados.length}
                   </h2>
@@ -100,7 +100,7 @@ function Pedidos() {
           className="flex flex-col gap-4 rounded-2xl border border-hub-borda bg-white p-5"
         >
           <div>
-            <span className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.12em] text-hub-suave">
+            <span className="font-rotulo text-[13.5px] font-medium text-hub-suave">
               Como funciona
             </span>
             <h2 id="como-t" className="font-titulo text-[20px] font-bold">

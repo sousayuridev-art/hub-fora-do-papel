@@ -235,3 +235,35 @@
   background: rgb(255 255 255 / 0.28);
   border-radius: 999px;
 }
+
+/* Capa escura das páginas do cliente (direção A, cards CX-3 e CX-5):
+   brilho azul-marinho no canto, um calor âmbar discreto embaixo e grade fina. */
+.capa-escura {
+  background-color: #0e1013;
+  background-image:
+    radial-gradient(ellipse 60% 80% at 92% 0%, rgb(46 72 150 / 0.62) 0, rgb(46 72 150 / 0) 70%),
+    radial-gradient(ellipse 40% 60% at 0% 100%, rgb(255 176 32 / 0.1) 0, rgb(255 176 32 / 0) 70%),
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size:
+    auto,
+    auto,
+    48px 48px,
+    48px 48px;
+  color: #f5f5f2;
+}
+@media (max-width: 767px) {
+  .capa-escura {
+    background-size:
+      auto,
+      auto,
+      40px 40px,
+      40px 40px;
+  }
+}
+@media print {
+  .capa-escura {
+    background: #fff;
+    color: #0e1013;
+  }
+}

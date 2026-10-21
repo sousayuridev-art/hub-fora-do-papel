@@ -117,7 +117,7 @@ function Pagamentos() {
           {p && p.total_cents > 0 ? (
             <>
               <div className="flex flex-col gap-1">
-                <span className="font-rotulo text-[12.5px] uppercase tracking-[0.12em] text-[#C9CBD0]">
+                <span className="font-rotulo text-[13.5px] font-medium text-[#C9CBD0]">
                   Total do projeto
                 </span>
                 <strong className="font-titulo text-[34px] font-bold leading-none tabular-nums md:text-[44px]">
@@ -184,9 +184,7 @@ function Pagamentos() {
           aria-labelledby="mensal-t"
           className="flex flex-col gap-3 rounded-3xl border border-hub-borda bg-white p-6"
         >
-          <span className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.12em] text-hub-suave">
-            Mensalidade
-          </span>
+          <span className="font-rotulo text-[13.5px] font-medium text-hub-suave">Mensalidade</span>
           {d.mensalidade ? (
             <>
               <h2 id="mensal-t" className="font-titulo text-[20px] font-bold">
@@ -296,7 +294,7 @@ function Pagamentos() {
         className="grid gap-6 rounded-3xl border border-hub-borda bg-white p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] md:p-8"
       >
         <div className="flex flex-col gap-2">
-          <span className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.12em] text-hub-suave">
+          <span className="font-rotulo text-[13.5px] font-medium text-hub-suave">
             Com calma e por escrito
           </span>
           <h2 id="atraso-t" className="font-titulo text-[20px] font-bold md:text-2xl">

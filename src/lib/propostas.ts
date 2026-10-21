@@ -311,6 +311,8 @@ export type PropostaPublica =
         razao_social: string;
         documento_tipo: "cpf" | "cnpj";
         aceita_em: string;
+        /** E-mail de quem aceitou: o portal já fica pronto para ele (CX-4). */
+        email?: string | null;
       } | null;
       recusada_em: string | null;
     };

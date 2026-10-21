@@ -19,6 +19,8 @@ const buscaEntrar = z.object({
     .regex(/^\/(?![/\\])/, "caminho interno")
     .optional()
     .catch(undefined),
+  /** E-mail já preenchido (vem do "Abrir meu portal" depois do aceite: CX-4). */
+  email: z.string().trim().email().max(160).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/entrar")({
@@ -40,8 +42,8 @@ const emailValido = z.string().trim().email();
 
 /** Login só com e-mail: o Supabase envia um link mágico. */
 function Entrar() {
-  const { volta } = Route.useSearch();
-  const [email, setEmail] = useState("");
+  const { volta, email: sugerido } = Route.useSearch();
+  const [email, setEmail] = useState(sugerido ?? "");
   const [invalido, setInvalido] = useState(false);
 
   const enviarLink = useMutation({

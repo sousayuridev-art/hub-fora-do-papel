@@ -45,7 +45,7 @@ export function EntregaCartao({
         ) : (
           <Selo tom="info">Ajuste pedido{e.decidida_em ? ` em ${diaMes(e.decidida_em)}` : ""}</Selo>
         )}
-        <span className="font-rotulo text-[12.5px] uppercase tracking-[0.08em] text-hub-suave">
+        <span className="font-rotulo text-[13.5px] font-medium text-hub-suave">
           Enviada em {diaMes(e.enviada_em)}
           {e.fase ? ` · fase ${e.fase}` : ""}
         </span>
@@ -58,7 +58,7 @@ export function EntregaCartao({
       </div>
       {e.itens.length > 0 && (
         <div className="flex flex-col gap-2">
-          <span className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.1em] text-hub-suave">
+          <span className="font-rotulo text-[13.5px] font-medium text-hub-suave">
             O que fizemos
           </span>
           <ul className="flex flex-col gap-2">

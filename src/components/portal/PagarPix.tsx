@@ -67,9 +67,7 @@ export function PagarPix({
       className="flex scroll-mt-24 flex-col gap-5 rounded-2xl border border-hub-borda bg-white p-5 md:p-7"
     >
       <div className="flex flex-col gap-1">
-        <span className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.12em] text-hub-suave">
-          Pagar
-        </span>
+        <span className="font-rotulo text-[13.5px] font-medium text-hub-suave">Pagar</span>
         <h2 id="pagar-t" className="font-titulo text-[20px] font-bold md:text-2xl">
           {c.descricao} · {moeda(c.valor_cents)}
         </h2>

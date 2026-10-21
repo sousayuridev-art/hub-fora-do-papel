@@ -41,8 +41,12 @@ Lidas pelo Claude Code em todo pedido. Cards em `docs/cards/`; cite o card no pe
 
 ## Visual do Hub (sistema interno)
 - Fundo #F5F5F2, texto #0E1013, destaque #FFB020 só na ação principal.
-- Hub e portal: Poppins em títulos, texto e rótulos; Bricolage Grotesque só no nome "Fora do Papel". Menu lateral escuro #0E1013, item ativo em âmbar #FFB020 com texto escuro, grupos em caixa alta, conta em cartão no rodapé (cards HUB-VIS-1 e HUB-VIS-2). Tons claros de âmbar podem marcar ícones e números no conteúdo.
+- Hub e portal: Poppins em títulos, texto e rótulos; Bricolage Grotesque no nome "Fora do Papel" e nos títulos principais das páginas do cliente (proposta, serviço adicional e saudação do portal; cards CX-3 e CX-5). Menu lateral escuro #0E1013, item ativo em âmbar #FFB020 com texto escuro, grupos em caixa alta, conta em cartão no rodapé (cards HUB-VIS-1 e HUB-VIS-2). Tons claros de âmbar podem marcar ícones e números no conteúdo.
 - Situações: neutro #F1F1EC/#2A2D33, informação #E5EDFF/#1E3FA8, atenção #FFF1D6/#7A4200, risco #FDE8E6/#9A1C12, concluído #E3F4EA/#145A37.
+
+## Páginas do cliente (cards CX-3 a CX-6)
+- Direção A: capa escura (#0E1013 com brilho azul-marinho e grade fina) e o conteúdo numa folha clara por cima. A linha do projeto usa o símbolo: etapa concluída = quadrado cheio, atual = o símbolo (papel + quadrado âmbar), próxima = contorno.
+- Sem rótulos em caixa alta nas páginas do cliente; frase normal.
 
 ## Portal do cliente no celular (até 767 px; acima disso nada muda)
 - Detalhes e medidas: `docs/cards/P-portal-celular.md`. Tudo com prefixo `max-md:` ou dentro de `@media (max-width: 767px)`.

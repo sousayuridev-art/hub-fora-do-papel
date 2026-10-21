@@ -10,7 +10,8 @@ const botaoClaro =
   "inline-flex h-12 w-full items-center justify-center rounded-xl border border-[#DADAD3] bg-white px-5 text-[15px] font-semibold text-hub-tinta disabled:opacity-50";
 
 /**
- * Serviço adicional para decidir: o que entra, horas × valor da hora e o total.
+ * Serviço adicional para decidir (card CX-7, no molde da proposta): o que entra, horas × valor da
+ * hora e o total, numa caixa escura de decisão.
  * Só começa com o sim do cliente. Os dois botões têm a mesma largura (card P).
  */
 export function AdicionalCartao({
@@ -37,11 +38,11 @@ export function AdicionalCartao({
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Selo tom="info">Serviço adicional</Selo>
-          <span className="font-rotulo text-[12.5px] uppercase tracking-[0.08em] text-hub-suave">
+          <span className="font-rotulo text-[13.5px] font-medium text-hub-suave">
             Pedido {a.codigo}
           </span>
         </div>
-        <h2 className="font-titulo text-[20px] font-bold leading-snug md:text-[26px]">
+        <h2 className="font-marca text-[22px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
           {a.titulo}
         </h2>
         {a.descricao && <p className="text-[15px] text-hub-suave">{a.descricao}</p>}
@@ -53,12 +54,10 @@ export function AdicionalCartao({
         )}
       </div>
 
-      <div className="flex flex-col gap-4 rounded-2xl bg-hub-tinta p-5 text-white">
+      <div className="capa-escura flex flex-col gap-4 rounded-2xl p-5 md:p-6">
         <div className="flex flex-col gap-1">
-          <span className="font-rotulo text-[12.5px] uppercase tracking-[0.1em] text-[#C9CBD0]">
-            Valor
-          </span>
-          <strong className="font-titulo text-[32px] font-bold leading-none tabular-nums">
+          <span className="font-rotulo text-[13.5px] font-medium text-[#C9CBD0]">Valor</span>
+          <strong className="font-marca text-[36px] font-extrabold leading-none tracking-[-0.03em] tabular-nums">
             {moeda(a.valor_cents)}
           </strong>
           <span className="text-[14px] text-[#C9CBD0]">

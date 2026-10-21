@@ -11,7 +11,7 @@ export function TituloSecao({
   return (
     <h2
       id={`${id}-t`}
-      className="flex items-baseline gap-3 font-titulo text-[20px] font-bold tracking-tight md:text-[30px]"
+      className="flex items-baseline gap-3 font-marca text-[22px] font-extrabold tracking-[-0.025em] md:text-[34px]"
     >
       <span className="text-[13px] font-semibold text-hub-suave tabular-nums">
         {String(numero).padStart(2, "0")}

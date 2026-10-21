@@ -52,9 +52,7 @@ export function SecaoFazer({ doc }: { doc: DocumentoPublico }) {
             <Star className="size-5" aria-hidden="true" />
           </span>
           <div className="flex flex-col gap-1">
-            <span className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-[#C9CBD0]">
-              O coração do projeto
-            </span>
+            <span className="text-[13.5px] font-medium text-[#C9CBD0]">O coração do projeto</span>
             <h3 className="font-titulo text-[20px] font-bold">{it.nome}</h3>
             {it.descricao && <p className="text-[15px] text-[#C9CBD0]">{it.descricao}</p>}
           </div>
@@ -159,9 +157,7 @@ export function SecaoTrabalhar({ doc }: { doc: DocumentoPublico }) {
             key={c.rotulo}
             className="flex flex-col gap-2 rounded-2xl border border-hub-borda bg-white p-5"
           >
-            <span className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-hub-suave">
-              {c.rotulo}
-            </span>
+            <span className="text-[13.5px] font-medium text-hub-suave">{c.rotulo}</span>
             <h3 className="font-titulo text-[17px] font-bold">{c.titulo}</h3>
             <p className="text-[14.5px] text-hub-suave">{c.texto}</p>
           </li>

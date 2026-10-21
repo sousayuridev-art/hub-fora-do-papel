@@ -1,11 +1,13 @@
 import { ArrowDown } from "lucide-react";
 
-import { Selo } from "@/components/hub/Selo";
-import { dataCurta } from "@/components/proposta-publica/util";
+import { dataCurta, dataPorExtenso } from "@/components/proposta-publica/util";
 import { moeda } from "@/lib/formatar";
 import type { DocumentoPublico } from "@/lib/propostas";
 
-/** Topo da proposta: promessa, para quem é, situação e o cartão de investimento. */
+/**
+ * Capa da proposta (card CX-3, direção A): promessa em destaque, para quem é, fatos em uma linha
+ * e o cartão de investimento em papel claro sobre a capa escura.
+ */
 export function HeroProposta({
   doc,
   aceitaEm,
@@ -17,48 +19,49 @@ export function HeroProposta({
 }) {
   const inv = doc.investimento;
   const m = doc.mensalidade;
+  const fatos: [string, string][] = [
+    aceitaEm
+      ? ["Aceita em", `${dataCurta(aceitaEm)}${aceitaPor ? ` por ${aceitaPor.split(" ")[0]}` : ""}`]
+      : ["Vale até", dataPorExtenso(doc.vence_em).replace(/ de \d{4}$/, "")],
+    ...(doc.lancamento
+      ? ([["Lançamento previsto", dataPorExtenso(doc.lancamento).replace(/ de \d{4}$/, "")]] as [
+          string,
+          string,
+        ][])
+      : []),
+    ["Responsável", doc.responsavel],
+  ];
   return (
-    <section className="grid gap-8 py-8 md:grid-cols-[minmax(0,1fr)_420px] md:items-start md:py-14">
-      <div className="flex flex-col gap-4">
-        <p className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-[#9A5B00]">
-          Proposta · {doc.tipo}
+    <section className="mx-auto grid max-w-[1120px] gap-8 px-4 pb-16 pt-8 md:grid-cols-[minmax(0,1fr)_400px] md:items-end md:gap-14 md:px-6 md:pb-24 md:pt-16">
+      <div className="flex flex-col gap-5">
+        <p className="text-[14px] font-medium text-[#FFB020]">
+          Proposta para {doc.contato.split(" ")[0]} · {doc.empresa}
         </p>
-        <h1 className="font-titulo text-[28px] font-bold leading-[1.08] tracking-tight md:text-[52px]">
+        <h1 className="font-marca text-[36px] font-extrabold leading-[1] tracking-[-0.035em] md:text-[60px]">
           {doc.titulo}
         </h1>
         {doc.apresentacao && (
-          <p className="max-w-[56ch] whitespace-pre-line text-[16px] text-hub-suave">
+          <p className="max-w-[56ch] whitespace-pre-line text-[16px] leading-relaxed text-[#C9CBD0] md:text-[17px]">
             {doc.apresentacao}
           </p>
         )}
-        <div className="flex flex-wrap gap-2">
-          <Selo tom="neutro">Enviada em {dataCurta(doc.enviada_em)}</Selo>
-          {aceitaEm ? (
-            <Selo tom="ok">
-              Aceita em {dataCurta(aceitaEm)}
-              {aceitaPor ? ` por ${aceitaPor}` : ""}
-            </Selo>
-          ) : (
-            <Selo tom="atencao">Vale até {dataCurta(doc.vence_em)}</Selo>
-          )}
-          {doc.lancamento && (
-            <Selo tom="info">Lançamento previsto: {dataCurta(doc.lancamento)}</Selo>
-          )}
-        </div>
+        <dl className="mt-2 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/15 pt-5 md:flex md:flex-wrap md:gap-x-10">
+          {fatos.map(([k, v]) => (
+            <div key={k} className="flex flex-col gap-0.5">
+              <dt className="text-[12.5px] text-[#A3A6AD]">{k}</dt>
+              <dd className="font-marca text-[18px] font-bold md:text-[20px]">{v}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
-      <div className="flex flex-col gap-5 rounded-3xl bg-hub-tinta p-6 text-white shadow-[0_24px_48px_-24px_rgba(14,16,19,0.6)] md:p-7">
-        <div className="flex items-center justify-between">
-          <span className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-[#C9CBD0]">
-            Investimento
-          </span>
-          <span aria-hidden="true" className="h-1 w-7 rounded-full bg-[#FFB020]" />
-        </div>
-        <p className="font-titulo text-[36px] font-bold leading-none tabular-nums">
+      <div className="flex flex-col gap-5 rounded-3xl bg-[#F5F5F2] p-6 text-hub-tinta shadow-[0_30px_60px_-30px_rgba(0,0,0,0.7)] md:p-7">
+        <span className="text-[14px] font-medium text-hub-suave">Investimento</span>
+        <p className="-mt-3 font-marca text-[40px] font-extrabold leading-none tracking-[-0.03em] tabular-nums">
           {moeda(inv.total_cents)}
         </p>
         {inv.diagnostico && (
-          <p className="-mt-2 text-[14px] text-[#C9CBD0]">
+          <p className="-mt-2 text-[14px] text-hub-suave">
             {moeda(inv.projeto_cents)} com os {moeda(inv.diagnostico.cents)} do diagnóstico já
             descontados
           </p>
@@ -68,12 +71,12 @@ export function HeroProposta({
             {inv.parcelas.map((p, i) => (
               <span
                 key={i}
-                className={`h-1.5 rounded-full ${i === 0 ? "bg-[#FFB020]" : "bg-white/20"}`}
+                className={`h-1.5 rounded-full ${i === 0 ? "bg-[#FFB020]" : "bg-[#DCDCD5]"}`}
                 style={{ flex: p.pct }}
               />
             ))}
           </div>
-          <ul className="flex justify-between gap-2 text-[13px] text-[#C9CBD0]">
+          <ul className="flex justify-between gap-2 text-[13px] text-hub-suave">
             {inv.parcelas.map((p, i) => (
               <li key={i}>
                 {p.pct}%{" "}
@@ -85,16 +88,16 @@ export function HeroProposta({
           </ul>
         </div>
         {m && (
-          <p className="flex flex-wrap justify-between gap-2 border-t border-white/10 pt-4 text-[14px]">
-            <span className="text-[#C9CBD0]">Depois do lançamento</span>
-            <span className="font-medium">
+          <p className="flex flex-wrap justify-between gap-2 border-t border-[#DCDCD5] pt-4 text-[14px]">
+            <span className="text-hub-suave">Depois do lançamento</span>
+            <span className="font-semibold">
               {moeda(m.cents)}/mês{m.infra_pelo_custo ? " + infraestrutura" : ""}
             </span>
           </p>
         )}
         <a
           href={aceitaEm ? "#aceite" : "#investimento"}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white text-[15px] font-semibold text-hub-tinta hover:bg-[#F1F1EC] print:hidden"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-hub-tinta text-[15px] font-semibold text-white hover:bg-[#2A2D33] print:hidden"
         >
           {aceitaEm ? "Ver comprovante" : "Ver o investimento"}
           <ArrowDown className="size-4" aria-hidden="true" />

@@ -50,10 +50,7 @@ function Aprovacoes() {
       ) : (
         <>
           <section aria-labelledby="abertas-t" className="flex flex-col gap-4">
-            <h2
-              id="abertas-t"
-              className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.12em] text-hub-suave"
-            >
+            <h2 id="abertas-t" className="font-rotulo text-[13.5px] font-medium text-hub-suave">
               Aguardando você · {abertas}
             </h2>
             {abertas === 0 ? (
@@ -88,10 +85,7 @@ function Aprovacoes() {
           </section>
           {decididas.length > 0 && (
             <section aria-labelledby="decididas-t" className="flex flex-col gap-4">
-              <h2
-                id="decididas-t"
-                className="font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.12em] text-hub-suave"
-              >
+              <h2 id="decididas-t" className="font-rotulo text-[13.5px] font-medium text-hub-suave">
                 Já decididas · {decididas.length}
               </h2>
               {decididas.map((x) =>

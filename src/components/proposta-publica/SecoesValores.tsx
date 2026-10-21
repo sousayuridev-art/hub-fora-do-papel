@@ -42,7 +42,7 @@ export function SecaoInvestimento({ doc }: { doc: DocumentoPublico }) {
             </div>
           </dl>
           <div className="flex flex-col">
-            <span className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-hub-suave">
+            <span className="text-[13.5px] font-medium text-hub-suave">
               Em {inv.parcelas.length} partes
             </span>
             <ol>
@@ -86,9 +86,7 @@ export function SecaoInvestimento({ doc }: { doc: DocumentoPublico }) {
             )}
           </div>
           <div className="flex flex-col gap-2 rounded-2xl bg-[#FFF8EA] p-5 text-[14.5px]">
-            <span className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-[#7A4200]">
-              Condições
-            </span>
+            <span className="text-[13.5px] font-medium text-[#7A4200]">Condições</span>
             <p>
               Atraso tem multa de {pct(c.multa_pct)} e juros de {pct(c.juros_pct)} ao mês. Avisamos
               por escrito no 1º dia; no 10º dia, pausamos trabalho novo. O que já está no ar
@@ -172,7 +170,7 @@ function BlocoMensalidade({
   return (
     <div className="grid gap-6 rounded-3xl bg-hub-tinta p-6 text-white md:grid-cols-2 md:p-8">
       <div className="flex flex-col gap-3">
-        <span className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-[#C9CBD0]">
+        <span className="text-[13.5px] font-medium text-[#C9CBD0]">
           Mensalidade · plano {m.nome}
         </span>
         <p className="font-titulo text-[36px] font-bold leading-none tabular-nums">
