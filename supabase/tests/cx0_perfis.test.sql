@@ -2,7 +2,7 @@
 -- responsável vê tudo; convite leva o perfil; a empresa nunca fica sem responsável.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(35);
+select plan(36);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -29,6 +29,7 @@ insert into public.projects (id, tenant_id, client_id, name, status, plan_name, 
 insert into public.approvals (id, tenant_id, client_id, project_id, title) values
   ('60000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001',
    '50000000-0000-0000-0000-000000000001', 'Tela da agenda');
+update public.approvals set description = 'Confira o intervalo' where id = '60000000-0000-0000-0000-000000000001';
 insert into public.requests (id, tenant_id, client_id, project_id, code, title, status, classification, value_cents) values
   ('70000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001',
    '50000000-0000-0000-0000-000000000001', 'P-001', 'Lembrete de retorno', 'aguardando_cliente', 'adicional', 120000);
@@ -64,6 +65,7 @@ select is((public.portal_inicio()) ->> 'perfil', 'equipe', 'Início informa o pe
 select ok((public.portal_inicio()) -> 'projeto' -> 'mensal_cents' = 'null'::jsonb, 'Equipe não vê a mensalidade');
 select ok(not ((public.portal_inicio()) -> 'acoes' @> '[{"tipo":"pagamento"}]'), 'Início da equipe sem conta a pagar');
 select ok(not ((public.portal_inicio()) -> 'acoes' @> '[{"tipo":"adicional"}]'), 'Início da equipe sem serviço adicional');
+select ok((public.portal_inicio()) -> 'acoes' @> '[{"tipo":"aprovacao","detalhe":"Confira o intervalo"}]', 'Destaque traz o que conferir (CX-5)');
 select lives_ok($$ select public.portal_aprovar('60000000-0000-0000-0000-000000000001', 'Tudo certo') $$,
   'Equipe com permissão aprova entrega');
 

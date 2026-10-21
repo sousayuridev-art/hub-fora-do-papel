@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
@@ -28,9 +29,19 @@ function resumo(total: number): string {
   return `${nomes[total] ?? total} coisas esperam por você.`;
 }
 
-function linhaDoProjeto(p: NonNullable<InicioPortal["projeto"]>): string {
+const longo = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long" });
+/** "11 de novembro" */
+const diaLongo = (iso: string) => longo.format(dataLocal(iso));
+
+function linhaDoProjeto(p: NonNullable<InicioPortal["projeto"]>): ReactNode {
   if (p.status === "andamento")
-    return p.lancamento ? `No ar em ${diaMes(dataLocal(p.lancamento))}` : "Em andamento";
+    return p.lancamento ? (
+      <>
+        No ar em <b className="font-semibold text-[#F5F5F2]">{diaLongo(p.lancamento)}</b>
+      </>
+    ) : (
+      "Em andamento"
+    );
   if (p.status === "mensalidade")
     return `No ar. Mensalidade ${p.plano ?? ""}${p.mensal_cents ? `, ${moeda(p.mensal_cents)} por mês` : ""}`;
   return "Projeto concluído";
@@ -67,7 +78,7 @@ function Inicio() {
     <>
       <CapaPortal>
         <div className="flex flex-col gap-3">
-          <h1 className="font-marca text-[36px] font-extrabold leading-[0.98] tracking-[-0.035em] md:text-[68px]">
+          <h1 className="font-marca text-[36px] font-extrabold leading-[0.96] tracking-[-0.04em] md:text-[72px]">
             {saudacao()}
             {primeiro ? (
               <>
@@ -77,14 +88,14 @@ function Inicio() {
               "."
             )}
           </h1>
-          <p className="max-w-[60ch] text-[15.5px] text-[#C9CBD0] md:text-[18px]">
+          <p className="mt-1 max-w-[60ch] text-[15.5px] leading-relaxed text-[#C9CBD0] md:mt-1 md:text-[18px]">
             {resumo(d.pendencias.total)}
           </p>
         </div>
         {p ? (
-          <div className="mt-7 flex flex-col gap-5 border-t border-white/15 pt-5 md:mt-11 md:pt-7">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-              <b className="font-marca text-[20px] font-bold tracking-[-0.02em] md:text-[24px]">
+          <div aria-label="Linha do projeto" className="mt-8 flex flex-col gap-5 md:mt-[46px]">
+            <div className="flex flex-wrap items-baseline gap-x-[18px] gap-y-1">
+              <b className="font-marca text-[20px] font-bold tracking-[-0.02em] md:text-[22px]">
                 {p.nome}
               </b>
               <span className="text-[14px] text-[#A3A6AD] max-md:hidden">{linhaDoProjeto(p)}</span>
@@ -92,14 +103,14 @@ function Inicio() {
             {p.fases.length > 0 && <LinhaProjeto fases={p.fases} lancamento={p.lancamento} />}
           </div>
         ) : (
-          <p className="mt-7 border-t border-white/15 pt-5 text-[15px] text-[#C9CBD0]">
+          <p className="mt-8 text-[15px] text-[#C9CBD0] md:mt-[46px]">
             O seu projeto aparece aqui assim que começar.
           </p>
         )}
       </CapaPortal>
 
       <FolhaPortal>
-        <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_340px] md:gap-16">
+        <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_340px] md:gap-12 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-[72px]">
           <div className="flex min-w-0 flex-col gap-4">
             <PortalAcoes
               acoes={d.acoes}

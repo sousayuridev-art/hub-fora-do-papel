@@ -50,11 +50,11 @@ export function PortalAcoes({
         <Link
           to="/portal/aprovacoes"
           hash={destaque.id}
-          className="group grid gap-4 rounded-[22px] bg-white p-4 shadow-[0_1px_0_#E4E4DE,0_18px_40px_-18px_rgba(14,16,19,0.18)] md:grid-cols-[180px_minmax(0,1fr)_auto] md:items-center md:gap-6 md:p-3.5 md:pr-6"
+          className="group grid gap-4 rounded-[22px] bg-white p-4 shadow-[0_1px_0_#E4E4DE,0_18px_40px_-18px_rgba(14,16,19,0.18)] md:grid-cols-[200px_minmax(0,1fr)_auto] md:items-center md:gap-[26px] md:p-3.5 md:pr-[26px]"
         >
           <span
             aria-hidden="true"
-            className="capa-escura flex h-24 items-end rounded-[14px] px-3 pt-3 md:h-[120px]"
+            className="capa-escura flex h-24 items-end rounded-[14px] px-3 pt-3 md:h-[124px]"
           >
             {destaque.tipo === "aprovacao" ? (
               <span className="grid flex-1 grid-cols-3 gap-1.5 rounded-t-lg bg-white p-2.5">
@@ -70,27 +70,17 @@ export function PortalAcoes({
             )}
           </span>
           <span className="flex min-w-0 flex-col gap-1.5">
-            <span
-              className={cn(
-                "self-start rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold",
-                destaque.tipo === "aprovacao"
-                  ? "bg-sit-atencao text-sit-atencao-t"
-                  : "bg-sit-info text-sit-info-t",
-              )}
-            >
-              {destaque.tipo === "aprovacao" ? "Para aprovar" : "Serviço adicional"}
-            </span>
             <b className="font-marca text-[21px] font-bold leading-tight tracking-[-0.02em] md:text-[24px]">
               {destaque.titulo}
             </b>
-            <span className="text-[14px] text-hub-suave">
+            <span className="text-[14.5px] leading-relaxed text-[#2A2D33]">
               {destaque.tipo === "aprovacao"
-                ? `Enviada em ${diaMes(destaque.quando)}`
-                : `${moeda(destaque.valor_cents)}. Só começa com o seu sim`}
+                ? `${destaque.detalhe ? `${destaque.detalhe.trim().replace(/\.?$/, ".")} ` : "Para você conferir e aprovar. "}Enviada em ${diaMes(destaque.quando)}.`
+                : `Serviço adicional de ${moeda(destaque.valor_cents)}. Só começa com o seu sim.`}
             </span>
           </span>
-          <span className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#FFB020] px-6 text-[15px] font-semibold text-hub-tinta group-hover:brightness-95">
-            Ver e decidir <ArrowRight className="size-4" aria-hidden="true" />
+          <span className="inline-flex h-[52px] items-center justify-center rounded-[14px] bg-[#FFB020] px-6 text-[15px] font-semibold text-hub-tinta group-hover:brightness-95">
+            Ver e decidir
           </span>
         </Link>
       )}

@@ -72,6 +72,8 @@ export const itemConfiguracoes: ItemMenu = {
 /** Seções do portal do cliente (menu de cima no computador, abas embaixo no celular). */
 export type SecaoPortal = ItemMenu & {
   selo?: "inicio" | "aprovacoes" | "pagamentos" | "arquivos";
+  /** Nome por extenso no menu do computador (o celular usa o rótulo curto). */
+  rotuloLongo?: string;
   /** Só para o responsável pelo contrato (CX-0). A equipe vê 4 abas. */
   soResponsavel?: true;
 };
@@ -79,7 +81,12 @@ export type SecaoPortal = ItemMenu & {
 export const menuPortal: SecaoPortal[] = [
   { rotulo: "Início", para: "/portal", icone: Home, exato: true, selo: "inicio" },
   { rotulo: "Aprovações", para: "/portal/aprovacoes", icone: CheckSquare, selo: "aprovacoes" },
-  { rotulo: "Pedidos", para: "/portal/pedidos", icone: MessageSquarePlus },
+  {
+    rotulo: "Pedidos",
+    rotuloLongo: "Pedidos de ajuste",
+    para: "/portal/pedidos",
+    icone: MessageSquarePlus,
+  },
   {
     rotulo: "Pagamentos",
     para: "/portal/pagamentos",

@@ -14,7 +14,14 @@ export type PendenciasDoPortal = {
 };
 
 export type AcaoPortal =
-  | { tipo: "aprovacao"; id: string; titulo: string; quando: string }
+  | {
+      tipo: "aprovacao";
+      id: string;
+      titulo: string;
+      /** O que conferir, escrito ao pedir a aprovação (CX-5). */
+      detalhe?: string | null;
+      quando: string;
+    }
   | { tipo: "adicional"; id: string; titulo: string; valor_cents: number | null; quando: string }
   | {
       /** Conta vencida ou vencendo em 5 dias (só para o responsável pelo contrato: CX-0). */

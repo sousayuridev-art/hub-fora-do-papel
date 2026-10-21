@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { Simbolo } from "@/components/layout/Marca";
+import { SimboloPapel } from "@/components/layout/Marca";
 import { ContaPortal } from "@/components/layout/ContaPortal";
 import { PortalTabs } from "@/components/layout/PortalTabs";
 import { secoesDoPortal } from "@/components/layout/navegacao";
@@ -21,21 +21,38 @@ type Props = {
 export function PortalLayout({ children, barraDeAcao }: Props) {
   const empresa = useEmpresaPortal();
   const selos = usePendenciasPortal();
+  // No Início, o cabeçalho faz parte da capa (transparente) até a pessoa rolar (direção A, CX-5).
+  const noInicio = useRouterState({
+    select: (s) => s.location.pathname.replace(/\/$/, "") === "/portal",
+  });
+  const [rolou, setRolou] = useState(false);
+  useEffect(() => {
+    const ver = () => setRolou(window.scrollY > 8);
+    ver();
+    window.addEventListener("scroll", ver, { passive: true });
+    return () => window.removeEventListener("scroll", ver);
+  }, []);
+  const sobreACapa = noInicio && !rolou;
   const secoes = secoesDoPortal(empresa.data?.perfil ?? null);
 
   return (
     <div className="min-h-dvh overflow-x-clip bg-portal-fundo text-hub-tinta">
-      {/* Cabeçalho escuro e sólido (direção A, CX-5): continua na capa do Início. */}
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-hub-tinta text-[#F5F5F2]">
-        <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between gap-4 px-4 md:h-[72px] md:px-6">
+      {/* Cabeçalho escuro (direção A, CX-5): no Início, transparente sobre a capa até rolar. */}
+      <header
+        className={cn(
+          "sticky top-0 z-30 border-b text-[#F5F5F2] transition-colors duration-200",
+          sobreACapa ? "border-transparent bg-transparent" : "border-white/10 bg-hub-tinta",
+        )}
+      >
+        <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between gap-4 px-4 md:h-[72px] md:px-6 lg:px-16">
           <div className="flex min-w-0 items-center gap-3">
-            <Simbolo tamanho={28} />
-            <span className="hidden font-marca text-base font-bold tracking-tight md:inline">
-              Fora do Papel
-            </span>
-            <span aria-hidden="true" className="hidden h-5 w-px bg-white/15 md:block" />
-            <span className="truncate text-[15px] font-semibold md:font-medium md:text-[#D5D7DC]">
-              {empresa.data?.empresa ?? ""}
+            <SimboloPapel tamanho={28} />
+            <span className="flex min-w-0 flex-col leading-tight">
+              <b className="truncate text-[15px] font-semibold">{empresa.data?.empresa ?? ""}</b>
+              <span className="hidden text-[12.5px] text-[#A3A6AD] md:block">
+                Portal do projeto com a{" "}
+                <span className="font-marca font-bold text-[#F5F5F2]">Fora do Papel</span>
+              </span>
             </span>
           </div>
 
@@ -56,9 +73,9 @@ export function PortalLayout({ children, barraDeAcao }: Props) {
                     "aria-current": "page",
                   }}
                 >
-                  {secao.rotulo}
+                  {secao.rotuloLongo ?? secao.rotulo}
                   {total > 0 && (
-                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-hub-destaque px-1.5 text-[12.5px] font-semibold tabular-nums">
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-hub-destaque px-1.5 text-[12.5px] font-semibold tabular-nums text-hub-tinta">
                       {total}
                     </span>
                   )}
