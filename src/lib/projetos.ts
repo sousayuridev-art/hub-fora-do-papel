@@ -13,6 +13,48 @@ export type SituacaoFase = "pendente" | "andamento" | "concluida";
 export type SituacaoTarefa = "a_fazer" | "fazendo" | "para_aprovar" | "pronto";
 export type SituacaoAprovacao = "aguardando" | "aprovada" | "ajuste" | "cancelada";
 
+/** Projeto por fases em sequência (padrão) ou por módulos em paralelo (sob medida, card SS-1). */
+export type TipoProjeto = "padrao" | "sob_medida";
+export type SituacaoModulo =
+  | "planejado"
+  | "desenvolvimento"
+  | "testes"
+  | "aguardando_aprovacao"
+  | "aprovado"
+  | "publicado"
+  | "fora_do_escopo";
+export type CaminhoModulo = "homologacao" | "direta";
+
+export const rotuloModulo: Record<SituacaoModulo, string> = {
+  planejado: "Planejado",
+  desenvolvimento: "Em desenvolvimento",
+  testes: "Em testes",
+  aguardando_aprovacao: "Aguardando aprovação",
+  aprovado: "Aprovado",
+  publicado: "Publicado",
+  fora_do_escopo: "Fora do escopo",
+};
+
+export type VersaoModulo = { notas: string; quando: string };
+
+/** Módulo como o Hub vê (com dados internos). */
+export type Modulo = {
+  id: string;
+  nome: string;
+  ordem: number;
+  situacao: SituacaoModulo;
+  no_ar_desde: string | null;
+  ultima_versao: string | null;
+  link: string | null;
+  versoes: VersaoModulo[];
+  caminho: CaminhoModulo;
+  link_testes: string | null;
+  link_producao: string | null;
+  rodadas: number;
+  aprovacao: { id: string; enviada_em: string } | null;
+  ultimo_ajuste: { comentario: string | null; quando: string } | null;
+};
+
 export const rotuloSituacaoProjeto: Record<SituacaoProjeto, string> = {
   andamento: "Em andamento",
   mensalidade: "Em mensalidade",
@@ -153,6 +195,8 @@ export type DetalheProjeto = {
     launched_at: string | null;
     canceled_at: string | null;
     cancel_reason: string | null;
+    kind: TipoProjeto;
+    final_release_at: string | null;
   };
   hoje: string;
   saude: Saude;
@@ -166,6 +210,7 @@ export type DetalheProjeto = {
   proposta: { id: string; aceita_em: string | null } | null;
   minutos_usados: number;
   fases: Fase[];
+  modulos: Modulo[];
   aprovacoes: Aprovacao[];
   pendencias: PendenciaCliente[];
   tarefas: Tarefa[];
@@ -259,6 +304,38 @@ export const pedirAprovacao = (v: {
   });
 export const cancelarAprovacao = (id: string) => rpc("aprovacao_cancelar", { p_id: id });
 
+// ----- Módulos (card SS-1) -----
+export const definirTipoProjeto = (projetoId: string, tipo: TipoProjeto) =>
+  rpc("projeto_tipo_definir", { p_projeto: projetoId, p_tipo: tipo });
+export const criarModulo = (v: { projetoId: string; nome: string; caminho: CaminhoModulo }) =>
+  rpc<{ id: string }>("modulo_criar", {
+    p_projeto: v.projetoId,
+    p_nome: v.nome,
+    p_caminho: v.caminho,
+  });
+export const editarModulo = (v: { id: string; nome: string; caminho: CaminhoModulo }) =>
+  rpc("modulo_editar", { p_id: v.id, p_nome: v.nome, p_caminho: v.caminho });
+export const moverModulo = (v: { id: string; situacao: SituacaoModulo; linkTestes?: string }) =>
+  rpc("modulo_mover", { p_id: v.id, p_situacao: v.situacao, p_link_testes: v.linkTestes || null });
+export const pedirAprovacaoModulo = (v: {
+  id: string;
+  descricao: string;
+  itens: string[];
+  previa: string;
+}) =>
+  rpc("modulo_pedir_aprovacao", {
+    p_id: v.id,
+    p_descricao: v.descricao || null,
+    p_itens: v.itens.length ? v.itens : null,
+    p_previa: v.previa || null,
+  });
+export const publicarModulo = (v: { id: string; notas: string; link: string }) =>
+  rpc<{ mensalidade_iniciada: boolean }>("modulo_publicar", {
+    p_id: v.id,
+    p_notas: v.notas,
+    p_link: v.link || null,
+  });
+
 export const criarPendencia = (v: {
   projetoId: string;
   titulo: string;
@@ -350,6 +427,18 @@ export function mensagemDoProjeto(e: unknown): string | null {
     itens_demais: "O encerramento aceita até 20 itens.",
     projeto_inexistente: "Esse projeto não existe mais. Recarregue a página.",
     cliente_inexistente: "Esse cliente não existe mais.",
+    precisa_aprovacao: "Este módulo precisa da aprovação do cliente antes de ir ao ar.",
+    movimento_invalido: "Esse passo não vale para a situação atual do módulo. Recarregue a página.",
+    modulo_no_ar: "Este módulo já está no ar e não pode sair do escopo.",
+    notas_obrigatorias: "Escreva o que entrou nesta versão (pelo menos 5 letras).",
+    link_invalido: "O link precisa começar com https://.",
+    caminho_direto: "Este módulo é de publicação direta: não pede aprovação.",
+    fases_concluidas: "Este projeto já tem fase concluída e não pode virar projeto por módulos.",
+    tem_modulos: "Tire os módulos antes de voltar para fases.",
+    projeto_nao_sob_medida: "Mude o projeto para módulos antes de cadastrar um módulo.",
+    nome_obrigatorio: "Dê um nome ao módulo (pelo menos 2 letras).",
+    aprovacao_em_andamento: "Há um pedido de aprovação aberto. Cancele antes de mudar o caminho.",
+    modulo_inexistente: "Esse módulo não existe mais. Recarregue a página.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;

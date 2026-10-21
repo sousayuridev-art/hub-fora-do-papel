@@ -8,6 +8,13 @@ import {
   chavesProjetos,
   concluirFase,
   criarItemEncerramento,
+  criarModulo,
+  definirTipoProjeto,
+  editarModulo,
+  moverModulo,
+  pedirAprovacaoModulo,
+  publicarModulo,
+  rotuloModulo,
   criarPendencia,
   criarTarefa,
   lancarHoras,
@@ -21,6 +28,9 @@ import {
   removerPendencia,
   removerTarefa,
   type DetalheProjeto,
+  type Modulo,
+  type SituacaoModulo,
+  type TipoProjeto,
   type SituacaoTarefa,
   type Tarefa,
 } from "@/lib/projetos";
@@ -188,7 +198,90 @@ export function useMutacoesProjeto(projetoId: string) {
     },
   );
 
+  // ----- Módulos (card SS-1) -----
+  const tipo = useAcao((t: TipoProjeto) => definirTipoProjeto(projetoId, t), {
+    otimista: (d, t) => ({ ...d, projeto: { ...d.projeto, kind: t } }),
+    sucesso: (t) =>
+      t === "sob_medida" ? "Projeto agora é por módulos." : "Projeto volta a ser por fases.",
+  });
+  const novoModulo = useAcao(criarModulo, {
+    otimista: (d, v) => {
+      const novo: Modulo = {
+        id: `temp-${Date.now()}`,
+        nome: v.nome,
+        ordem: d.modulos.length + 1,
+        situacao: "planejado",
+        no_ar_desde: null,
+        ultima_versao: null,
+        link: null,
+        versoes: [],
+        caminho: v.caminho,
+        link_testes: null,
+        link_producao: null,
+        rodadas: 0,
+        aprovacao: null,
+        ultimo_ajuste: null,
+      };
+      return { ...d, modulos: [...d.modulos, novo] };
+    },
+    sucesso: "Módulo criado.",
+  });
+  const editarMod = useAcao(editarModulo, {
+    otimista: (d, v) => ({
+      ...d,
+      modulos: d.modulos.map((x) =>
+        x.id === v.id ? { ...x, nome: v.nome, caminho: v.caminho } : x,
+      ),
+    }),
+    sucesso: "Módulo atualizado.",
+  });
+  const moverMod = useAcao(moverModulo, {
+    otimista: (d, v) => ({
+      ...d,
+      modulos: d.modulos.map((x) =>
+        x.id === v.id
+          ? { ...x, situacao: v.situacao, link_testes: v.linkTestes || x.link_testes }
+          : x,
+      ),
+    }),
+    sucesso: (v) => `Módulo: ${rotuloModulo[v.situacao as SituacaoModulo].toLowerCase()}.`,
+  });
+  const aprovacaoMod = useAcao(pedirAprovacaoModulo, {
+    otimista: (d, v) => ({
+      ...d,
+      modulos: d.modulos.map((x) =>
+        x.id === v.id ? { ...x, situacao: "aguardando_aprovacao" as const } : x,
+      ),
+    }),
+    sucesso: "Enviado. O cliente aprova o módulo no portal.",
+  });
+  const publicarMod = useAcao(publicarModulo, {
+    otimista: (d, v) => ({
+      ...d,
+      modulos: d.modulos.map((x) =>
+        x.id === v.id
+          ? {
+              ...x,
+              situacao: "publicado" as const,
+              link_producao: v.link || x.link_producao,
+              no_ar_desde: x.no_ar_desde ?? new Date().toISOString(),
+            }
+          : x,
+      ),
+    }),
+    sucesso: (_v, r) =>
+      r.mensalidade_iniciada
+        ? "Módulo no ar. Primeiro módulo publicado: a mensalidade começa no próximo mês."
+        : "Módulo no ar.",
+  });
+
   return {
+    tipo,
+    novoModulo,
+    editarMod,
+    moverMod,
+    aprovacaoMod,
+    publicarMod,
     fase,
     aprovacao,
     cancelar,

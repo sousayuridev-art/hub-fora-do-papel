@@ -16,6 +16,14 @@ import { PedirAprovacaoPainel } from "@/components/projetos/PedirAprovacaoPainel
 import { ProjetoCabecalho } from "@/components/projetos/ProjetoCabecalho";
 import { ProjetoEncerramento } from "@/components/projetos/ProjetoEncerramento";
 import { ProjetoFases } from "@/components/projetos/ProjetoFases";
+import { ProjetoModulos } from "@/components/projetos/ProjetoModulos";
+import {
+  ModuloPainel,
+  type EnvioModulo,
+  type ModoModulo,
+} from "@/components/projetos/ModuloPainel";
+import type { AcaoModulo } from "@/components/projetos/ModuloLinha";
+import type { Modulo } from "@/lib/projetos";
 import { ProjetoHoras } from "@/components/projetos/ProjetoHoras";
 import { ProjetoLinhaDoTempo } from "@/components/projetos/ProjetoLinhaDoTempo";
 import { ProjetoNumeros } from "@/components/projetos/ProjetoNumeros";
@@ -43,6 +51,9 @@ function Projeto() {
   const q = useQuery({ queryKey: chavesProjetos.detalhe(id), queryFn: () => detalheProjeto(id) });
   const m = useMutacoesProjeto(id);
   const [painel, setPainel] = useState<null | "aprovacao" | "pendencia" | "tarefa" | "horas">(null);
+  const [painelModulo, setPainelModulo] = useState<{ modo: ModoModulo; m: Modulo | null } | null>(
+    null,
+  );
   const [faseDoPedido, setFaseDoPedido] = useState<string | null>(null);
   const [tituloDoPedido, setTituloDoPedido] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
@@ -103,14 +114,29 @@ function Projeto() {
     <div className="flex flex-col gap-5">
       <ProjetoCabecalho d={d} aoEditar={() => setEditar(true)} />
       <SaudeEntrega saude={d.saude} />
-      <ProjetoFases
-        d={d}
-        aoConcluir={() => {
-          setFaseDoPedido(atual?.fase.id ?? null);
-          setTituloDoPedido(null);
-          setPainel("aprovacao");
-        }}
-      />
+      {d.projeto.kind === "sob_medida" ? (
+        <ProjetoModulos
+          d={d}
+          ocupado={m.moverMod.isPending || m.publicarMod.isPending || m.aprovacaoMod.isPending}
+          aoNovo={() => setPainelModulo({ modo: "novo", m: null })}
+          aoVoltarParaFases={() => m.tipo.mutate("padrao")}
+          aoAgir={(mod: Modulo, acao: AcaoModulo) => {
+            if (acao.tipo === "mover") m.moverMod.mutate({ id: mod.id, situacao: acao.situacao });
+            else if (acao.tipo === "cancelar_aprovacao") m.cancelar.mutate(acao.aprovacaoId);
+            else setPainelModulo({ modo: acao.modo, m: mod });
+          }}
+        />
+      ) : (
+        <ProjetoFases
+          d={d}
+          aoMudarParaModulos={() => m.tipo.mutate("sob_medida")}
+          aoConcluir={() => {
+            setFaseDoPedido(atual?.fase.id ?? null);
+            setTituloDoPedido(null);
+            setPainel("aprovacao");
+          }}
+        />
+      )}
       <ProjetoNumeros d={d} />
 
       <div
@@ -243,6 +269,27 @@ function Projeto() {
             lancamento: v.lancamento,
           })
         }
+      />
+      <ModuloPainel
+        modo={painelModulo?.modo ?? null}
+        modulo={painelModulo?.m ?? null}
+        aoFechar={() => setPainelModulo(null)}
+        aoEnviar={(v: EnvioModulo) => {
+          if (v.modo === "novo")
+            m.novoModulo.mutate({ projetoId: id, nome: v.nome, caminho: v.caminho });
+          else if (v.modo === "editar")
+            m.editarMod.mutate({ id: v.id, nome: v.nome, caminho: v.caminho });
+          else if (v.modo === "testes")
+            m.moverMod.mutate({ id: v.id, situacao: "testes", linkTestes: v.linkTestes });
+          else if (v.modo === "aprovacao")
+            m.aprovacaoMod.mutate({
+              id: v.id,
+              descricao: v.descricao,
+              itens: [],
+              previa: v.previa,
+            });
+          else m.publicarMod.mutate({ id: v.id, notas: v.notas, link: v.link });
+        }}
       />
       <CancelarProjetoPainel projetoId={id} aberto={cancelar} aoMudar={setCancelar} />
       <LancarHorasPainel

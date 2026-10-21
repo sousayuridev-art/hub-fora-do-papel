@@ -64,8 +64,24 @@ export type InicioPortal = {
       status: SituacaoFase;
       concluida_em: string | null;
     }[];
+    /** Projeto por módulos (SS-1): a linha mostra um marco por módulo. */
+    tipo?: "padrao" | "sob_medida";
+    modulos?: ModuloPortal[];
   } | null;
   acoes: AcaoPortal[];
+};
+
+/** Módulo como o cliente vê (sem link de testes nem rodadas). */
+export type ModuloPortal = {
+  id: string;
+  nome: string;
+  ordem: number;
+  situacao:
+    "planejado" | "desenvolvimento" | "testes" | "aguardando_aprovacao" | "aprovado" | "publicado";
+  no_ar_desde: string | null;
+  ultima_versao: string | null;
+  link: string | null;
+  versoes: { notas: string; quando: string }[];
 };
 
 export type EntregaPortal = {
@@ -231,3 +247,28 @@ export const chavePagamentos = ["portal", "pagamentos"] as const;
 export const pagamentosDoPortal = () => rpc<PagamentosPortal>("portal_pagamentos");
 export const avisarPagamento = (id: string) =>
   rpc<{ repetido: boolean }>("portal_cobranca_avisar", { p_id: id });
+
+/** Módulos (SS-1) no formato da linha do projeto: no ar = concluído, em andamento = símbolo, planejado = contorno. */
+export function marcosDosModulos(modulos: ModuloPortal[]) {
+  const dia = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit" });
+  return modulos.map((m) => {
+    const noAr = m.situacao === "publicado" || m.no_ar_desde !== null;
+    const status: SituacaoFase =
+      m.situacao === "publicado"
+        ? "concluida"
+        : m.situacao === "planejado" && !noAr
+          ? "pendente"
+          : "andamento";
+    const legenda =
+      m.situacao === "publicado" && m.no_ar_desde
+        ? `No ar desde ${dia.format(new Date(m.no_ar_desde))}`
+        : m.situacao === "aguardando_aprovacao"
+          ? "Esperando sua aprovação"
+          : m.situacao === "planejado"
+            ? "Próximo"
+            : noAr
+              ? "No ar; nova versão em andamento"
+              : "Em andamento";
+    return { nome: m.nome, quando: null, status, concluida_em: m.no_ar_desde, legenda };
+  });
+}

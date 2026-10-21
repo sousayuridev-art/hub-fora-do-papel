@@ -6,7 +6,20 @@ import { dataLocal, diaMes } from "@/lib/formatar";
 import { faseAtual, type DetalheProjeto } from "@/lib/projetos";
 
 /** Linha de fases e a ação principal da tela: concluir a fase atual pedindo aprovação. */
-export function ProjetoFases({ d, aoConcluir }: { d: DetalheProjeto; aoConcluir: () => void }) {
+export function ProjetoFases({
+  d,
+  aoConcluir,
+  aoMudarParaModulos,
+}: {
+  d: DetalheProjeto;
+  aoConcluir: () => void;
+  /** Sistemas sob medida (SS-1): só aparece sem fase concluída. */
+  aoMudarParaModulos?: () => void;
+}) {
+  const podeMudar =
+    aoMudarParaModulos !== undefined &&
+    d.projeto.status === "andamento" &&
+    !d.fases.some((f) => f.status === "concluida");
   const atual = faseAtual(d.fases);
   const esperando = atual
     ? d.aprovacoes.some((a) => a.phase_id === atual.fase.id && a.status === "aguardando")
@@ -42,6 +55,15 @@ export function ProjetoFases({ d, aoConcluir }: { d: DetalheProjeto; aoConcluir:
           concluida_em: f.completed_at,
         }))}
       />
+      {podeMudar && (
+        <button
+          type="button"
+          onClick={aoMudarParaModulos}
+          className="self-start text-[14px] text-hub-suave underline underline-offset-4 hover:text-hub-tinta"
+        >
+          Sistema sob medida? Entregar por módulos
+        </button>
+      )}
     </section>
   );
 }

@@ -6,10 +6,11 @@ import { EstadoErro } from "@/components/hub/EstadoErro";
 import { CapaPortal, FolhaPortal } from "@/components/portal/CapaPortal";
 import { LinhaProjeto } from "@/components/portal/LinhaProjeto";
 import { PortalAcoes } from "@/components/portal/PortalAcoes";
+import { PortalModulosNoAr } from "@/components/portal/PortalModulosNoAr";
 import { ResponsavelCartao } from "@/components/portal/ResponsavelCartao";
 import { useMutacoesPortal } from "@/components/portal/useMutacoesPortal";
 import { dataLocal, diaMes, moeda } from "@/lib/formatar";
-import { chavesPortal, inicioDoPortal, type InicioPortal } from "@/lib/portal";
+import { chavesPortal, inicioDoPortal, marcosDosModulos, type InicioPortal } from "@/lib/portal";
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({ meta: [{ title: "Início · Portal Fora do Papel" }] }),
@@ -100,7 +101,15 @@ function Inicio() {
               </b>
               <span className="text-[14px] text-[#A3A6AD] max-md:hidden">{linhaDoProjeto(p)}</span>
             </div>
-            {p.fases.length > 0 && <LinhaProjeto fases={p.fases} lancamento={p.lancamento} />}
+            {p.tipo === "sob_medida" && (p.modulos?.length ?? 0) > 0 ? (
+              <LinhaProjeto
+                fases={marcosDosModulos(p.modulos ?? [])}
+                lancamento={p.lancamento}
+                rotuloEtapa="Módulo"
+              />
+            ) : (
+              p.fases.length > 0 && <LinhaProjeto fases={p.fases} lancamento={p.lancamento} />
+            )}
           </div>
         ) : (
           <p className="mt-8 text-[15px] text-[#C9CBD0] md:mt-[46px]">
@@ -117,6 +126,9 @@ function Inicio() {
               enviando={m.pendencia.isPending}
               aoMarcarFeita={(id) => m.pendencia.mutate(id)}
             />
+            {d.projeto?.tipo === "sob_medida" && (
+              <PortalModulosNoAr modulos={d.projeto.modulos ?? []} />
+            )}
             {d.pendencias.pedidos_andamento > 0 && (
               <Link
                 to="/portal/pedidos"

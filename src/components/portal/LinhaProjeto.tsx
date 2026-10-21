@@ -9,6 +9,8 @@ type Fase = {
   quando: string | null;
   status: SituacaoFase;
   concluida_em: string | null;
+  /** Texto pronto da situação (módulos, card SS-1). */
+  legenda?: string;
 };
 
 /**
@@ -54,6 +56,7 @@ function Marco({ status, pequeno }: { status: SituacaoFase; pequeno: boolean }) 
 }
 
 function legenda(f: Fase): string {
+  if (f.legenda) return f.legenda;
   if (f.status === "concluida")
     return f.concluida_em ? `Concluída em ${diaMes(f.concluida_em)}` : "Concluída";
   if (f.status === "andamento") return "Em andamento";
@@ -61,7 +64,16 @@ function legenda(f: Fase): string {
 }
 
 /** Linha do projeto sobre a capa escura. No celular, só os marcos e a etapa atual por extenso. */
-export function LinhaProjeto({ fases, lancamento }: { fases: Fase[]; lancamento: string | null }) {
+export function LinhaProjeto({
+  fases,
+  lancamento,
+  rotuloEtapa = "Etapa",
+}: {
+  fases: Fase[];
+  lancamento: string | null;
+  /** "Etapa" (fases) ou "Módulo" (sistemas sob medida). */
+  rotuloEtapa?: string;
+}) {
   const atualIdx = Math.max(
     0,
     fases.findIndex((f) => f.status === "andamento"),
@@ -77,7 +89,10 @@ export function LinhaProjeto({ fases, lancamento }: { fases: Fase[]; lancamento:
   return (
     <div className="flex flex-col gap-4">
       {/* Computador: marcos com nome e situação */}
-      <ol aria-label="Etapas do projeto" className="grid grid-flow-col auto-cols-fr max-md:hidden">
+      <ol
+        aria-label={rotuloEtapa === "Módulo" ? "Módulos do projeto" : "Etapas do projeto"}
+        className="grid grid-flow-col auto-cols-fr max-md:hidden"
+      >
         {fases.map((f, i) => (
           <li
             key={`${f.nome}-${i}`}
@@ -125,8 +140,12 @@ export function LinhaProjeto({ fases, lancamento }: { fases: Fase[]; lancamento:
             <span className="flex flex-col leading-snug">
               <b className="text-[15px] font-semibold">{atual.nome}</b>
               <span className="text-[13px] text-[#FFB020]">
-                Etapa {atualIdx + 1} de {fases.length}
-                {atual.status === "andamento" ? ", em andamento" : ""}
+                {rotuloEtapa} {atualIdx + 1} de {fases.length}
+                {atual.legenda
+                  ? `: ${atual.legenda.toLowerCase()}`
+                  : atual.status === "andamento"
+                    ? ", em andamento"
+                    : ""}
               </span>
             </span>
             {lancamento && (
