@@ -24,21 +24,25 @@ export function PortalLayout({ children, barraDeAcao }: Props) {
   const secoes = secoesDoPortal(empresa.data?.perfil ?? null);
 
   return (
-    <div className="min-h-dvh bg-portal-fundo text-hub-tinta">
-      <header className="sticky top-0 z-30 border-b border-hub-borda bg-white">
+    <div className="min-h-dvh overflow-x-clip bg-portal-fundo text-hub-tinta">
+      {/* Cabeçalho escuro e sólido (direção A, CX-5): continua na capa do Início. */}
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-hub-tinta text-[#F5F5F2]">
         <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between gap-4 px-4 md:h-[72px] md:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Simbolo tamanho={28} />
-            <span className="hidden font-titulo text-base font-semibold tracking-tight md:inline">
+            <span className="hidden font-marca text-base font-bold tracking-tight md:inline">
               Fora do Papel
             </span>
-            <span aria-hidden="true" className="hidden h-5 w-px bg-hub-borda md:block" />
-            <span className="truncate text-[15px] font-semibold text-hub-tinta md:font-medium md:text-[#3A3F47]">
+            <span aria-hidden="true" className="hidden h-5 w-px bg-white/15 md:block" />
+            <span className="truncate text-[15px] font-semibold md:font-medium md:text-[#D5D7DC]">
               {empresa.data?.empresa ?? ""}
             </span>
           </div>
 
-          <nav aria-label="Portal" className="hidden items-center gap-1 md:flex">
+          <nav
+            aria-label="Portal"
+            className="hidden items-center gap-0.5 rounded-[14px] bg-white/[0.07] p-1 md:flex"
+          >
             {secoes.map((secao) => {
               const total = secao.selo ? selos[secao.selo] : 0;
               return (
@@ -46,9 +50,9 @@ export function PortalLayout({ children, barraDeAcao }: Props) {
                   key={secao.para}
                   to={secao.para}
                   activeOptions={{ exact: secao.exato ?? false }}
-                  className="inline-flex h-10 items-center gap-2 rounded-[10px] px-3.5 text-sm font-medium text-[#3A3F47] hover:text-hub-tinta"
+                  className="inline-flex h-10 items-center gap-2 rounded-[10px] px-3.5 text-sm font-medium text-[#D5D7DC] hover:text-white"
                   activeProps={{
-                    className: cn("bg-[#F1F1EC] font-semibold text-hub-tinta"),
+                    className: cn("bg-[#F5F5F2] font-semibold text-hub-tinta hover:text-hub-tinta"),
                     "aria-current": "page",
                   }}
                 >

@@ -99,87 +99,32 @@ function Pagamentos() {
     );
   };
   const p = d.projeto;
-  const pct = p && p.total_cents > 0 ? Math.round((p.pago_cents / p.total_cents) * 100) : null;
 
   return (
     <div className="flex flex-col gap-8">
       <TituloPortal
         rotulo={p?.nome ?? "Pagamentos"}
         titulo="Pagamentos"
-        texto="Tudo o que foi combinado, o que já foi pago e o que vem pela frente. Sem letras miúdas."
+        texto="A próxima conta, com o Pix pronto, e os recibos do que já foi pago. Sem letras miúdas."
       />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <section
-          aria-label="Resumo do projeto"
-          className="flex flex-col gap-5 rounded-3xl bg-hub-tinta p-6 text-white md:p-8"
-        >
-          {p && p.total_cents > 0 ? (
-            <>
-              <div className="flex flex-col gap-1">
-                <span className="font-rotulo text-[13.5px] font-medium text-[#C9CBD0]">
-                  Total do projeto
-                </span>
-                <strong className="font-titulo text-[34px] font-bold leading-none tabular-nums md:text-[44px]">
-                  {moeda(p.total_cents)}
-                </strong>
-              </div>
-              <div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-white/10">
-                <span
-                  className="block h-full rounded-full bg-[#FFB020]"
-                  style={{ width: `${pct ?? 0}%` }}
-                />
-              </div>
-              <dl className="grid grid-cols-2 gap-3 text-[14px] sm:grid-cols-3">
-                <div>
-                  <dt className="text-[#C9CBD0]">Pago</dt>
-                  <dd className="font-semibold tabular-nums">
-                    {moeda(p.pago_cents)} {pct !== null ? `(${pct}%)` : ""}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[#C9CBD0]">Falta</dt>
-                  <dd className="font-semibold tabular-nums">
-                    {moeda(p.total_cents - p.pago_cents)}
-                  </dd>
-                </div>
-                {p.diagnostico_cents > 0 && (
-                  <div>
-                    <dt className="text-[#C9CBD0]">Diagnóstico</dt>
-                    <dd className="font-semibold tabular-nums">
-                      {moeda(p.diagnostico_cents)} pago
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </>
-          ) : (
-            <p className="text-[15px] text-[#C9CBD0]">
-              As parcelas do projeto aparecem aqui depois do aceite da proposta.
-            </p>
-          )}
-          {proxima ? (
-            <div className="flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-[14.5px]">
-                <span className="text-[#C9CBD0]">Próxima: </span>
-                <strong className="tabular-nums">{moeda(proxima.valor_cents)}</strong>
-                {proxima.vencimento ? ` · vence ${diaMes(dataLocal(proxima.vencimento))}` : ""}
-              </span>
-              <button
-                type="button"
-                onClick={() => pagar(proxima)}
-                className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-5 text-[15px] font-semibold text-hub-tinta max-sm:w-full"
-              >
-                Pagar agora
-              </button>
-            </div>
-          ) : (
-            <p className="border-t border-white/10 pt-4 text-[14.5px] text-[#C9CBD0]">
-              Nada para pagar agora.
-            </p>
-          )}
-        </section>
+      {/* Sem total devedor (card CX-6): só a próxima conta, como um recibo, e cada parcela com o seu valor */}
+      {alvo && (
+        <PagarPix
+          c={alvo}
+          pix={d.pix}
+          responsavel={d.responsavel}
+          enviando={avisar.isPending}
+          aoAvisar={() => avisar.mutate(alvo.id)}
+        />
+      )}
+      {!alvo && (
+        <p className="rounded-2xl border border-hub-borda bg-white p-5 text-[15px] text-hub-suave">
+          Nada para pagar agora. Os recibos ficam aqui embaixo.
+        </p>
+      )}
 
+      <div className="grid gap-4">
         <section
           aria-labelledby="mensal-t"
           className="flex flex-col gap-3 rounded-3xl border border-hub-borda bg-white p-6"
@@ -238,16 +183,6 @@ function Pagamentos() {
           )}
         </section>
       </div>
-
-      {alvo && (
-        <PagarPix
-          c={alvo}
-          pix={d.pix}
-          responsavel={d.responsavel}
-          enviando={avisar.isPending}
-          aoAvisar={() => avisar.mutate(alvo.id)}
-        />
-      )}
 
       <CobrancasPortal
         titulo="Parcelas do projeto"

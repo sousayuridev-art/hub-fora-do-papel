@@ -267,3 +267,10 @@
     color: #0e1013;
   }
 }
+
+/* Recibo de papel com a borda de baixo serrilhada (Pix no portal, card CX-6). */
+.bilhete {
+  -webkit-mask: radial-gradient(circle at 9px 100%, transparent 7px, #000 7.5px) 0 0 / 18px 100%
+    repeat-x;
+  mask: radial-gradient(circle at 9px 100%, transparent 7px, #000 7.5px) 0 0 / 18px 100% repeat-x;
+}

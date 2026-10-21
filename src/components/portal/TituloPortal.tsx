@@ -16,7 +16,7 @@ export function TituloPortal({
     <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="flex max-w-2xl flex-col gap-2">
         <span className="font-rotulo text-[13.5px] font-medium text-hub-suave">{rotulo}</span>
-        <h1 className="font-titulo text-[28px] font-bold leading-tight tracking-tight md:text-[44px]">
+        <h1 className="font-marca text-[28px] font-extrabold leading-[1.05] tracking-[-0.03em] md:text-[48px]">
           {titulo}
         </h1>
         {texto && (

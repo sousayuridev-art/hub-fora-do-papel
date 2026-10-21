@@ -7,7 +7,7 @@ import type { SituacaoPedido } from "@/lib/pedidos";
 export type PendenciasDoPortal = {
   aprovacoes: number;
   pendencias: number;
-  /** Contas vencidas ou vencendo em 3 dias que o cliente ainda não avisou que pagou (REV-3). */
+  /** Contas vencidas ou vencendo em 5 dias que o cliente ainda não avisou que pagou (REV-3, CX-0). Só para o responsável. */
   pagamentos: number;
   total: number;
   pedidos_andamento: number;
@@ -16,6 +16,15 @@ export type PendenciasDoPortal = {
 export type AcaoPortal =
   | { tipo: "aprovacao"; id: string; titulo: string; quando: string }
   | { tipo: "adicional"; id: string; titulo: string; valor_cents: number | null; quando: string }
+  | {
+      /** Conta vencida ou vencendo em 5 dias (só para o responsável pelo contrato: CX-0). */
+      tipo: "pagamento";
+      id: string;
+      titulo: string;
+      valor_cents: number;
+      vencimento: string;
+      atrasada: boolean;
+    }
   | {
       tipo: "pendencia";
       id: string;
@@ -29,7 +38,11 @@ export type InicioPortal = {
   empresa: string;
   contato: string | null;
   responsavel: string | null;
+  /** WhatsApp do responsável da agência, para o botão "Falar no WhatsApp". */
+  responsavel_whatsapp: string | null;
   hoje: string;
+  /** Quem entrou: responsável pelo contrato ou equipe (CX-0). */
+  perfil: "responsavel" | "equipe";
   pendencias: PendenciasDoPortal;
   projeto: {
     id: string;

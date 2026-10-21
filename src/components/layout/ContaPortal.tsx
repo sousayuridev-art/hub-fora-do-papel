@@ -37,10 +37,10 @@ export function ContaPortal() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-hub-tinta"
+        className="flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white"
         aria-label="Sua conta"
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-[#EEF3FF] text-[13px] font-semibold text-[#1E3FA8] ring-2 ring-white ring-offset-1 ring-offset-hub-borda md:size-9 md:text-sm">
+        <span className="flex size-8 items-center justify-center rounded-full bg-[#EEF3FF] text-[13px] font-semibold text-[#1E3FA8] ring-2 ring-white/20 md:size-9 md:text-sm">
           {iniciais(nome)}
         </span>
       </DropdownMenuTrigger>

@@ -7,6 +7,9 @@ import type { EntregaPortal } from "@/lib/portal";
 
 const botaoEscuro =
   "inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-hub-tinta px-5 text-[15px] font-semibold text-white disabled:opacity-50 md:w-auto";
+// Ação principal da tela (card CX-6): âmbar, só aqui.
+const botaoPrincipal =
+  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#FFB020] px-6 text-[15px] font-semibold text-hub-tinta hover:brightness-95 disabled:opacity-50 md:w-auto";
 const botaoClaro =
   "inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#DADAD3] bg-white px-5 text-[15px] font-semibold disabled:opacity-50 md:w-auto";
 
@@ -51,7 +54,7 @@ export function EntregaCartao({
         </span>
       </div>
       <div className="flex flex-col gap-2">
-        <h2 className="font-titulo text-[20px] font-bold leading-snug md:text-[26px]">
+        <h2 className="font-marca text-[22px] font-extrabold leading-tight tracking-[-0.02em] md:text-[30px]">
           {e.titulo}
         </h2>
         {e.descricao && <p className="text-[15px] text-hub-suave">{e.descricao}</p>}
@@ -76,9 +79,10 @@ export function EntregaCartao({
           href={e.previa}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 self-start text-[15px] font-semibold underline"
+          className="capa-escura flex min-h-14 items-center justify-between gap-3 rounded-2xl px-5 py-4 text-[15px] font-semibold"
         >
-          Abrir a prévia <ExternalLink className="size-4" aria-hidden="true" />
+          Abrir a prévia em tela cheia
+          <ExternalLink className="size-4 shrink-0" aria-hidden="true" />
         </a>
       )}
       {e.comentario && !aberta && (
@@ -96,11 +100,11 @@ export function EntregaCartao({
         <div className="flex flex-col gap-2 md:flex-row">
           <button
             type="button"
-            className={botaoEscuro}
+            className={botaoPrincipal}
             disabled={enviando}
             onClick={() => setModo("aprovar")}
           >
-            <Check className="size-4" aria-hidden="true" /> Aprovar
+            <Check className="size-4" aria-hidden="true" /> Aprovar esta entrega
           </button>
           <button
             type="button"
@@ -138,7 +142,7 @@ export function EntregaCartao({
           <div className="flex flex-col gap-2 md:flex-row">
             <button
               type="button"
-              className={botaoEscuro}
+              className={modo === "aprovar" ? botaoPrincipal : botaoEscuro}
               disabled={enviando || (modo === "ajuste" && texto.trim().length < 5)}
               onClick={() => {
                 if (modo === "aprovar") aoAprovar(texto.trim());
@@ -156,7 +160,10 @@ export function EntregaCartao({
         </div>
       )}
       {!aberta && e.decidida_em && (
-        <p className="text-[13px] text-hub-suave">Registrado em {diaComHora(e.decidida_em)}.</p>
+        <p className="self-start rounded-xl border border-dashed border-[#C9C9C2] px-4 py-2.5 text-[13.5px] text-[#2A2D33]">
+          {e.status === "aprovada" ? "Aprovação registrada" : "Pedido de ajuste registrado"} em{" "}
+          {diaComHora(e.decidida_em)}.
+        </p>
       )}
     </article>
   );
