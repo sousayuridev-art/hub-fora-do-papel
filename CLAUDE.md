@@ -23,6 +23,7 @@ Lidas pelo Claude Code em todo pedido. Cards em `docs/cards/`; cite o card no pe
 - Valores em dinheiro em centavos (`integer`). Datas em `timestamptz`.
 - Agregações e métricas em views ou RPCs, não em `.reduce()`/`.filter()` no cliente.
 - Nunca colocar chaves (service role, tokens) no frontend ou em logs.
+- IA pela API: seguir `docs/regras-ia.md` (workspace e chave por projeto, chave só no servidor, Haiku por padrão e Sonnet quando o erro custa caro, registro de uso e teto mensal no código, IA sugere e pessoa decide). Nunca configurar `ANTHROPIC_API_KEY` para o Claude Code.
 
 ## Frontend
 - Toda query e mutação via TanStack Query, com chaves organizadas por recurso.
