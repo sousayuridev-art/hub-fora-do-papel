@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useSession } from "@/hooks/useSession";
-import { Copy, Eye, MessageCircle, PencilLine, XCircle } from "lucide-react";
+import { Copy, Eye, PencilLine, Send, XCircle } from "lucide-react";
 
+import { EnviarParaPainel } from "@/components/hub/EnviarParaPainel";
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { diaComHora, diaMes, linkWhatsapp, moeda } from "@/lib/formatar";
+import { diaComHora, diaMes, moeda } from "@/lib/formatar";
+import { mensagemProposta } from "@/lib/mensagens";
 import { erro, ok } from "@/lib/notify";
 import { linkDaProposta, type DetalheProposta } from "@/lib/propostas";
 import { cn } from "@/lib/utils";
@@ -27,14 +30,10 @@ export function AcoesEnviada({
   const vencida =
     p.status === "enviada" && p.expires_at != null && new Date(p.expires_at) < new Date();
   const primeiroNome = detalhe.cliente.contato.split(" ")[0] ?? detalhe.cliente.contato;
+  const [enviando, setEnviando] = useState(false);
   const { session } = useSession();
   const quemEnvia =
-    ((session?.user.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] ||
-    "a equipe";
-  const mensagem = link
-    ? `Oi, ${primeiroNome}! Aqui é ${quemEnvia}, da Fora do Papel. A proposta para a ${detalhe.cliente.empresa} está pronta: ${link}\n\nEla vale até ${p.expires_at ? diaMes(p.expires_at) : ""}. Se tiver qualquer dúvida, me chame por aqui.`
-    : "";
-  const wpp = linkWhatsapp(detalhe.cliente.whatsapp);
+    ((session?.user.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] || "";
 
   async function copiar() {
     if (!link) return;
@@ -119,17 +118,42 @@ export function AcoesEnviada({
               <Copy className="size-4" aria-hidden="true" />
             </button>
           </div>
-          {wpp && (
-            <a
-              href={`${wpp}?text=${encodeURIComponent(mensagem)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(classeBotaoSecundario, "w-full")}
-            >
-              <MessageCircle className="size-4" aria-hidden="true" />
-              Mandar pelo WhatsApp
-            </a>
-          )}
+          <button
+            type="button"
+            onClick={() => setEnviando(true)}
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-hub-destaque px-5 text-[15px] font-semibold text-hub-tinta hover:brightness-95"
+          >
+            <Send className="size-4" aria-hidden="true" />
+            Enviar para {primeiroNome}
+          </button>
+          <EnviarParaPainel
+            aberto={enviando}
+            aoMudar={setEnviando}
+            nome={detalhe.cliente.contato}
+            whatsapp={detalhe.cliente.whatsapp}
+            email={detalhe.cliente.email}
+            link={link}
+            previa={{
+              titulo: `Proposta para ${primeiroNome}`,
+              linha: `${p.project_type ?? detalhe.cliente.empresa} · Fora do Papel`,
+            }}
+            aviso={
+              p.viewed_at ? undefined : `Você vê aqui quando ${primeiroNome} abrir a proposta.`
+            }
+            gerar={(nota) =>
+              mensagemProposta({
+                contato: detalhe.cliente.contato,
+                remetente: quemEnvia,
+                nota,
+                empresa: detalhe.cliente.empresa,
+                titulo: p.project_type,
+                link,
+                validade: p.expires_at ? diaMes(p.expires_at) : null,
+                totalCents: p.total_cents,
+                parcelas: detalhe.calculo.parcelas.length,
+              })
+            }
+          />
         </div>
       )}
 

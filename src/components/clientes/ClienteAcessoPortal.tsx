@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Mail, MessageCircle, X } from "lucide-react";
+import { Copy, Mail, Send, X } from "lucide-react";
 
 import {
   acessosDoPortal,
@@ -16,7 +16,9 @@ import {
 } from "@/lib/acessoPortal";
 import { EscolhaPerfil } from "@/components/clientes/EscolhaPerfil";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { diaMes, linkWhatsapp } from "@/lib/formatar";
+import { diaMes } from "@/lib/formatar";
+import { mensagemConvite } from "@/lib/mensagens";
+import { EnviarParaPainel } from "@/components/hub/EnviarParaPainel";
 import { useSession } from "@/hooks/useSession";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 
@@ -29,11 +31,13 @@ export function ClienteAcessoPortal({
   emailSugerido,
   whatsapp,
   contato,
+  empresa,
 }: {
   clienteId: string;
   emailSugerido: string | null;
   whatsapp: string | null;
   contato: string | null;
+  empresa: string;
 }) {
   const { session } = useSession();
   const remetente =
@@ -45,6 +49,9 @@ export function ClienteAcessoPortal({
   const [confirmar, setConfirmar] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<PerfilPortal>("equipe");
   const [podeAprovar, setPodeAprovar] = useState(true);
+  const [enviarConvite, setEnviarConvite] = useState<AcessosPortal["convites"][number] | null>(
+    null,
+  );
   // O primeiro acesso de uma empresa é de quem contratou (o banco também exige: CX-0).
   const semResponsavel =
     dados.data !== undefined &&
@@ -218,22 +225,15 @@ export function ClienteAcessoPortal({
                   {c.vale_ate ? ` · vale até ${diaMes(c.vale_ate)}` : ""}
                 </span>
               </span>
-              {linkWhatsapp(whatsapp) && !c.id.startsWith("temp-") && (
-                <a
-                  href={`${linkWhatsapp(whatsapp)}?text=${encodeURIComponent(
-                    [
-                      `Oi${contato ? `, ${contato.split(" ")[0]}` : ""}! Aqui é ${remetente ? `o ${remetente}` : "a equipe"}, da Fora do Papel.`,
-                      `Liberamos o seu acesso ao portal do projeto: ${endereco}`,
-                      `Entre com o e-mail ${c.email}. Você recebe um link de acesso, sem senha.`,
-                    ].join("\n"),
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Enviar convite de ${c.email} pelo WhatsApp`}
+              {!c.id.startsWith("temp-") && (
+                <button
+                  type="button"
+                  aria-label={`Enviar o convite de ${c.email}`}
                   className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/60"
+                  onClick={() => setEnviarConvite(c)}
                 >
-                  <MessageCircle className="size-4" aria-hidden="true" />
-                </a>
+                  <Send className="size-4" aria-hidden="true" />
+                </button>
               )}
               <button
                 type="button"
@@ -310,6 +310,27 @@ export function ClienteAcessoPortal({
       >
         <Copy className="size-4" aria-hidden="true" /> Copiar endereço do portal
       </button>
+      {enviarConvite && (
+        <EnviarParaPainel
+          aberto
+          aoMudar={(v) => !v && setEnviarConvite(null)}
+          nome={enviarConvite.perfil === "responsavel" ? contato : null}
+          whatsapp={enviarConvite.perfil === "responsavel" ? whatsapp : null}
+          email={enviarConvite.email}
+          link={endereco}
+          previa={{ titulo: `Portal da ${empresa}`, linha: "Acompanhe o projeto · Fora do Papel" }}
+          gerar={(nota) =>
+            mensagemConvite({
+              contato: enviarConvite.perfil === "responsavel" ? contato : null,
+              remetente,
+              nota,
+              empresa,
+              email: enviarConvite.email,
+              portal: endereco,
+            })
+          }
+        />
+      )}
     </section>
   );
 }

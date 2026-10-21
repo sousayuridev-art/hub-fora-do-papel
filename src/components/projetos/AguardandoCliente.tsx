@@ -1,5 +1,7 @@
-import { Check, MessageCircle, MoreHorizontal, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { Check, MoreHorizontal, Plus, RotateCcw, Send, Trash2, X } from "lucide-react";
 
+import { EnviarParaPainel } from "@/components/hub/EnviarParaPainel";
 import { Selo } from "@/components/hub/Selo";
 import {
   DropdownMenu,
@@ -8,8 +10,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { dataLocal, diaMes, linkWhatsapp, moeda } from "@/lib/formatar";
-import { diasDesde, textoLembrete, type DetalheProjeto } from "@/lib/projetos";
+import { dataLocal, diaMes, moeda } from "@/lib/formatar";
+import { mensagemAdicional, mensagemEntrega, mensagemLembrete } from "@/lib/mensagens";
+import { diasDesde, type DetalheProjeto } from "@/lib/projetos";
 import { cn } from "@/lib/utils";
 
 type Acoes = {
@@ -42,10 +45,32 @@ export function AguardandoCliente({ d, ...a }: { d: DetalheProjeto } & Acoes) {
   const total = aprovacoes.length + pendencias.length + adicionais.length;
   const nome = d.cliente.contato?.split(" ")[0] ?? "o cliente";
   const portal = typeof window !== "undefined" ? `${window.location.origin}/portal` : "/portal";
-  const wpp = total > 0 ? linkWhatsapp(d.cliente.whatsapp) : null;
-  const lembrete = wpp
-    ? `${wpp}?text=${encodeURIComponent(textoLembrete(d, portal, a.remetente))}`
-    : null;
+  const [enviando, setEnviando] = useState(false);
+  // Um item só ganha a mensagem própria (entrega ou serviço adicional); vários viram lembrete (CX-1).
+  const itens = [
+    ...aprovacoes.map((x) => `Aprovar: ${x.title}`),
+    ...adicionais.map((x) => `Decidir o serviço adicional: ${x.title}`),
+    ...pendencias.map((x) => x.title),
+  ];
+  const gerar = (nota: string) => {
+    const b = { contato: d.cliente.contato, remetente: a.remetente, nota };
+    const so = total === 1;
+    if (so && aprovacoes[0])
+      return mensagemEntrega({
+        ...b,
+        titulo: aprovacoes[0].title,
+        conferir: aprovacoes[0].description,
+        link: `${portal}/aprovacoes`,
+      });
+    if (so && adicionais[0])
+      return mensagemAdicional({
+        ...b,
+        titulo: adicionais[0].title,
+        valorCents: adicionais[0].value_cents,
+        link: `${portal}/aprovacoes`,
+      });
+    return mensagemLembrete({ ...b, itens, link: portal });
+  };
 
   return (
     <section
@@ -62,15 +87,14 @@ export function AguardandoCliente({ d, ...a }: { d: DetalheProjeto } & Acoes) {
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          {lembrete && (
-            <a
-              href={lembrete}
-              target="_blank"
-              rel="noopener noreferrer"
+          {total > 0 && (
+            <button
+              type="button"
               className={classeBotaoSecundario}
+              onClick={() => setEnviando(true)}
             >
-              <MessageCircle className="size-4" aria-hidden="true" /> Lembrar pelo WhatsApp
-            </a>
+              <Send className="size-4" aria-hidden="true" /> Avisar {nome}
+            </button>
           )}
           <button type="button" className={classeBotaoSecundario} onClick={a.aoNovaPendencia}>
             <Plus className="size-4" aria-hidden="true" /> Pendência
@@ -205,6 +229,22 @@ export function AguardandoCliente({ d, ...a }: { d: DetalheProjeto } & Acoes) {
         <p className="text-[13.5px] text-hub-suave">
           Feitas recentemente: {feitas.map((f) => f.title).join(", ")}.
         </p>
+      )}
+      {total > 0 && (
+        <EnviarParaPainel
+          aberto={enviando}
+          aoMudar={setEnviando}
+          nome={d.cliente.contato}
+          whatsapp={d.cliente.whatsapp}
+          email={d.cliente.email}
+          link={
+            total === 1 && aprovacoes.length + adicionais.length === 1
+              ? `${portal}/aprovacoes`
+              : portal
+          }
+          previa={{ titulo: `Portal da ${d.cliente.empresa}`, linha: `${itens[0] ?? ""}` }}
+          gerar={gerar}
+        />
       )}
     </section>
   );

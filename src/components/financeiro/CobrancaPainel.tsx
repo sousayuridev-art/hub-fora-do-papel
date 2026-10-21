@@ -7,6 +7,7 @@ import { CampoNumero } from "@/components/hub/CampoNumero";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { Selo } from "@/components/hub/Selo";
 import { Button } from "@/components/ui/button";
+import { mensagemCobranca, mensagemRecibo } from "@/lib/mensagens";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { dataLocal, diaMes, isoDoDia, linkWhatsapp, moeda } from "@/lib/formatar";
 import {
@@ -77,13 +78,23 @@ export function CobrancaPainel({
   const s = situacaoDaCobranca(c, hoje);
   const portal = typeof window !== "undefined" ? `${window.location.origin}/portal/pagamentos` : "";
   const wpp = linkWhatsapp(c.whatsapp);
-  const mensagem = [
-    `Oi${c.contato ? `, ${c.contato.split(" ")[0]}` : ""}! Aqui é ${remetente ? `o ${remetente}` : "a equipe"}, da Fora do Papel.`,
-    c.dias_atraso > 0
-      ? `A cobrança "${c.descricao}" (${moeda(c.valor_cents)}) venceu em ${c.vencimento ? diaMes(dataLocal(c.vencimento)) : ""}.`
-      : `Passando para lembrar da cobrança "${c.descricao}" (${moeda(c.valor_cents)})${c.vencimento ? `, que vence em ${diaMes(dataLocal(c.vencimento))}` : ""}.`,
-    `O Pix com o valor está no seu portal: ${portal}`,
-  ].join("\n");
+  // Textos de lib/mensagens (card CX-1): cobrança antes, no dia ou atrasada; recibo depois de pago.
+  const mensagem = mensagemCobranca({
+    contato: c.contato,
+    remetente,
+    descricao: c.descricao,
+    valorCents: c.valor_cents,
+    vencimento: c.vencimento ? diaMes(dataLocal(c.vencimento)) : null,
+    diasAtraso: c.dias_atraso,
+    hoje: c.vencimento === hoje,
+    link: portal,
+  }).whatsapp;
+  const mensagemPago = mensagemRecibo({
+    contato: c.contato,
+    remetente,
+    descricao: c.descricao,
+    link: portal,
+  }).whatsapp;
   const parcial = valor !== null && valor > 0 && valor < c.valor_cents;
   const fechar = (f: () => void) => () => {
     f();
@@ -311,6 +322,17 @@ export function CobrancaPainel({
                 className={`${classeBotaoSecundario} self-start`}
               >
                 <MessageCircle className="size-4" aria-hidden="true" /> Lembrar pelo WhatsApp
+              </a>
+            )}
+            {c.situacao === "paga" && wpp && (
+              <a
+                href={`${wpp}?text=${encodeURIComponent(mensagemPago)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${classeBotaoSecundario} self-start`}
+              >
+                <MessageCircle className="size-4" aria-hidden="true" /> Avisar que o recibo está
+                pronto
               </a>
             )}
             {c.situacao === "paga" && (

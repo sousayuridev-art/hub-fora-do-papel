@@ -318,24 +318,6 @@ export function diasDesde(iso: string, hojeIso: string): number {
   return Math.max(0, Math.round((hoje.getTime() - dia.getTime()) / 86_400_000));
 }
 
-/** Mensagem de WhatsApp com o que espera o cliente no portal (enquanto os avisos automáticos não existem). */
-export function textoLembrete(d: DetalheProjeto, portal: string, remetente: string): string {
-  const nome = d.cliente.contato?.split(" ")[0] ?? "";
-  const itens = [
-    ...d.aprovacoes.filter((a) => a.status === "aguardando").map((a) => `• Aprovar: ${a.title}`),
-    ...d.pedidos
-      .filter((p) => p.status === "aguardando_cliente")
-      .map((p) => `• Decidir o serviço adicional: ${p.title}`),
-    ...d.pendencias.filter((p) => p.status === "aberta").map((p) => `• ${p.title}`),
-  ];
-  return [
-    `Oi${nome ? `, ${nome}` : ""}! Aqui é ${remetente ? `o ${remetente}` : "a equipe"}, da Fora do Papel.`,
-    `No seu portal há ${itens.length === 1 ? "1 item esperando" : `${itens.length} itens esperando`} você:`,
-    ...itens,
-    `É só entrar em ${portal} com o seu e-mail.`,
-  ].join("\n");
-}
-
 /** "90" → "1h30"; "60" → "1h"; "30" → "30 min". */
 export function horasMin(minutos: number): string {
   if (minutos <= 0) return "0 h";

@@ -189,6 +189,7 @@ function Ficha() {
               emailSugerido={c.email}
               whatsapp={c.whatsapp}
               contato={c.contact_name}
+              empresa={c.company_name}
             />
             <ClienteAnotacoes clienteId={c.id} linha={linha.data} />
           </div>
