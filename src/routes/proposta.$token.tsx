@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TelaCarregando } from "@/components/feedback/TelaCarregando";
 import { EstadoProposta } from "@/components/proposta-publica/EstadoProposta";
 import { PaginaProposta } from "@/components/proposta-publica/PaginaProposta";
+import { previaDoLink } from "@/lib/enderecoPublico";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
   abrirPropostaPublica,
@@ -21,7 +22,16 @@ import {
 export const Route = createFileRoute("/proposta/$token")({
   ssr: false,
   head: () => ({
-    meta: [{ title: "Proposta · Fora do Papel" }, { name: "robots", content: "noindex, nofollow" }],
+    meta: [
+      { title: "Proposta · Fora do Papel" },
+      { name: "robots", content: "noindex, nofollow" },
+      // Prévia no WhatsApp (CX-8): fixa, sem dados do cliente e sem contar como "aberta"
+      ...previaDoLink(
+        "Sua proposta está pronta",
+        "Leia no celular e aprove quando estiver pronto. Fora do Papel.",
+        "proposta",
+      ),
+    ],
   }),
   pendingComponent: () => <TelaCarregando />,
   component: PropostaDoCliente,

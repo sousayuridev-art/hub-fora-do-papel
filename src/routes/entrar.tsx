@@ -12,6 +12,7 @@ import { TelaCarregando } from "@/components/feedback/TelaCarregando";
 import { carregarAcesso, inicioDoPapel } from "@/lib/acesso";
 import { supabase } from "@/lib/supabase";
 import { erro, mensagemDeErro } from "@/lib/notify";
+import { previaDoLink } from "@/lib/enderecoPublico";
 
 const buscaEntrar = z.object({
   volta: z
@@ -34,7 +35,16 @@ export const Route = createFileRoute("/entrar")({
     throw redirect({ to: acesso.papel ? inicioDoPapel[acesso.papel] : "/sem-acesso" });
   },
   pendingComponent: () => <TelaCarregando />,
-  head: () => ({ meta: [{ title: "Entrar · Hub Fora do Papel" }] }),
+  head: () => ({
+    meta: [
+      { title: "Entrar · Fora do Papel" },
+      ...previaDoLink(
+        "Seu portal do projeto",
+        "Acompanhe o projeto, aprove cada entrega e fale com o responsável. Fora do Papel.",
+        "portal",
+      ),
+    ],
+  }),
   component: Entrar,
 });
 
@@ -44,6 +54,8 @@ const emailValido = z.string().trim().email();
 function Entrar() {
   const { volta, email: sugerido } = Route.useSearch();
   const [email, setEmail] = useState(sugerido ?? "");
+  // Quem vem para o portal vê o texto do cliente (CX-4); o Yuri vê o de sempre.
+  const doPortal = (volta ?? "").startsWith("/portal");
   const [invalido, setInvalido] = useState(false);
 
   const enviarLink = useMutation({
@@ -69,13 +81,13 @@ function Entrar() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-hub-fundo px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-hub-borda bg-white p-7 shadow-sm md:p-8">
+    <div className="capa-escura flex min-h-dvh items-center justify-center px-4 py-10">
+      <div className="w-full max-w-sm rounded-3xl bg-[#F5F5F2] p-7 text-hub-tinta shadow-[0_30px_60px_-30px_rgba(0,0,0,0.7)] md:p-8">
         <Simbolo tamanho={32} />
         {enviarLink.isSuccess ? (
           <div className="mt-5 flex flex-col gap-2" role="status">
             <MailCheck className="size-6 text-[#145A37]" aria-hidden="true" />
-            <h1 className="font-titulo text-2xl font-semibold tracking-tight">
+            <h1 className="font-marca text-[28px] font-extrabold tracking-[-0.03em]">
               Confira seu e-mail
             </h1>
             <p className="text-[15px] leading-relaxed text-hub-suave">
@@ -94,9 +106,13 @@ function Entrar() {
         ) : (
           <form onSubmit={aoEnviar} noValidate className="mt-5 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <h1 className="font-titulo text-2xl font-semibold tracking-tight">Entrar</h1>
+              <h1 className="font-marca text-[28px] font-extrabold leading-tight tracking-[-0.03em]">
+                {doPortal ? "Entrar no seu portal" : "Entrar"}
+              </h1>
               <p className="text-[15px] text-hub-suave">
-                Sem senha: enviamos um link de acesso para o seu e-mail.
+                {doPortal
+                  ? "Aqui você acompanha o projeto, aprova cada entrega e faz pedidos de ajuste. Sem senha: o link de acesso chega no seu e-mail."
+                  : "Sem senha: enviamos um link de acesso para o seu e-mail."}
               </p>
             </div>
             <div className="flex flex-col gap-2">
@@ -106,12 +122,12 @@ function Entrar() {
                 type="email"
                 inputMode="email"
                 autoComplete="email"
-                autoFocus
+                autoFocus={!sugerido}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 aria-invalid={invalido}
                 aria-describedby={invalido ? "email-erro" : undefined}
-                className="h-12 text-base"
+                className="h-12 bg-white text-base"
                 placeholder="voce@empresa.com.br"
               />
               {invalido && (
@@ -125,7 +141,11 @@ function Entrar() {
               className="h-12 w-full text-[15px]"
               disabled={enviarLink.isPending}
             >
-              {enviarLink.isPending ? "Enviando…" : "Enviar link de acesso"}
+              {enviarLink.isPending
+                ? "Enviando…"
+                : doPortal
+                  ? "Receber meu link de acesso"
+                  : "Enviar link de acesso"}
             </Button>
           </form>
         )}
