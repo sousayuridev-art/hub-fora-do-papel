@@ -30,7 +30,8 @@
 - Passos 1 a 3 feitos: conta yuri@foradopapel.com.br (Business Standard), transcrição em português conferida no Drive.
 - Passos 4 a 6 feitos: projeto `fdp-hub` na organização foradopapel.com.br, Meet API e Calendar API, consentimento Interno, escopos `meetings.space.readonly` e `calendar.events`, cliente OAuth "Hub" (aplicativo da Web).
 - A chave secreta do cliente apareceu num print da conversa; o Yuri decidiu mantê-la (app Interno). Trocar em Clientes › Hub › Adicionar chave secreta se houver qualquer suspeita.
-- Pendente: ajustar o fuso da Agenda para Fortaleza; segredos no Supabase.
+- Feito depois: fuso da Agenda em Fortaleza; segredos `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` no Supabase; endereço de retorno do RE-1 no cliente "Hub".
+- Função `reunioes-google` publicada pelo painel do Supabase (verificação de JWT desligada), porque a chave do GitHub não tem permissão de publicar funções.
 
 ## Para o Yuri depois
 - Avisar quando o passo 3 der certo; com os segredos cadastrados, o RE-1 começa.

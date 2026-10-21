@@ -61,8 +61,11 @@ jobs:
 
       # Card RE-1: função do Google Meet. Sem verificação de JWT porque o Google chama /retorno;
       # as rotas do dono conferem o login dentro da função.
+      # A chave atual do Supabase não tem permissão de publicar funções (21/10): a função foi
+      # publicada pelo painel. Com uma chave com "edge_functions_write", este passo volta a valer.
       - name: Publicar funções de servidor
         if: inputs.modo == 'aplicar'
+        continue-on-error: true
         run: supabase functions deploy reunioes-google --project-ref "$PROJECT_REF" --no-verify-jwt --use-api
 
       - name: Situação depois de aplicar
