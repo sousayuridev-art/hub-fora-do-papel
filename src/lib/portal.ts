@@ -153,6 +153,13 @@ export function etapaDoPedido(
   }
 }
 
+/** Quem é da equipe não tem acesso a dinheiro (CX-0); o banco recusa com este código. */
+export function semPermissaoFinanceira(e: unknown): boolean {
+  const texto =
+    e instanceof Error ? e.message : ((e as { message?: string } | null)?.message ?? "");
+  return texto.includes("sem_permissao_financeiro");
+}
+
 export function mensagemDoPortal(e: unknown): string | null {
   const texto =
     e instanceof Error ? e.message : ((e as { message?: string } | null)?.message ?? "");
@@ -165,6 +172,8 @@ export function mensagemDoPortal(e: unknown): string | null {
     titulo_obrigatorio: "Escreva o que você precisa (pelo menos 2 letras).",
     aprovacao_inexistente: "Essa entrega não está mais disponível.",
     pendencia_inexistente: "Essa pendência não está mais disponível.",
+    sem_permissao_financeiro:
+      "Valores e serviços adicionais ficam com o responsável pelo contrato na sua empresa.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;

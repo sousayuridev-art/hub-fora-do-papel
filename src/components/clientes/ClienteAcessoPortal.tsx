@@ -8,9 +8,13 @@ import {
   chavesAcessoPortal,
   convidarParaPortal,
   mensagemDoAcesso,
+  mudarPerfil,
+  nomeDoPerfil,
   removerAcesso,
   type AcessosPortal,
+  type PerfilPortal,
 } from "@/lib/acessoPortal";
+import { EscolhaPerfil } from "@/components/clientes/EscolhaPerfil";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { diaMes, linkWhatsapp } from "@/lib/formatar";
 import { useSession } from "@/hooks/useSession";
@@ -39,11 +43,25 @@ export function ClienteAcessoPortal({
   const dados = useQuery({ queryKey: chave, queryFn: () => acessosDoPortal(clienteId) });
   const [email, setEmail] = useState(emailSugerido ?? "");
   const [confirmar, setConfirmar] = useState<string | null>(null);
+  const [perfil, setPerfil] = useState<PerfilPortal>("equipe");
+  const [podeAprovar, setPodeAprovar] = useState(true);
+  // O primeiro acesso de uma empresa é de quem contratou (o banco também exige: CX-0).
+  const semResponsavel =
+    dados.data !== undefined &&
+    !dados.data.pessoas.some((p) => p.perfil === "responsavel") &&
+    !dados.data.convites.some((c) => c.perfil === "responsavel");
+  const perfilDoConvite: PerfilPortal = semResponsavel ? "responsavel" : perfil;
   const falhou = (e: unknown) => mensagemDoAcesso(e) ?? mensagemDeErro(e);
   const recarregar = () => void qc.invalidateQueries({ queryKey: chave });
 
   const convidar = useMutation({
-    mutationFn: (v: string) => convidarParaPortal(clienteId, v),
+    mutationFn: (v: string) =>
+      convidarParaPortal(
+        clienteId,
+        v,
+        perfilDoConvite,
+        perfilDoConvite === "responsavel" || podeAprovar,
+      ),
     onMutate: async (v) => {
       await qc.cancelQueries({ queryKey: chave });
       const antes = qc.getQueryData<AcessosPortal>(chave);
@@ -56,6 +74,8 @@ export function ClienteAcessoPortal({
               email: v.toLowerCase(),
               enviado_em: new Date().toISOString(),
               vale_ate: "",
+              perfil: perfilDoConvite,
+              pode_aprovar: perfilDoConvite === "responsavel" || podeAprovar,
             },
             ...antes.convites,
           ],
@@ -76,6 +96,29 @@ export function ClienteAcessoPortal({
     mutationFn: cancelarConvite,
     onSuccess: () => ok("Convite cancelado."),
     onError: (e, v) => erro(falhou(e), { tentarDeNovo: () => cancelar.mutate(v) }),
+    onSettled: recarregar,
+  });
+  // Troca de perfil com atualização otimista; o banco recusa deixar a empresa sem responsável.
+  const trocar = useMutation({
+    mutationFn: (v: { usuario: string; perfil: PerfilPortal }) =>
+      mudarPerfil(clienteId, v.usuario, v.perfil, true),
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: chave });
+      const antes = qc.getQueryData<AcessosPortal>(chave);
+      if (antes)
+        qc.setQueryData<AcessosPortal>(chave, {
+          ...antes,
+          pessoas: antes.pessoas.map((p) =>
+            p.user_id === v.usuario ? { ...p, perfil: v.perfil, pode_aprovar: true } : p,
+          ),
+        });
+      return { antes };
+    },
+    onSuccess: (r) => ok(`Perfil alterado para ${nomeDoPerfil[r.perfil].toLowerCase()}.`),
+    onError: (e, v, ctx) => {
+      if (ctx?.antes) qc.setQueryData(chave, ctx.antes);
+      erro(falhou(e), { tentarDeNovo: () => trocar.mutate(v) });
+    },
     onSettled: recarregar,
   });
   const remover = useMutation({
@@ -122,9 +165,28 @@ export function ClienteAcessoPortal({
               className="flex items-center gap-2 rounded-xl bg-sit-ok px-3 py-2 text-sit-ok-t"
             >
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[14.5px] font-medium">{p.email}</span>
-                <span className="text-[13px]">Entra desde {diaMes(p.desde)}</span>
+                <span className="block truncate text-[14.5px] font-medium">
+                  {p.nome ?? p.email}
+                </span>
+                <span className="text-[13px]">
+                  Entra desde {diaMes(p.desde)}
+                  {p.perfil === "equipe" && !p.pode_aprovar ? ". Não aprova entregas" : ""}
+                </span>
               </span>
+              <label className="sr-only" htmlFor={`perfil-${p.user_id}`}>
+                Perfil de {p.nome ?? p.email}
+              </label>
+              <select
+                id={`perfil-${p.user_id}`}
+                value={p.perfil}
+                onChange={(e) =>
+                  trocar.mutate({ usuario: p.user_id, perfil: e.target.value as PerfilPortal })
+                }
+                className="h-11 rounded-lg border border-current/20 bg-white/70 px-2 text-[13.5px] font-medium text-hub-tinta"
+              >
+                <option value="responsavel">{nomeDoPerfil.responsavel}</option>
+                <option value="equipe">{nomeDoPerfil.equipe}</option>
+              </select>
               {confirmar === p.user_id ? (
                 <button
                   type="button"
@@ -152,7 +214,7 @@ export function ClienteAcessoPortal({
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[14.5px] font-medium">{c.email}</span>
                 <span className="text-[13px]">
-                  Convidado em {diaMes(c.enviado_em)}
+                  {nomeDoPerfil[c.perfil]}. Convidado em {diaMes(c.enviado_em)}
                   {c.vale_ate ? ` · vale até ${diaMes(c.vale_ate)}` : ""}
                 </span>
               </span>
@@ -217,6 +279,24 @@ export function ClienteAcessoPortal({
             <Mail className="size-4" aria-hidden="true" /> Convidar
           </button>
         </div>
+        {semResponsavel ? (
+          <p className="rounded-xl bg-sit-atencao px-3 py-2 text-[13px] text-sit-atencao-t">
+            O primeiro acesso é de quem contratou: entra como responsável pelo contrato. Depois você
+            convida a equipe.
+          </p>
+        ) : (
+          <EscolhaPerfil
+            valor={perfil}
+            aoMudar={setPerfil}
+            podeAprovar={podeAprovar}
+            aoMudarAprovar={setPodeAprovar}
+          />
+        )}
+        <p className="rounded-xl bg-hub-fundo px-3 py-2 text-[13px] text-hub-suave">
+          {perfilDoConvite === "equipe"
+            ? "Vai ver 4 abas: Início, Aprovações, Pedidos e Arquivos. Pagamentos, valores e serviços adicionais ficam escondidos."
+            : "Vai ver as 5 abas, inclusive Pagamentos, e poderá decidir serviços adicionais."}
+        </p>
       </form>
       <button
         type="button"

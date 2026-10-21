@@ -1,19 +1,20 @@
 import { Link } from "@tanstack/react-router";
 
-import { menuPortal } from "@/components/layout/navegacao";
+import type { SecaoPortal } from "@/components/layout/navegacao";
 import type { PendenciasPortal } from "@/hooks/usePendenciasPortal";
 
 /**
  * M1 · Barra de seções do portal, só no celular (até 767 px).
- * 5 abas com ícone e nome, 64 px + área segura. Some quando o teclado abre (regra em styles: .barra-fixa).
+ * 5 abas (responsável) ou 4 (equipe, sem Pagamentos: CX-0), com ícone e nome, 64 px + área segura. Some quando o teclado abre (regra em styles: .barra-fixa).
  */
-export function PortalTabs({ selos }: { selos: PendenciasPortal }) {
+export function PortalTabs({ selos, secoes }: { selos: PendenciasPortal; secoes: SecaoPortal[] }) {
   return (
     <nav
       aria-label="Seções do portal"
-      className="barra-fixa fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-hub-borda bg-white px-1 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-16px_rgba(14,16,19,0.18)] md:hidden"
+      style={{ gridTemplateColumns: `repeat(${secoes.length}, minmax(0, 1fr))` }}
+      className="barra-fixa fixed inset-x-0 bottom-0 z-40 grid border-t border-hub-borda bg-white px-1 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-16px_rgba(14,16,19,0.18)] md:hidden"
     >
-      {menuPortal.map((secao) => {
+      {secoes.map((secao) => {
         const Icone = secao.icone;
         const total = secao.selo ? selos[secao.selo] : 0;
         return (

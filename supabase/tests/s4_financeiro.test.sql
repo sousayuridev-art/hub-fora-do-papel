@@ -61,6 +61,8 @@ insert into t select 'diag', to_jsonb(id::text) from public.charges
  where deal_id = '30000000-0000-0000-0000-000000000001' and kind = 'diagnostico';
 
 -- ===== Yuri =====
+-- CX-0: quem tinha acesso antes dos perfis é responsável pelo contrato (quem não aprova fica como equipe)
+update public.client_members set profile = 'responsavel' where can_approve;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
 insert into t select 'p1', to_jsonb((select id from public.charges where proposal_id = '40000000-0000-0000-0000-000000000001' and sequence = 1)::text);

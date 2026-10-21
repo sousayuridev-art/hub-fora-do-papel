@@ -50,6 +50,8 @@ select ok(not exists (select 1 from pg_class c join pg_namespace n on n.oid = c.
                          and has_table_privilege('authenticated', c.oid, 'TRUNCATE')),
   'Nenhuma tabela aceita TRUNCATE de quem está logado');
 
+-- CX-0: quem tinha acesso antes dos perfis é responsável pelo contrato (quem não aprova fica como equipe)
+update public.client_members set profile = 'responsavel' where can_approve;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
 

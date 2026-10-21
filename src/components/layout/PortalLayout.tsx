@@ -1,14 +1,11 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-
-import { supabase } from "@/lib/supabase";
-import { useAccess } from "@/hooks/useAccess";
 import { cn } from "@/lib/utils";
 import { Simbolo } from "@/components/layout/Marca";
 import { ContaPortal } from "@/components/layout/ContaPortal";
 import { PortalTabs } from "@/components/layout/PortalTabs";
-import { menuPortal } from "@/components/layout/navegacao";
+import { secoesDoPortal } from "@/components/layout/navegacao";
+import { useEmpresaPortal } from "@/hooks/useEmpresaPortal";
 import { usePendenciasPortal } from "@/hooks/usePendenciasPortal";
 
 type Props = {
@@ -17,27 +14,14 @@ type Props = {
   barraDeAcao?: ReactNode;
 };
 
-/** Nome da empresa do cliente logado (RPC portal_minha_empresa: só campos públicos da própria empresa). */
-function useEmpresaDoCliente(clientId: string | null) {
-  return useQuery({
-    queryKey: ["clientes", clientId, "nome"],
-    enabled: Boolean(clientId),
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("portal_minha_empresa");
-      if (error) throw error;
-      return ((data as { empresa?: string } | null)?.empresa ?? "") as string;
-    },
-  });
-}
-
 /**
  * Casca do portal do cliente (card P-portal-celular, itens M1, M2, M11 e M13).
  * Computador: menu no cabeçalho. Celular (até 767 px): cabeçalho de 56 px e abas embaixo.
  */
 export function PortalLayout({ children, barraDeAcao }: Props) {
-  const { acesso } = useAccess();
-  const empresa = useEmpresaDoCliente(acesso?.clientId ?? null);
+  const empresa = useEmpresaPortal();
   const selos = usePendenciasPortal();
+  const secoes = secoesDoPortal(empresa.data?.perfil ?? null);
 
   return (
     <div className="min-h-dvh bg-portal-fundo text-hub-tinta">
@@ -50,12 +34,12 @@ export function PortalLayout({ children, barraDeAcao }: Props) {
             </span>
             <span aria-hidden="true" className="hidden h-5 w-px bg-hub-borda md:block" />
             <span className="truncate text-[15px] font-semibold text-hub-tinta md:font-medium md:text-[#3A3F47]">
-              {empresa.data ?? ""}
+              {empresa.data?.empresa ?? ""}
             </span>
           </div>
 
           <nav aria-label="Portal" className="hidden items-center gap-1 md:flex">
-            {menuPortal.map((secao) => {
+            {secoes.map((secao) => {
               const total = secao.selo ? selos[secao.selo] : 0;
               return (
                 <Link
@@ -93,7 +77,7 @@ export function PortalLayout({ children, barraDeAcao }: Props) {
         {children}
       </main>
 
-      {barraDeAcao ?? <PortalTabs selos={selos} />}
+      {barraDeAcao ?? <PortalTabs selos={selos} secoes={secoes} />}
     </div>
   );
 }

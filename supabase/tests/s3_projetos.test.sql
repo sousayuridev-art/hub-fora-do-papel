@@ -75,6 +75,8 @@ select is((select count(*) from public.event_outbox where event = 'projeto.criad
                 and payload->>'proposta_id' = '40000000-0000-0000-0000-000000000001')::int, 1, 'Evento projeto.criado para o n8n');
 
 -- ===== Yuri (dono) =====
+-- CX-0: quem tinha acesso antes dos perfis é responsável pelo contrato (quem não aprova fica como equipe)
+update public.client_members set profile = 'responsavel' where can_approve;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
 
@@ -112,7 +114,7 @@ select is((select (public.pedido_classificar((select (valor->>'id')::uuid from t
 
 insert into t select 'otica', public.projeto_criar('20000000-0000-0000-0000-000000000001', 'Site da ótica', 1650000, 50);
 insert into t select 'ap_otica', public.aprovacao_pedir((select (valor->>'id')::uuid from t where chave = 'otica'), 'Catálogo');
-select lives_ok($$ select public.portal_convidar('20000000-0000-0000-0000-000000000001', ' bruno@otica.test ') $$, 'Convite por e-mail');
+select lives_ok($$ select public.portal_convidar('20000000-0000-0000-0000-000000000001', ' bruno@otica.test ', 'responsavel') $$, 'Convite por e-mail');
 select throws_ok($$ select public.portal_convidar('20000000-0000-0000-0000-000000000001', 'yuri@foradopapel.test') $$,
   '22023', null, 'E-mail de dono não vira cliente');
 

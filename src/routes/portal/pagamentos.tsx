@@ -14,6 +14,7 @@ import {
   avisarPagamento,
   chavePagamentos,
   pagamentosDoPortal,
+  semPermissaoFinanceira,
   type PagamentosPortal,
 } from "@/lib/portal";
 
@@ -24,7 +25,11 @@ export const Route = createFileRoute("/portal/pagamentos")({
 
 function Pagamentos() {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: chavePagamentos, queryFn: pagamentosDoPortal });
+  const q = useQuery({
+    queryKey: chavePagamentos,
+    queryFn: pagamentosDoPortal,
+    retry: (n, e) => !semPermissaoFinanceira(e) && n < 2,
+  });
   const [escolhida, setEscolhida] = useState<string | null>(null);
   const avisar = useMutation({
     mutationFn: avisarPagamento,
@@ -50,6 +55,17 @@ function Pagamentos() {
     onSettled: () => void qc.invalidateQueries({ queryKey: ["portal"] }),
   });
 
+  // Equipe não tem Pagamentos (CX-0): o banco recusa e a tela explica, sem tentar de novo.
+  if (q.isError && semPermissaoFinanceira(q.error))
+    return (
+      <div className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-white p-6">
+        <h1 className="font-titulo text-[22px] font-bold">Pagamentos ficam com o responsável</h1>
+        <p className="text-[15px] text-hub-suave">
+          Seu acesso é de equipe. Valores, cobranças e recibos aparecem só para quem é responsável
+          pelo contrato na sua empresa.
+        </p>
+      </div>
+    );
   if (q.isError)
     return (
       <EstadoErro

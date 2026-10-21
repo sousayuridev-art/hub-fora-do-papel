@@ -46,7 +46,7 @@ Lidas pelo Claude Code em todo pedido. Cards em `docs/cards/`; cite o card no pe
 
 ## Portal do cliente no celular (até 767 px; acima disso nada muda)
 - Detalhes e medidas: `docs/cards/P-portal-celular.md`. Tudo com prefixo `max-md:` ou dentro de `@media (max-width: 767px)`.
-- Cabeçalho de 56 px fixo no topo (logo + nome da empresa + avatar). O menu vira `PortalTabs` embaixo: 5 abas com ícone e nome, 64 px + área segura.
+- Cabeçalho de 56 px fixo no topo (logo + nome da empresa + avatar). O menu vira `PortalTabs` embaixo: 5 abas para o responsável pelo contrato e 4 para a equipe (sem Pagamentos, card CX-0), com ícone e nome, 64 px + área segura.
 - Telas de decisão (Proposta, Serviço adicional) trocam as abas por `ActionBar` (valor + botão). O botão leva ao bloco de aceite; nunca aceita direto.
 - Barras fixas somem com o teclado aberto; a página reserva espaço embaixo para elas.
 - Títulos: h1 28 px, h2 20 px; nenhum texto abaixo de 12,5 px. Campos com 16 px e `inputMode`/`autoComplete` corretos.

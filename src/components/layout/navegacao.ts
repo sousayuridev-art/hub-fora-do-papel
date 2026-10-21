@@ -70,12 +70,27 @@ export const itemConfiguracoes: ItemMenu = {
 };
 
 /** Seções do portal do cliente (menu de cima no computador, abas embaixo no celular). */
-export type SecaoPortal = ItemMenu & { selo?: "inicio" | "aprovacoes" | "pagamentos" | "arquivos" };
+export type SecaoPortal = ItemMenu & {
+  selo?: "inicio" | "aprovacoes" | "pagamentos" | "arquivos";
+  /** Só para o responsável pelo contrato (CX-0). A equipe vê 4 abas. */
+  soResponsavel?: true;
+};
 
 export const menuPortal: SecaoPortal[] = [
   { rotulo: "Início", para: "/portal", icone: Home, exato: true, selo: "inicio" },
   { rotulo: "Aprovações", para: "/portal/aprovacoes", icone: CheckSquare, selo: "aprovacoes" },
   { rotulo: "Pedidos", para: "/portal/pedidos", icone: MessageSquarePlus },
-  { rotulo: "Pagamentos", para: "/portal/pagamentos", icone: CreditCard, selo: "pagamentos" },
+  {
+    rotulo: "Pagamentos",
+    para: "/portal/pagamentos",
+    icone: CreditCard,
+    selo: "pagamentos",
+    soResponsavel: true,
+  },
   { rotulo: "Arquivos", para: "/portal/arquivos", icone: Folder, selo: "arquivos" },
 ];
+
+/** Abas que este perfil vê. Sem perfil ainda (carregando), Pagamentos fica de fora. */
+export function secoesDoPortal(perfil: "responsavel" | "equipe" | null): SecaoPortal[] {
+  return menuPortal.filter((s) => !s.soResponsavel || perfil === "responsavel");
+}
