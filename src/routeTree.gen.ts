@@ -22,6 +22,7 @@ import { Route as AppPedidosRouteImport } from './routes/app/pedidos'
 import { Route as AppPipelineRouteImport } from './routes/app/pipeline'
 import { Route as AppPropostasRouteImport } from './routes/app/propostas'
 import { Route as AppRelatoriosRouteImport } from './routes/app/relatorios'
+import { Route as AppReunioesRouteImport } from './routes/app/reunioes'
 import { Route as AppTrafegoRouteImport } from './routes/app/trafego'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
@@ -100,6 +101,11 @@ const AppPropostasRoute = AppPropostasRouteImport.update({
 const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReunioesRoute = AppReunioesRouteImport.update({
+  id: '/reunioes',
+  path: '/reunioes',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTrafegoRoute = AppTrafegoRouteImport.update({
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/propostas': typeof AppPropostasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/reunioes': typeof AppReunioesRoute
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/propostas': typeof AppPropostasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/reunioes': typeof AppReunioesRoute
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
@@ -243,6 +251,7 @@ export interface FileRoutesById {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/propostas': typeof AppPropostasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/reunioes': typeof AppReunioesRoute
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/propostas'
     | '/app/relatorios'
+    | '/app/reunioes'
     | '/app/trafego'
     | '/auth/callback'
     | '/portal/aprovacoes'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/propostas'
     | '/app/relatorios'
+    | '/app/reunioes'
     | '/app/trafego'
     | '/auth/callback'
     | '/portal/aprovacoes'
@@ -330,6 +341,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/propostas'
     | '/app/relatorios'
+    | '/app/reunioes'
     | '/app/trafego'
     | '/auth/callback'
     | '/portal/aprovacoes'
@@ -452,6 +464,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRelatoriosRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/reunioes': {
+      id: '/app/reunioes'
+      path: '/reunioes'
+      fullPath: '/app/reunioes'
+      preLoaderRoute: typeof AppReunioesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/trafego': {
       id: '/app/trafego'
       path: '/trafego'
@@ -561,6 +580,7 @@ interface AppRouteChildren {
   AppPipelineRoute: typeof AppPipelineRoute
   AppPropostasRoute: typeof AppPropostasRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
+  AppReunioesRoute: typeof AppReunioesRoute
   AppTrafegoRoute: typeof AppTrafegoRoute
   AppIndexRoute: typeof AppIndexRoute
   AppClientesIdRoute: typeof AppClientesIdRoute
@@ -577,6 +597,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPipelineRoute: AppPipelineRoute,
   AppPropostasRoute: AppPropostasRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
+  AppReunioesRoute: AppReunioesRoute,
   AppTrafegoRoute: AppTrafegoRoute,
   AppIndexRoute: AppIndexRoute,
   AppClientesIdRoute: AppClientesIdRoute,

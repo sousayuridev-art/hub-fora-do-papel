@@ -59,6 +59,12 @@ jobs:
         if: inputs.modo == 'aplicar'
         run: supabase db push --password "$SUPABASE_DB_PASSWORD"
 
+      # Card RE-1: função do Google Meet. Sem verificação de JWT porque o Google chama /retorno;
+      # as rotas do dono conferem o login dentro da função.
+      - name: Publicar funções de servidor
+        if: inputs.modo == 'aplicar'
+        run: supabase functions deploy reunioes-google --project-ref "$PROJECT_REF" --no-verify-jwt --use-api
+
       - name: Situação depois de aplicar
         if: inputs.modo == 'aplicar'
         run: supabase migration list --password "$SUPABASE_DB_PASSWORD"

@@ -16,6 +16,7 @@ import { ClienteAcessoPortal } from "@/components/clientes/ClienteAcessoPortal";
 import { ClienteFinanceiro } from "@/components/clientes/ClienteFinanceiro";
 import { ClienteAnotacoes } from "@/components/clientes/ClienteAnotacoes";
 import { ClienteLinhaDoTempo } from "@/components/clientes/ClienteLinhaDoTempo";
+import { ClienteReunioes } from "@/components/clientes/ClienteReunioes";
 import { EditarClientePainel } from "@/components/clientes/EditarClientePainel";
 import { ValorDiagnosticoPainel } from "@/components/clientes/ValorDiagnosticoPainel";
 import { ArquivarPainel } from "@/components/funil/ArquivarPainel";
@@ -31,7 +32,7 @@ import {
 } from "@/lib/funil";
 import { cn } from "@/lib/utils";
 
-const busca = z.object({ aba: z.enum(["visao", "linha"]).optional().catch(undefined) });
+const busca = z.object({ aba: z.enum(["visao", "linha", "reunioes"]).optional().catch(undefined) });
 
 export const Route = createFileRoute("/app/clientes/$id")({
   validateSearch: busca,
@@ -97,6 +98,7 @@ function Ficha() {
   const abas = [
     { id: "visao" as const, rotulo: "Visão geral" },
     { id: "linha" as const, rotulo: "Linha do tempo", contagem: linha.data?.length },
+    { id: "reunioes" as const, rotulo: "Reuniões" },
   ];
 
   return (
@@ -134,7 +136,9 @@ function Ficha() {
         ))}
       </div>
 
-      {aba === "linha" ? (
+      {aba === "reunioes" ? (
+        <ClienteReunioes clienteId={c.id} />
+      ) : aba === "linha" ? (
         linha.isError ? (
           <EstadoErro
             titulo="Não foi possível carregar a linha do tempo"

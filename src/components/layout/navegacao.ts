@@ -14,6 +14,7 @@ import {
   MessageSquarePlus,
   Settings,
   Users,
+  Video,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
@@ -39,6 +40,7 @@ export const menuOperador: GrupoMenu[] = [
     itens: [
       { rotulo: "Funil de vendas", para: "/app/pipeline", icone: KanbanSquare },
       { rotulo: "Clientes", para: "/app/clientes", icone: Users },
+      { rotulo: "Reuniões", para: "/app/reunioes", icone: Video },
       { rotulo: "Propostas", para: "/app/propostas", icone: FileText },
       { rotulo: "Tráfego pago", para: "/app/trafego", icone: Megaphone },
     ],
