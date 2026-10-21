@@ -42,12 +42,13 @@ Decididas em 21/10/2026. Valem para o Hub, o site e todo sistema de cliente.
 - Piloto: pode usar o crédito da Fora do Papel, com teto.
 - Produção em cliente: o custo de IA entra no preço (franquia dentro da mensalidade) ou a chave fica em nome do cliente, pagando direto. A proposta e o contrato dizem qual dos dois.
 
-## Crédito promocional de US$ 100 (outubro de 2026)
-Ver no Console (Billing) se tem data de vencimento; se tiver, priorizar o que entra em uso antes.
+## Crédito promocional de US$ 100 (vence em 17/11/2026)
+Crédito que vence não deve ser gasto à força: só no que entra em uso ou gera número para preço.
+Pela estimativa (cerca de R$ 0,80 por reunião de 1 hora com Sonnet), o uso real até 17/11 deve ficar bem abaixo de US$ 100. O que sobrar vence.
 
-| Workspace | Limite | Para quê |
-| --- | --- | --- |
-| `fdp-hub` | US$ 40 | Reuniões no Hub (cards RE-2 a RE-4) |
-| `cli-junior` | US$ 30 | Piloto da IA de agendamento pelo WhatsApp; medir custo por conversa para a mensalidade |
-| `cli-plamev` | US$ 10 | Classificação automática de solicitações (Haiku) |
-| `fdp-demos` | US$ 20 | Demonstrações de venda e testes de instruções |
+| Workspace | Limite | Para quê | Até 17/11 |
+| --- | --- | --- | --- |
+| `fdp-hub` | US$ 40 | Reuniões no Hub (RE-1 e RE-2) | Prioridade 1: no ar até 10/11, rodando nas reuniões reais |
+| `fdp-demos` | US$ 30 | Testar as instruções das reuniões com transcrições antigas e montar demonstrações de venda | Prioridade 2: começa já, antes do RE-2 ficar pronto |
+| `cli-junior` | US$ 20 | Piloto do agendamento pelo WhatsApp, medindo custo por conversa | Se o projeto do Junior estiver pronto para piloto |
+| `cli-plamev` | US$ 10 | Classificação automática das solicitações (Haiku) | Se o componente Solicitações sair antes |
