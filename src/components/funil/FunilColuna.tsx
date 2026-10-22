@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 const LIMITE = 50;
 
-/** Coluna do funil: título, quantidade, soma e cartões. Recebe cartões arrastados. */
+/** Coluna do funil: barra de cor, título, quantidade, descrição e soma; recebe cartões arrastados. */
 export function FunilColuna({
   etapa,
   rotulo,
@@ -17,6 +17,9 @@ export function FunilColuna({
   aoSoltar,
   aoAgir,
   arrastavel,
+  descricao,
+  cor,
+  primeira = false,
 }: {
   etapa: Etapa;
   rotulo: string;
@@ -26,6 +29,11 @@ export function FunilColuna({
   aoSoltar: (idOportunidade: string, etapa: Etapa) => void;
   aoAgir: (acao: AcaoCartao, o: Oportunidade) => void;
   arrastavel: boolean;
+  /** Descrição curta da etapa (formato dos quadros, RD-0). */
+  descricao: string;
+  /** Cor da barra do topo. */
+  cor: string;
+  primeira?: boolean;
 }) {
   const [sobre, setSobre] = useState(false);
   const [todos, setTodos] = useState(false);
@@ -47,28 +55,38 @@ export function FunilColuna({
         if (id) aoSoltar(id, etapa);
       }}
       className={cn(
-        "flex min-w-0 flex-col gap-2.5 rounded-2xl p-2.5 transition-colors",
-        etapa === "fechado" ? "bg-[#E8EFE9]" : "bg-coluna",
-        sobre && "outline-2 outline-dashed outline-[#1E3FA8]",
+        // Mesmo formato dos outros quadros (RD-0): fio entre colunas, barra de cor no topo.
+        "flex w-[82vw] max-w-[340px] shrink-0 snap-start flex-col gap-2.5 rounded-xl px-3 pb-2 transition-colors md:w-[280px] md:max-w-none xl:w-auto xl:px-4",
+        !primeira && "border-l border-hub-borda",
+        sobre && "bg-[#EEF2FC] outline-2 outline-dashed outline-[#1E3FA8]",
       )}
     >
-      <header className="flex flex-col gap-0.5 px-1.5 pb-1 pt-1.5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold">{rotulo}</h2>
-          <span className="flex size-6 items-center justify-center rounded-full bg-white text-[12.5px] font-semibold tabular-nums">
+      <span aria-hidden="true" className="h-[3px] rounded-full" style={{ background: cor }} />
+      <header className="flex flex-col gap-0.5 px-0.5 pb-1 pt-1.5">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="text-[15.5px] font-semibold">{rotulo}</h2>
+          <span className="text-[14px] font-semibold tabular-nums text-[#4A4D54]">
             {quantidade}
           </span>
         </div>
-        <span className="font-rotulo text-[13px] text-hub-suave tabular-nums">
-          {somaCents > 0 ? moeda(somaCents) : "Sem valor ainda"}
+        <span className="text-[12.5px] text-hub-suave">
+          {descricao}
+          {somaCents > 0 && (
+            <>
+              {" · "}
+              <b className="font-semibold whitespace-nowrap text-hub-tinta tabular-nums">
+                {moeda(somaCents)}
+              </b>
+            </>
+          )}
         </span>
       </header>
       {visiveis.map((o) => (
         <FunilCartao key={o.id} o={o} aoAgir={aoAgir} arrastavel={arrastavel} />
       ))}
       {itens.length === 0 && (
-        <p className="rounded-xl border border-dashed border-[#D6D6CF] px-3 py-6 text-center text-[13.5px] text-hub-suave">
-          Nenhuma oportunidade aqui.
+        <p className="flex min-h-16 items-center justify-center rounded-2xl border border-dashed border-[#D6D6CF] px-3 text-center text-[14px] text-hub-suave">
+          Nada por aqui
         </p>
       )}
       {!todos && itens.length > LIMITE && (

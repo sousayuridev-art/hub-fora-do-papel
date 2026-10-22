@@ -1,14 +1,24 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { FunilColuna } from "@/components/funil/FunilColuna";
 import type { AcaoCartao } from "@/components/funil/FunilCartao";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { corColuna } from "@/lib/estilos";
 import { etapas, type Etapa, type Oportunidade, type ResumoFunil } from "@/lib/funil";
-import { cn } from "@/lib/utils";
+
+/** Cor e descrição de cada etapa, no formato dos outros quadros (RD-0). */
+const visualEtapa: Record<Etapa, { cor: string; descricao: string }> = {
+  contato: { cor: corColuna.neutro, descricao: "Primeira conversa" },
+  diagnostico: { cor: corColuna.info, descricao: "Entendendo o problema" },
+  mapeamento: { cor: corColuna.info, descricao: "Desenhando a solução" },
+  proposta: { cor: corColuna.atencao, descricao: "Esperando resposta" },
+  fechado: { cor: corColuna.ok, descricao: "Viraram cliente" },
+};
 
 /**
- * Quadro do funil. Computador: 5 colunas, arrastar entre elas.
- * Celular: uma etapa por vez, em abas; "Mover para" fica no menu do cartão.
+ * Quadro do funil. Computador largo: 5 colunas separadas por fio, arrastar entre elas.
+ * Telas menores: as colunas rolam de lado com encaixe (como Propostas e Tarefas);
+ * no celular, "Mover para" fica no menu do cartão.
  */
 export function FunilQuadro({
   itens,
@@ -24,7 +34,6 @@ export function FunilQuadro({
   arquivados: boolean;
 }) {
   const celular = useIsMobile();
-  const [aba, setAba] = useState<Etapa>("contato");
   const porEtapa = useMemo(() => {
     const mapa = new Map<Etapa, Oportunidade[]>(etapas.map((e) => [e.id, []]));
     for (const o of itens) mapa.get(o.stage)?.push(o);
@@ -36,56 +45,24 @@ export function FunilQuadro({
     if (o && o.stage !== etapa) aoSoltar(o, etapa);
   };
 
-  const coluna = (e: (typeof etapas)[number]) => (
-    <FunilColuna
-      key={e.id}
-      etapa={e.id}
-      rotulo={e.rotulo}
-      itens={porEtapa.get(e.id) ?? []}
-      quantidade={resumo?.etapas[e.id]?.quantidade ?? porEtapa.get(e.id)?.length ?? 0}
-      somaCents={resumo?.etapas[e.id]?.soma_cents ?? 0}
-      aoSoltar={soltar}
-      aoAgir={aoAgir}
-      arrastavel={!celular && !arquivados}
-    />
-  );
-
-  if (celular) {
-    const atual = etapas.find((e) => e.id === aba) ?? etapas[0];
-    return (
-      <div className="flex flex-col gap-3">
-        <div
-          role="tablist"
-          aria-label="Etapas do funil"
-          className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1"
-        >
-          {etapas.map((e) => (
-            <button
-              key={e.id}
-              role="tab"
-              type="button"
-              aria-selected={aba === e.id}
-              onClick={() => setAba(e.id)}
-              className={cn(
-                "flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3.5 text-[14px] font-medium",
-                aba === e.id
-                  ? "border-hub-tinta bg-hub-tinta text-white"
-                  : "border-hub-borda bg-white",
-              )}
-            >
-              {e.rotulo}
-              <span className="tabular-nums opacity-70">{porEtapa.get(e.id)?.length ?? 0}</span>
-            </button>
-          ))}
-        </div>
-        {atual && coluna(atual)}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-5 items-start gap-3 max-xl:-mx-8 max-xl:grid-cols-[repeat(5,minmax(230px,1fr))] max-xl:overflow-x-auto max-xl:px-8 max-xl:pb-2">
-      {etapas.map(coluna)}
+    <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 items-stretch overflow-x-auto px-4 pb-2 md:-mx-8 md:scroll-px-8 md:px-8 xl:mx-0 xl:grid xl:grid-cols-5 xl:overflow-visible xl:px-0">
+      {etapas.map((e, i) => (
+        <FunilColuna
+          key={e.id}
+          etapa={e.id}
+          rotulo={e.rotulo}
+          descricao={visualEtapa[e.id].descricao}
+          cor={visualEtapa[e.id].cor}
+          primeira={i === 0}
+          itens={porEtapa.get(e.id) ?? []}
+          quantidade={resumo?.etapas[e.id]?.quantidade ?? porEtapa.get(e.id)?.length ?? 0}
+          somaCents={resumo?.etapas[e.id]?.soma_cents ?? 0}
+          aoSoltar={soltar}
+          aoAgir={aoAgir}
+          arrastavel={!celular && !arquivados}
+        />
+      ))}
     </div>
   );
 }
