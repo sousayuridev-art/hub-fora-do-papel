@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { z } from "zod";
@@ -79,8 +79,28 @@ function Propostas() {
   return (
     <div className="flex flex-col gap-5">
       <CabecalhoPagina
-        grupo="Vender"
+        grupo={id ? undefined : "Vender"}
         titulo="Propostas"
+        voltarPara="/app/propostas"
+        migalha={
+          id ? (
+            <nav aria-label="Trilha" className="flex min-w-0 items-center">
+              <Link
+                to="/app/propostas"
+                search={{}}
+                className="shrink-0 hover:text-hub-tinta hover:underline"
+              >
+                Propostas
+              </Link>
+              <span aria-hidden="true" className="shrink-0">
+                &nbsp;›&nbsp;
+              </span>
+              <span className="truncate text-hub-tinta" aria-current="page">
+                {detalhe.data?.cliente.empresa ?? "Proposta"}
+              </span>
+            </nav>
+          ) : undefined
+        }
         acao={
           <button
             type="button"
@@ -107,6 +127,7 @@ function Propostas() {
               aoFiltrarSemAbrir={() =>
                 void navigate({
                   search: (s) => ({ ...s, filtro: semAbrir ? undefined : "sem_abrir" }),
+                  replace: true,
                 })
               }
             />
@@ -127,7 +148,9 @@ function Propostas() {
               cartoes={quadro.data}
               r={resumo.data}
               filtroSemAbrir={semAbrir}
-              aoLimparFiltro={() => void navigate({ search: (s) => ({ ...s, filtro: undefined }) })}
+              aoLimparFiltro={() =>
+                void navigate({ search: (s) => ({ ...s, filtro: undefined }), replace: true })
+              }
             />
           )}
         </>
@@ -140,7 +163,9 @@ function Propostas() {
             aoTentarDeNovo={() => void quadro.refetch()}
             r={resumo.data}
             aba={aba}
-            aoEscolherAba={(novaAba) => void navigate({ search: (s) => ({ ...s, aba: novaAba }) })}
+            aoEscolherAba={(novaAba) =>
+              void navigate({ search: (s) => ({ ...s, aba: novaAba }), replace: true })
+            }
             selecionada={id}
             recolhida={recolhida}
             aoAlternar={alternarLista}

@@ -78,8 +78,9 @@ function Pedidos() {
   }, [lista.data, aba, cliente, termo]);
 
   const aberto = pedido ? ((lista.data ?? []).find((p) => p.id === pedido) ?? null) : null;
+  // Abrir ou fechar um pedido cria entrada: o Voltar do celular fecha o painel (RD-9)
   const abrir = (id: string | undefined) =>
-    void navigate({ search: (s) => ({ ...s, pedido: id }), replace: true });
+    void navigate({ search: (s) => ({ ...s, pedido: id }) });
   const r = resumo.data;
 
   return (

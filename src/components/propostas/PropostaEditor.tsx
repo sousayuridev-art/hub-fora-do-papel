@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CalendarDays, Check, CloudOff, Loader2, UserRound } from "lucide-react";
+import { CalendarDays, Check, CloudOff, Loader2, UserRound } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
 import { AcoesEnviada } from "@/components/propostas/AcoesEnviada";
@@ -167,13 +167,6 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
     <div className="grid gap-4 @min-[960px]:grid-cols-[minmax(0,1fr)_340px]">
       <div className="flex min-w-0 flex-col gap-4">
         <header className="flex flex-col gap-2 rounded-2xl border border-hub-borda bg-white p-5">
-          <Link
-            to="/app/propostas"
-            search={{}}
-            className="inline-flex min-h-11 items-center gap-1.5 self-start text-[14px] text-hub-suave hover:text-hub-tinta lg:hidden"
-          >
-            <ArrowLeft className="size-4" aria-hidden="true" /> Todas as propostas
-          </Link>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-titulo text-[22px] font-bold leading-tight">
               <Link

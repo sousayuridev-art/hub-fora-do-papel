@@ -98,21 +98,21 @@ function Projetos() {
             </button>
           </div>
         }
+        abas={
+          <Abas<SituacaoProjeto>
+            rotulo="Situação dos projetos"
+            ativa={aba}
+            aoEscolher={mudarAba}
+            opcoes={(["andamento", "mensalidade", "concluido"] as const).map((id) => ({
+              id,
+              rotulo: rotuloSituacaoProjeto[id],
+              contagem: d?.contagem[id],
+            }))}
+          />
+        }
       />
 
       <ProjetosNumeros andamento={listaAndamento} aoVerAndamento={() => mudarAba("andamento")} />
-
-      <Abas<SituacaoProjeto>
-        rotulo="Situação dos projetos"
-        ativa={aba}
-        aoEscolher={mudarAba}
-        className="border-b border-hub-borda"
-        opcoes={(["andamento", "mensalidade", "concluido"] as const).map((id) => ({
-          id,
-          rotulo: rotuloSituacaoProjeto[id],
-          contagem: d?.contagem[id],
-        }))}
-      />
 
       {lista.isError ? (
         <EstadoErro

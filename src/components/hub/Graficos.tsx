@@ -82,7 +82,7 @@ export function GraficoBarras({
       >
         <div
           aria-hidden="true"
-          className="flex flex-col justify-between pr-2 text-right text-[12px] tabular-nums text-hub-suave"
+          className="flex flex-col justify-between pr-2 text-right text-[12.5px] tabular-nums text-hub-suave"
           style={{ height: altura }}
         >
           <span className="-translate-y-2">{eixo(teto)}</span>
@@ -224,22 +224,22 @@ export function GraficoLinha({
 
   return (
     <figure className="m-0 flex flex-col gap-2" aria-describedby={tabelaId}>
-      <svg
-        viewBox={`0 0 ${W} ${H + 4}`}
-        className="h-auto w-full overflow-visible"
-        aria-hidden="true"
-      >
-        <line x1="0" y1={H} x2={W} y2={H} stroke="#D6D6CF" strokeWidth="1" />
-        <line
-          x1="0"
-          y1={y(teto / 2)}
-          x2={W}
-          y2={y(teto / 2)}
-          stroke="#ECECE6"
-          strokeDasharray="3 3"
-        />
-        {referencia && (
-          <>
+      <div className="relative">
+        <svg
+          viewBox={`0 0 ${W} ${H + 4}`}
+          className="h-auto w-full overflow-visible"
+          aria-hidden="true"
+        >
+          <line x1="0" y1={H} x2={W} y2={H} stroke="#D6D6CF" strokeWidth="1" />
+          <line
+            x1="0"
+            y1={y(teto / 2)}
+            x2={W}
+            y2={y(teto / 2)}
+            stroke="#ECECE6"
+            strokeDasharray="3 3"
+          />
+          {referencia && (
             <line
               x1="0"
               y1={y(referencia.valor)}
@@ -249,43 +249,47 @@ export function GraficoLinha({
               strokeWidth="1.5"
               strokeDasharray="5 4"
             />
-            <text
-              x={W}
-              y={y(referencia.valor) - 5}
-              textAnchor="end"
-              fontSize="11"
-              fill={referencia.cor ?? "#9A1C12"}
-            >
-              {referencia.rotulo}
-            </text>
-          </>
+          )}
+          {pontos.length > 1 && (
+            <polyline
+              points={pontos.map((pt, i) => `${x(i)},${y(pt.valor)}`).join(" ")}
+              fill="none"
+              stroke={cor}
+              strokeWidth="2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          )}
+          {p && (
+            <circle cx={x(alvo)} cy={y(p.valor)} r="4.5" fill={cor} stroke="#fff" strokeWidth="2" />
+          )}
+          {pontos.map((pt, i) => (
+            <rect
+              key={pt.rotulo}
+              x={x(i) - W / Math.max(2, pontos.length) / 2}
+              y="0"
+              width={W / Math.max(2, pontos.length)}
+              height={H}
+              fill="transparent"
+              onMouseEnter={() => setFoco(i)}
+              onMouseLeave={() => setFoco(null)}
+            />
+          ))}
+        </svg>
+        {referencia && (
+          // Rótulo da linha em HTML (não no SVG, que encolhe com a largura): fica sempre em 12,5 px
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-0 -translate-y-full pb-0.5 text-[12.5px] leading-none"
+            style={{
+              top: `${(y(referencia.valor) / (H + 4)) * 100}%`,
+              color: referencia.cor ?? "#9A1C12",
+            }}
+          >
+            {referencia.rotulo}
+          </span>
         )}
-        {pontos.length > 1 && (
-          <polyline
-            points={pontos.map((pt, i) => `${x(i)},${y(pt.valor)}`).join(" ")}
-            fill="none"
-            stroke={cor}
-            strokeWidth="2"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-        )}
-        {p && (
-          <circle cx={x(alvo)} cy={y(p.valor)} r="4.5" fill={cor} stroke="#fff" strokeWidth="2" />
-        )}
-        {pontos.map((pt, i) => (
-          <rect
-            key={pt.rotulo}
-            x={x(i) - W / Math.max(2, pontos.length) / 2}
-            y="0"
-            width={W / Math.max(2, pontos.length)}
-            height={H}
-            fill="transparent"
-            onMouseEnter={() => setFoco(i)}
-            onMouseLeave={() => setFoco(null)}
-          />
-        ))}
-      </svg>
+      </div>
       <div className="flex justify-between text-[12.5px] text-hub-suave">
         {pontos.map((pt, i) => (
           <span key={pt.rotulo} className={cn(i === alvo && "font-semibold text-hub-tinta")}>

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { MessageCircle, MoreHorizontal } from "lucide-react";
 
@@ -19,7 +20,16 @@ import { cn } from "@/lib/utils";
  * Cabeçalho da ficha (cards S1 e RD-1): faixa com a migalha "Clientes › Empresa", selo da
  * etapa e as ações (WhatsApp e "Mais", com Editar ficha e os atalhos do cliente).
  */
-export function ClienteCabecalho({ c, aoEditar }: { c: ClienteLinha; aoEditar: () => void }) {
+export function ClienteCabecalho({
+  c,
+  aoEditar,
+  abas,
+}: {
+  c: ClienteLinha;
+  aoEditar: () => void;
+  /** Abas da ficha, presas à base do cabeçalho (card RD-9). */
+  abas?: ReactNode;
+}) {
   const sit = situacaoDe(c);
   const wpp = linkWhatsapp(c.whatsapp);
   const detalhes = [
@@ -33,6 +43,8 @@ export function ClienteCabecalho({ c, aoEditar }: { c: ClienteLinha; aoEditar: (
 
   return (
     <CabecalhoPagina
+      voltarPara="/app/clientes"
+      abas={abas}
       migalha={
         <nav aria-label="Trilha">
           <Link to="/app/clientes" className="hover:text-hub-tinta hover:underline">

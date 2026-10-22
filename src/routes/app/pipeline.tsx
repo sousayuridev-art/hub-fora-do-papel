@@ -99,7 +99,10 @@ function Funil() {
           }))}
           ativo={filtro}
           aoEscolher={(id) =>
-            void navigate({ search: { filtro: id === "todos" ? undefined : (id as FiltroFunil) } })
+            void navigate({
+              search: { filtro: id === "todos" ? undefined : (id as FiltroFunil) },
+              replace: true,
+            })
           }
         />
         <ul

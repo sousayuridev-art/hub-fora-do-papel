@@ -110,19 +110,22 @@ function Ficha() {
 
   return (
     <div className="flex flex-col gap-5">
-      <ClienteCabecalho c={c} aoEditar={() => setEditar(true)} />
+      <ClienteCabecalho
+        c={c}
+        aoEditar={() => setEditar(true)}
+        abas={
+          <Abas
+            rotulo="Seções da ficha"
+            opcoes={abas}
+            ativa={aba}
+            aoEscolher={(id) =>
+              void navigate({ search: { aba: id === "visao" ? undefined : id }, replace: true })
+            }
+          />
+        }
+      />
 
       <ClienteNumeros c={c} o={o} />
-
-      <Abas
-        rotulo="Seções da ficha"
-        opcoes={abas}
-        ativa={aba}
-        aoEscolher={(id) =>
-          void navigate({ search: { aba: id === "visao" ? undefined : id }, replace: true })
-        }
-        className="border-b border-hub-borda"
-      />
 
       {aba === "reunioes" ? (
         <ClienteReunioes clienteId={c.id} />

@@ -90,8 +90,9 @@ function Materiais() {
   }, [d?.itens, pasta, cliente, origem, termo]);
 
   const aberto = material ? (d?.itens.find((x) => x.id === material) ?? null) : null;
+  // Abrir ou fechar um material cria entrada: o Voltar do celular fecha o painel (RD-9)
   const abrir = (id: string | undefined) =>
-    void navigate({ search: (s) => ({ ...s, material: id }), replace: true });
+    void navigate({ search: (s) => ({ ...s, material: id }) });
 
   const salvar = async (v: DadosMaterial) => {
     if (v.tipo === "arquivo" && !v.id) {

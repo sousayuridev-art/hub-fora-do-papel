@@ -41,6 +41,7 @@ export function ProjetoCabecalho({
   const podeCancelar = !p.canceled_at && p.status !== "concluido";
   return (
     <CabecalhoPagina
+      voltarPara="/app/projetos"
       migalha={
         <nav aria-label="Caminho" className="flex min-w-0 items-center gap-1">
           <Link

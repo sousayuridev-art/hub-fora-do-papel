@@ -117,7 +117,8 @@ function Financeiro() {
   const aberta = cobranca ? (d?.cobrancas.find((c) => c.id === cobranca) ?? null) : null;
   const abrir = (id: string | undefined, pagar = false) => {
     setReceber(pagar);
-    void navigate({ search: (s) => ({ ...s, cobranca: id }), replace: true });
+    // Abrir ou fechar uma cobrança cria entrada: o Voltar do celular fecha o painel (RD-9)
+    void navigate({ search: (s) => ({ ...s, cobranca: id }) });
   };
   const irPara = (s: Partial<z.infer<typeof busca>>) =>
     void navigate({ search: (atual) => ({ ...atual, ...s }), replace: true });
@@ -155,6 +156,28 @@ function Financeiro() {
               <span className="max-sm:sr-only">Nova cobrança</span>
             </button>
           </div>
+        }
+        abas={
+          <Abas<Aba>
+            rotulo="Seções do financeiro"
+            ativa={aba}
+            aoEscolher={(a) => irPara({ aba: a === "cobrancas" ? undefined : a })}
+            opcoes={[
+              { id: "cobrancas", rotulo: "Cobranças" },
+              {
+                id: "mensalidades",
+                rotulo: "Mensalidades",
+                contagem:
+                  d && d.numeros.mensalidades_ativas > 0 ? `${moeda(d.numeros.mrr_cents)}/mês` : "",
+              },
+              {
+                id: "despesas",
+                rotulo: "Despesas",
+                contagem: d ? moeda(d.numeros.despesas_mes_cents) : "",
+              },
+              { id: "fluxo", rotulo: "Fluxo de caixa" },
+            ]}
+          />
         }
       />
 
@@ -212,30 +235,6 @@ function Financeiro() {
               />
             </div>
           )}
-
-          <div className="border-b border-hub-borda">
-            <Abas<Aba>
-              rotulo="Seções do financeiro"
-              ativa={aba}
-              aoEscolher={(a) => irPara({ aba: a === "cobrancas" ? undefined : a })}
-              opcoes={[
-                { id: "cobrancas", rotulo: "Cobranças" },
-                {
-                  id: "mensalidades",
-                  rotulo: "Mensalidades",
-                  contagem:
-                    d.numeros.mensalidades_ativas > 0 ? `${moeda(d.numeros.mrr_cents)}/mês` : "",
-                },
-                {
-                  id: "despesas",
-                  rotulo: "Despesas",
-                  contagem: moeda(d.numeros.despesas_mes_cents),
-                },
-                { id: "fluxo", rotulo: "Fluxo de caixa" },
-              ]}
-              className="-mb-px"
-            />
-          </div>
 
           {aba === "cobrancas" && (
             <div className="flex flex-col gap-4">

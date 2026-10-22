@@ -104,7 +104,8 @@ function Projeto() {
   const aberta = tarefaAberta ? tarefas.find((t) => t.id === tarefaAberta) : undefined;
   const cicloAtual = ciclo ?? aberta?.cycle ?? Math.max(1, ...tarefas.map((t) => t.cycle));
   const abrirTarefa = (tid: string | undefined) =>
-    void navigate({ search: (s) => ({ ...s, tarefa: tid }), replace: true });
+    // Abrir ou fechar uma tarefa cria entrada: o Voltar do celular fecha o painel (RD-9)
+    void navigate({ search: (s) => ({ ...s, tarefa: tid }) });
   const atual = faseAtual(d.fases);
   const aguardando =
     d.aprovacoes.filter((a) => a.status === "aguardando").length +

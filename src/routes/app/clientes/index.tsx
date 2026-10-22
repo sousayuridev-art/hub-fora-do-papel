@@ -74,6 +74,7 @@ function Clientes() {
   const filtrar = (id: FiltroLista) =>
     void navigate({
       search: (s) => ({ ...s, filtro: id === "todos" || id === filtro ? undefined : id }),
+      replace: true,
     });
   const [texto, setTexto] = useState("");
   const termo = useDeferredValue(normal(texto.trim()));
@@ -191,7 +192,10 @@ function Clientes() {
           opcoes={filtrosClientes.map((o) => ({ id: o.id, rotulo: o.rotulo, contagem: r?.[o.id] }))}
           ativo={filtro}
           aoEscolher={(id) =>
-            void navigate({ search: (s) => ({ ...s, filtro: id === "todos" ? undefined : id }) })
+            void navigate({
+              search: (s) => ({ ...s, filtro: id === "todos" ? undefined : id }),
+              replace: true,
+            })
           }
         />
         <label className="flex items-center gap-2 text-[13.5px] text-hub-suave lg:ml-auto">
