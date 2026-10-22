@@ -48,7 +48,7 @@ function Painel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <CabecalhoPagina titulo={primeiroNome ? `${saudacao()}, ${primeiroNome}` : saudacao()} />
+      <CabecalhoPagina titulo={primeiroNome ? `${saudacao()}, ${primeiroNome}!` : `${saudacao()}!`} />
 
       {dados.isError ? (
         <EstadoErro
