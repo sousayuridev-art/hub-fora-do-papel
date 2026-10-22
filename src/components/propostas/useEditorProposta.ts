@@ -69,6 +69,7 @@ export function useEditorProposta(detalhe: DetalheProposta) {
           : atual,
       );
       void qc.invalidateQueries({ queryKey: chavesPropostas.lista });
+      void qc.invalidateQueries({ queryKey: chavesPropostas.quadro });
       void qc.invalidateQueries({ queryKey: chavesPropostas.resumo });
       setEstado(Object.keys(fila.current).length ? "pendente" : "salvo");
     } catch (e) {

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { Diagnostico, Etapa } from "@/lib/funil";
+import { diaMes } from "@/lib/formatar";
 
 /** Tipos, chaves e acesso a dados das propostas (card S2). A conta vem sempre do banco. */
 
@@ -161,6 +162,7 @@ export type DocProposta = Partial<{
   conferencias: Conferencias;
 }>;
 
+/** Números do topo (RPC propostas_resumo, card RD-5). Valores em centavos; "no ano" no fuso da agência. */
 export type ResumoPropostas = {
   rascunho: number;
   enviada: number;
@@ -168,13 +170,50 @@ export type ResumoPropostas = {
   recusada: number;
   vencidas: number;
   em_negociacao_cents: number;
+  em_negociacao_qtd: number;
+  sem_abrir_3_dias: number;
+  sem_abrir_mais_antiga: { id: string; empresa: string; dias: number } | null;
   aceitas_no_ano: number;
+  aceitas_no_ano_cents: number;
+  recusadas_no_ano: number;
+  respondidas_no_ano: number;
+  /** null quando ainda não houve resposta no ano. */
+  taxa_aceite_pct: number | null;
   oportunidades_sem_proposta: number;
+};
+
+/** Um cartão do quadro (RPC propostas_quadro, card RD-5). */
+export type CartaoProposta = {
+  id: string;
+  deal_id: string;
+  client_id: string;
+  status: SituacaoProposta;
+  situacao: SituacaoProposta | "vencida";
+  versao: number;
+  empresa: string;
+  contato: string;
+  titulo: string | null;
+  valor_cents: number | null;
+  enviada_em: string | null;
+  dias_desde_envio: number | null;
+  sem_abrir: boolean;
+  vezes_aberta: number;
+  aberta_em: string | null;
+  vence_em: string | null;
+  aceita_em: string | null;
+  projeto_id: string | null;
+  recusada_em: string | null;
+  motivo: string | null;
+  /** O que falta para enviar (só rascunho). */
+  falta: string[];
+  criada_em: string;
+  atualizada_em: string;
 };
 
 export const chavesPropostas = {
   tudo: ["propostas"] as const,
   lista: ["propostas", "lista"] as const,
+  quadro: ["propostas", "quadro"] as const,
   resumo: ["propostas", "resumo"] as const,
   detalhe: (id: string) => ["propostas", "detalhe", id] as const,
   publica: (token: string) => ["proposta-publica", token] as const,
@@ -195,9 +234,15 @@ export async function listarPropostas(): Promise<PropostaLinha[]> {
 }
 
 export async function resumoPropostas(): Promise<ResumoPropostas> {
-  const { data, error } = await supabase.rpc("proposta_resumo");
+  const { data, error } = await supabase.rpc("propostas_resumo");
   if (error) falhar(error);
   return data as ResumoPropostas;
+}
+
+export async function quadroPropostas(): Promise<CartaoProposta[]> {
+  const { data, error } = await supabase.rpc("propostas_quadro");
+  if (error) falhar(error);
+  return (data ?? []) as CartaoProposta[];
 }
 
 export async function detalheProposta(id: string): Promise<DetalheProposta> {
@@ -360,6 +405,45 @@ export async function recusarProposta(token: string, motivo: string) {
 export function linkDaProposta(token: string): string {
   const origem = typeof window !== "undefined" ? window.location.origin : "";
   return `${origem}/proposta/${token}`;
+}
+
+// ---------------- Cartões do quadro (RD-5) ----------------
+
+export type TomCartao = "neutro" | "atencao" | "risco" | "ok";
+
+function haDias(n: number): string {
+  if (n <= 0) return "hoje";
+  if (n === 1) return "ontem";
+  return `há ${n} dias`;
+}
+
+/** A linha que diz o que importa em cada cartão: o que falta, se abriu, quando aceitou, por que recusou. */
+export function infoDoCartao(p: CartaoProposta): { texto: string; tom: TomCartao } {
+  if (p.status === "rascunho") {
+    const [primeira, ...resto] = p.falta;
+    if (!primeira) return { texto: "Pronta para enviar", tom: "ok" };
+    return {
+      texto: `Falta: ${primeira}${resto.length ? ` e mais ${resto.length}` : ""}`,
+      tom: "atencao",
+    };
+  }
+  if (p.situacao === "vencida") {
+    return { texto: `Venceu em ${p.vence_em ? diaMes(p.vence_em) : "—"}`, tom: "risco" };
+  }
+  if (p.status === "enviada") {
+    if (p.vezes_aberta === 0) {
+      const quando = p.dias_desde_envio === null ? "" : ` ${haDias(p.dias_desde_envio)}`;
+      return { texto: `Enviada${quando} · não abriu`, tom: p.sem_abrir ? "risco" : "neutro" };
+    }
+    const vezes = p.vezes_aberta === 1 ? "1 vez" : `${p.vezes_aberta} vezes`;
+    const vale = p.vence_em ? ` · vale até ${diaMes(p.vence_em)}` : "";
+    return { texto: `Aberta ${vezes}${vale}`, tom: "neutro" };
+  }
+  if (p.status === "aceita") {
+    const em = p.aceita_em ? `Aceita em ${diaMes(p.aceita_em)}` : "Aceita";
+    return { texto: p.projeto_id ? `${em} · projeto criado` : em, tom: "ok" };
+  }
+  return { texto: p.motivo ? `Motivo: ${p.motivo}` : "Sem motivo informado", tom: "neutro" };
 }
 
 /** Mensagens das regras do banco, em português. */

@@ -1,4 +1,5 @@
-import { BadgeCheck, CircleMinus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { BadgeCheck, CircleMinus, SlidersHorizontal } from "lucide-react";
 
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { BlocoEditor } from "@/components/propostas/BlocoEditor";
@@ -16,6 +17,16 @@ export function BlocoValor({ d, alterar, bloqueado, c }: PropsBloco & { c: Calcu
       id="valor"
       titulo="Como chegamos ao valor"
       texto={`Horas × ${moeda(c.hora_cents)} × complexidade, mais contingência, arredondado para cima a cada R$ 500.`}
+      acao={
+        // Antes era um botão no topo da tela (RD-5): o preço por hora e os planos moram em Configurações
+        <Link
+          to="/app/configuracoes"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-1 text-[14px] font-medium text-sit-info-t hover:text-hub-tinta hover:underline"
+        >
+          <SlidersHorizontal className="size-4" aria-hidden="true" />
+          Preços
+        </Link>
+      }
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1">

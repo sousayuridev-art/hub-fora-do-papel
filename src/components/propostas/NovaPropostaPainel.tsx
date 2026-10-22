@@ -23,7 +23,7 @@ export function NovaPropostaPainel({
 }: {
   aberto: boolean;
   aoMudar: (v: boolean) => void;
-  propostas: PropostaLinha[];
+  propostas: Pick<PropostaLinha, "status" | "deal_id">[];
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
