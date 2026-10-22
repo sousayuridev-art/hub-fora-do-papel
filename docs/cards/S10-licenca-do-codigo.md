@@ -2,7 +2,7 @@
 
 > **Decisão do Yuri em 22/10:** em sistemas sob medida, o cliente fica ligado à Fora do Papel pela licença do código e pela Mensalidade. Os dados nunca ficam presos.
 > **Par no site:** card SITE-12 (repositório `fora-do-papel-blueprint`).
-> **Status:** texto para aprovação. As condições gerais dependem da revisão de um advogado, e nada vai ao ar antes disso.
+> **Status:** aprovado pelo Yuri em 22/10 e implementado no mesmo dia. Modelo de contrato redigido em 22/10 (doc "Contrato de serviços e licença de software"); tolerância de 30 dias antes de suspender a licença.
 
 ## Visão de negócio
 Hoje a proposta promete que "o código fica em nome da sua empresa" e que, "se a parceria acabar, você leva tudo". Com isso, o cliente pode levar o sistema para outro fornecedor sem custo e você perde o direito de reaproveitar os componentes do Hub. O modelo novo separa duas coisas:
