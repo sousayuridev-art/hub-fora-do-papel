@@ -81,7 +81,6 @@ function Propostas() {
       <CabecalhoPagina
         grupo="Vender"
         titulo="Propostas"
-        resumo="O que falta enviar e quem ainda não respondeu."
         acao={
           <button
             type="button"

@@ -13,7 +13,6 @@ import { NovoProjetoPainel, type ProjetoNovo } from "@/components/projetos/NovoP
 import { ProjetosNumeros } from "@/components/projetos/ProjetosNumeros";
 import { ProjetosTabela } from "@/components/projetos/ProjetosTabela";
 import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
-import { moeda } from "@/lib/formatar";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
   chavesProjetos,
@@ -73,9 +72,6 @@ function Projetos() {
   const d = lista.data;
   const listaAndamento = aba === "andamento" ? d : andamento.data;
   const ativos = listaAndamento?.projetos ?? [];
-  const resumo = d
-    ? `${moeda(d.contagem.contratado_cents)} contratados em projetos em andamento`
-    : " ";
   const mudarAba = (id: SituacaoProjeto) =>
     void navigate({ search: { aba: id === "andamento" ? undefined : id }, replace: true });
 
@@ -84,7 +80,6 @@ function Projetos() {
       <CabecalhoPagina
         grupo="Entregar"
         titulo="Projetos"
-        resumo={resumo}
         acao={
           <div className="flex flex-col gap-2 sm:flex-row">
             <button

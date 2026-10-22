@@ -101,20 +101,6 @@ function Tarefas() {
     <div className="flex flex-col gap-5">
       <CabecalhoPagina
         titulo="Tarefas"
-        resumo={
-          r
-            ? r.atrasadas + r.para_hoje === 0
-              ? "Nada atrasado nem para hoje."
-              : [
-                  r.atrasadas
-                    ? `${r.atrasadas} ${r.atrasadas === 1 ? "atrasada" : "atrasadas"}`
-                    : null,
-                  r.para_hoje ? `${r.para_hoje} para hoje` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")
-            : " "
-        }
         acao={
           <>
             <Segmentos

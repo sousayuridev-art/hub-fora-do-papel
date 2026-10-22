@@ -118,7 +118,6 @@ function Materiais() {
       <CabecalhoPagina
         grupo="Biblioteca"
         titulo="Materiais"
-        resumo="Textos, guias e arquivos prontos para usar, e o que os clientes mandam."
         acao={
           <button
             type="button"

@@ -47,12 +47,7 @@ function Reunioes() {
 
   return (
     <div className="flex flex-col gap-5">
-      <CabecalhoPagina
-        grupo="Vender"
-        titulo="Reuniões"
-        resumo="Reuniões do Google Meet com transcrição. Entram sozinhas a cada 15 minutos."
-        acao={<GoogleCabecalho />}
-      />
+      <CabecalhoPagina grupo="Vender" titulo="Reuniões" acao={<GoogleCabecalho />} />
 
       <LigarReunioes aoEscolher={setAberta} aoVerTodas={() => escolherFiltro("sem_cliente")} />
 

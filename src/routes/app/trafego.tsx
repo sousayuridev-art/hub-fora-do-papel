@@ -89,7 +89,6 @@ function Trafego() {
       <CabecalhoPagina
         grupo="Vender"
         titulo="Tráfego pago"
-        resumo={etiqueta ? `${etiqueta} · cada contato conta no mês em que chegou` : undefined}
         acao={
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <FiltrosChip

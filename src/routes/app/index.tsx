@@ -45,20 +45,10 @@ function Painel() {
   const n = extra.data;
   const fila = useQuery({ queryKey: chavesPainel.fila, queryFn: filaDoPainel });
   const capacidade = useQuery({ queryKey: chavesPainel.capacidade, queryFn: capacidadeDoMes });
-  const totalHoje = (dados.data?.itens.length ?? 0) + (fila.data?.total ?? 0);
 
   return (
     <div className="flex flex-col gap-6">
-      <CabecalhoPagina
-        titulo={primeiroNome ? `${saudacao()}, ${primeiroNome}` : saudacao()}
-        resumo={
-          dados.data
-            ? totalHoje === 0
-              ? "Nada vencido ou para hoje."
-              : `${totalHoje} ${totalHoje === 1 ? "item precisa" : "itens precisam"} de você hoje.`
-            : " "
-        }
-      />
+      <CabecalhoPagina titulo={primeiroNome ? `${saudacao()}, ${primeiroNome}` : saudacao()} />
 
       {dados.isError ? (
         <EstadoErro

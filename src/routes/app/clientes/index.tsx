@@ -108,7 +108,6 @@ function Clientes() {
       <CabecalhoPagina
         grupo="Vender"
         titulo="Clientes"
-        resumo="Uma ficha por empresa, do primeiro contato até a mensalidade."
         acao={
           <button type="button" className={classeAcaoPrincipal} onClick={() => setNovo(true)}>
             <Plus className="size-4" aria-hidden="true" />

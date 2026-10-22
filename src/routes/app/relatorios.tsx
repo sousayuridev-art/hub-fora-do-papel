@@ -13,7 +13,6 @@ import { RelatorioNumeros } from "@/components/relatorios/RelatorioNumeros";
 import { RelatorioReceita } from "@/components/relatorios/RelatorioReceita";
 import { RelatorioVendas } from "@/components/relatorios/RelatorioVendas";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { dataLocal, diaMes } from "@/lib/formatar";
 import {
   chavesRelatorios,
   lerRelatorio,
@@ -50,11 +49,6 @@ function Relatorios() {
       <CabecalhoPagina
         grupo="Gestão"
         titulo="Relatórios"
-        resumo={
-          r
-            ? `De ${diaMes(dataLocal(r.periodo.inicio))} a ${diaMes(dataLocal(r.periodo.fim))}. Mesma base do Painel, do Funil e do Financeiro.`
-            : " "
-        }
         acao={
           <div className="flex w-full flex-wrap items-center gap-2.5 print:hidden sm:w-auto">
             <FiltrosChip<PeriodoRelatorio>

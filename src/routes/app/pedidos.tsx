@@ -8,13 +8,11 @@ import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { CampoEscolha } from "@/components/hub/Campo";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { FiltrosChip } from "@/components/hub/FiltrosChip";
-import { PassosPedido } from "@/components/pedidos/PassosPedido";
 import { PedidoPainel } from "@/components/pedidos/PedidoPainel";
 import { PedidosLista } from "@/components/pedidos/PedidosLista";
 import { RegistrarPedidoPainel } from "@/components/pedidos/RegistrarPedidoPainel";
 import { useMutacoesPedidos } from "@/components/pedidos/useMutacoesPedidos";
 import { classeAcaoPrincipal } from "@/lib/estilos";
-import { moeda } from "@/lib/formatar";
 import {
   abasPedidos,
   chavesPedidos,
@@ -89,22 +87,12 @@ function Pedidos() {
       <CabecalhoPagina
         grupo="Entregar"
         titulo="Pedidos de ajuste"
-        resumo={
-          r
-            ? `Todo pedido entra aqui, venha do portal, do WhatsApp ou de uma reunião.${
-                r.adicional_aprovado_cents > 0
-                  ? ` ${moeda(r.adicional_aprovado_cents)} em serviços adicionais aprovados.`
-                  : ""
-              }`
-            : " "
-        }
         acao={
           <button type="button" className={classeAcaoPrincipal} onClick={() => setRegistrar(true)}>
             <Plus className="size-4" aria-hidden="true" /> Registrar pedido
           </button>
         }
       />
-      <PassosPedido horaCents={precos.data ? moeda(hora) : "hora de referência"} />
 
       <FiltrosChip<AbaPedidos>
         rotulo="Situação dos pedidos"

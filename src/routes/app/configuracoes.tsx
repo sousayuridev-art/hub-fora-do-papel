@@ -64,10 +64,7 @@ function Configuracoes() {
 
   return (
     <div className="flex flex-col gap-6">
-      <CabecalhoPagina
-        titulo="Configurações"
-        resumo="Preços que as propostas usam, como você recebe, a ligação com o Google e a conexão com o banco."
-      />
+      <CabecalhoPagina titulo="Configurações" />
       <h2 className="font-titulo text-xl font-bold">Preços</h2>
       {precos.isPending ? (
         <div className="flex flex-col gap-4" aria-busy="true">
