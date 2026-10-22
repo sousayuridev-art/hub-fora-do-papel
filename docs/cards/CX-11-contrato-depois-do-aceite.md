@@ -31,7 +31,7 @@ O aceite da proposta registra o "sim" comercial, mas hoje o Hub não gera nem gu
 
 ## Decisão pendente
 - **Serviço de assinatura:** comparar 2 ou 3 opções nacionais (custo por documento, validade jurídica, API e webhook, assinatura pelo celular sem criar conta). Até a escolha, vale o caminho manual.
-- **Texto:** condições gerais e modelo de contrato revisados por advogado.
+- **Texto:** condições gerais e modelo de contrato revisados por advogado. A parte de propriedade segue o card S10 (licença do código em sistemas sob medida, dados sempre do cliente; decisão de 22/10).
 
 ## Casos de borda
 - Proposta reaberta depois do aceite: o contrato antigo é cancelado e um novo nasce no próximo aceite.
