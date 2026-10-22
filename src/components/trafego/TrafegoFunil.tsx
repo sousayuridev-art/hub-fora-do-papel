@@ -1,109 +1,112 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
+import { Ajuda } from "@/components/trafego/Ajuda";
 import { Cartao } from "@/components/trafego/Cartao";
 import { moeda } from "@/lib/formatar";
-import type { PainelTrafego } from "@/lib/trafego";
+import { funilDoTrafego, type PainelTrafego } from "@/lib/trafego";
 import { cn } from "@/lib/utils";
 
-/** Do clique ao contrato: as etapas, a taxa entre elas e onde está a maior perda. */
+const verbo: Record<string, string> = {
+  Cliques: "viraram contato",
+  Contatos: "compraram diagnóstico",
+  Diagnósticos: "receberam proposta",
+  Propostas: "fecharam",
+};
+
+/** Do clique ao contrato numa linha (RD-6): etapas, quanto passa de uma para outra e a maior perda. */
 export function TrafegoFunil({ p, etiqueta }: { p: PainelTrafego; etiqueta: string }) {
   const i = p.indicadores;
-  const etapas = [
-    { nome: "Cliques", n: i.cliques },
-    { nome: "Contatos", n: i.contatos },
-    { nome: "Diagnóstico", n: i.diagnosticos },
-    { nome: "Proposta", n: i.propostas },
-    { nome: "Fechado", n: i.fechados },
-  ];
-  const taxas = etapas.slice(1).map((e, k) => {
-    const antes = etapas[k]?.n;
-    return antes && antes > 0 && e.n != null
-      ? { pct: (e.n / antes) * 100, de: antes, para: e.n }
+  const { etapas, pior } = funilDoTrafego(i);
+  // Barras na escala dos contatos (cliques costumam ser muito maiores e ficam cheios)
+  const base = Math.max(1, i.contatos);
+  const largura = (k: number, n: number | null) =>
+    k === 0 ? (n == null ? 0 : 100) : Math.min(100, ((n ?? 0) / base) * 100);
+  const perda =
+    pior != null
+      ? `Maior perda: de ${etapas[pior]?.nome.toLowerCase()} para ${etapas[pior + 1]?.nome.toLowerCase()} (${100 - (etapas[pior]?.passou ?? 0)}% param aqui)`
       : null;
-  });
-  // Maior perda: menor taxa entre contato → diagnóstico → proposta → fechado (cliques ficam de fora)
-  let pior = -1;
-  taxas.forEach((t, k) => {
-    if (k === 0 || !t) return;
-    const atual = pior >= 0 ? taxas[pior] : null;
-    if (!atual || t.pct < atual.pct) pior = k;
-  });
-  const frasePerda =
-    pior > 0 && taxas[pior]
-      ? `A maior perda está entre ${etapas[pior]?.nome.toLowerCase()} e ${etapas[pior + 1]?.nome.toLowerCase()}: ${Math.round(taxas[pior]?.pct ?? 0)} em cada 100 seguem adiante.`
-      : "Ainda não há contatos de anúncio suficientes para comparar as etapas.";
 
   return (
     <Cartao
       id="funil-trafego"
-      titulo="Do clique ao contrato"
-      texto="Só contatos com origem Anúncio (Instagram/Facebook ou Google), contados no mês em que chegaram, inclusive os arquivados."
-      etiqueta={etiqueta}
+      titulo={
+        <>
+          Do clique ao contrato
+          <Ajuda sobre="do clique ao contrato">
+            Só contatos com origem Anúncio, contados no mês em que chegaram ({etiqueta}), inclusive
+            os arquivados. Cliques vêm dos lançamentos de investimento. Valor fechado é o valor do
+            projeto no aceite; mensalidade e diagnóstico contam à parte.
+          </Ajuda>
+        </>
+      }
+      acao={
+        perda ? (
+          <span className="text-[13px] font-medium text-sit-risco-t">{perda}</span>
+        ) : (
+          <span className="text-[13px] text-hub-suave">
+            Ainda não há contatos suficientes para comparar as etapas
+          </span>
+        )
+      }
     >
-      <ol className="flex flex-col gap-2 lg:flex-row lg:items-stretch">
-        {etapas.map((e, k) => (
-          <li key={e.nome} className="flex flex-col gap-2 lg:flex-1 lg:flex-row lg:items-center">
-            {k > 0 && (
-              <span
-                className={cn(
-                  "flex items-center gap-1 self-center rounded-full px-2 py-0.5 text-[12.5px] font-semibold tabular-nums",
-                  k - 1 === pior
-                    ? "bg-sit-atencao text-sit-atencao-t"
-                    : "bg-hub-fundo text-hub-suave",
-                )}
-              >
-                {taxas[k - 1] ? `${Math.round(taxas[k - 1]?.pct ?? 0)}%` : "—"}
-                <ArrowRight className="size-3.5 max-lg:rotate-90" aria-hidden="true" />
-              </span>
-            )}
-            <div
-              className={cn(
-                "flex flex-1 items-center justify-between gap-2 rounded-xl border p-4 lg:flex-col lg:items-start",
-                e.nome === "Fechado"
-                  ? "border-sit-ok bg-sit-ok"
-                  : "border-hub-borda bg-hub-fundo/60",
-              )}
+      <ol className="m-0 grid list-none gap-2.5 p-0 md:grid-cols-5 md:gap-1">
+        {etapas.map((e, k) => {
+          const ultima = k === etapas.length - 1;
+          return (
+            <li
+              key={e.nome}
+              className="grid grid-cols-[96px_1fr_auto] items-center gap-x-3 md:flex md:flex-col md:items-stretch md:gap-2 md:px-1.5"
             >
-              <span className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-hub-suave">
+              <span className="text-[13.5px] text-[#2A2D33] md:text-[13px] md:text-hub-suave">
                 {e.nome}
               </span>
-              <span className="font-titulo text-[26px] font-bold tabular-nums">{e.n ?? "—"}</span>
-            </div>
-          </li>
-        ))}
+              <b className="order-3 text-right text-[15px] font-semibold tabular-nums md:order-none md:text-left md:text-[22px] md:leading-tight">
+                {e.n ?? "—"}
+              </b>
+              <span aria-hidden="true" className="relative h-2.5 rounded bg-[#EDEDE7]">
+                <span
+                  className={cn(
+                    "absolute inset-y-0 left-0 rounded",
+                    ultima ? "bg-sit-ok-t" : "bg-serie-1",
+                  )}
+                  style={{ width: `${largura(k, e.n)}%` }}
+                />
+              </span>
+              <span
+                className={cn(
+                  "col-span-3 text-[12.5px] max-md:hidden",
+                  k === pior ? "font-medium text-sit-risco-t" : "text-hub-suave",
+                  ultima && "text-sit-ok-t",
+                )}
+              >
+                {ultima
+                  ? `${moeda(i.valor_fechado_cents)} fechados`
+                  : e.passou == null
+                    ? "—"
+                    : `${e.passou}% ${verbo[e.nome] ?? "seguiram"}`}
+              </span>
+            </li>
+          );
+        })}
       </ol>
-      <p className="text-[14.5px]">{frasePerda}</p>
-      <div className="grid gap-4 border-t border-hub-borda pt-4 md:grid-cols-3">
-        <div>
-          <p className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-hub-suave">
-            Diagnósticos vindos de anúncio
-          </p>
-          <p className="font-titulo text-xl font-bold tabular-nums">
-            {moeda(i.receita_diagnosticos_cents)}
-          </p>
-        </div>
-        <div>
-          <p className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-hub-suave">
-            Projetos fechados
-          </p>
-          <p className="font-titulo text-xl font-bold tabular-nums">
-            {moeda(i.valor_fechado_cents)}
-          </p>
-          {i.fechados === 0 && (
-            <p className="text-[13px] text-hub-suave">Nenhum contrato fechado no período.</p>
-          )}
-        </div>
-        <div className="flex flex-col gap-1 text-[14px] text-hub-suave">
-          Os números vêm dos contatos com origem Anúncio no funil de vendas.
-          <Link
-            to="/app/clientes"
-            className="inline-flex min-h-11 items-center gap-1 font-medium text-[#1E3FA8]"
-          >
-            Ver esses contatos <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-        </div>
-      </div>
+      <p className="m-0 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[13px] text-hub-suave">
+        <span>
+          Diagnósticos vindos de anúncio:{" "}
+          <b className="font-semibold text-hub-tinta">{moeda(i.receita_diagnosticos_cents)}</b>
+          <span className="md:hidden">
+            {" "}
+            · Projetos fechados:{" "}
+            <b className="font-semibold text-hub-tinta">{moeda(i.valor_fechado_cents)}</b>
+          </span>
+        </span>
+        <Link
+          to="/app/clientes"
+          className="inline-flex min-h-11 items-center gap-1 font-medium text-[#1E3FA8]"
+        >
+          Ver esses contatos <ArrowRight className="size-4" aria-hidden="true" />
+        </Link>
+      </p>
     </Cartao>
   );
 }

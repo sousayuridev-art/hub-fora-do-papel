@@ -23,12 +23,15 @@ export function RegistrarInvestimentoPainel({
   aberto,
   aoFechar,
   campanhas,
+  campanhaInicial = null,
   aoSalvar,
   aoNovaCampanha,
 }: {
   aberto: boolean;
   aoFechar: () => void;
   campanhas: CampanhaPainel[];
+  /** "Lançar valor" na linha da campanha já abre com ela escolhida. */
+  campanhaInicial?: string | null;
   aoSalvar: (v: {
     campanha: string;
     data: string;
@@ -46,7 +49,7 @@ export function RegistrarInvestimentoPainel({
   const [nota, setNota] = useState("");
   useEffect(() => {
     if (aberto) {
-      setCampanha(ativas[0]?.id ?? campanhas[0]?.id ?? "");
+      setCampanha(campanhaInicial ?? ativas[0]?.id ?? campanhas[0]?.id ?? "");
       setData(isoDoDia(new Date()));
       setValor(null);
       setCliques(null);
