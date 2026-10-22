@@ -1,36 +1,46 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BellRing, Plus } from "lucide-react";
+import { BellRing, Plus, Search } from "lucide-react";
 import { z } from "zod";
 
+import { Abas } from "@/components/hub/Abas";
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
-import { FiltrosChip } from "@/components/hub/FiltrosChip";
 import { CobrancaPainel } from "@/components/financeiro/CobrancaPainel";
-import { CobrancasLista } from "@/components/financeiro/CobrancasLista";
+import { CobrancasLista, type GrupoLista } from "@/components/financeiro/CobrancasLista";
 import { DespesaPainel } from "@/components/financeiro/DespesaPainel";
 import { DespesasLista } from "@/components/financeiro/DespesasLista";
 import { FinanceiroNumeros } from "@/components/financeiro/FinanceiroNumeros";
 import { FluxoCaixa } from "@/components/financeiro/FluxoCaixa";
+import { GraficoEntradasSaidas } from "@/components/financeiro/GraficoEntradasSaidas";
+import { GraficoMensalidades } from "@/components/financeiro/GraficoMensalidades";
 import { MensalidadesLista } from "@/components/financeiro/MensalidadesLista";
 import { NovaCobrancaPainel } from "@/components/financeiro/NovaCobrancaPainel";
 import { NovaMensalidadePainel } from "@/components/financeiro/NovaMensalidadePainel";
 import { useMutacoesFinanceiro } from "@/components/financeiro/useMutacoesFinanceiro";
 import { useSession } from "@/hooks/useSession";
 import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
-import { dataLocal } from "@/lib/formatar";
-import { chavesFinanceiro, painelFinanceiro, type Despesa } from "@/lib/financeiro";
-import { cn } from "@/lib/utils";
+import { moeda } from "@/lib/formatar";
+import {
+  chavesFinanceiro,
+  graficosFinanceiro,
+  grupoDaCobranca,
+  painelFinanceiro,
+  type CobrancaLinha,
+  type Despesa,
+  type GrupoCobranca,
+} from "@/lib/financeiro";
 
 const abas = ["cobrancas", "mensalidades", "despesas", "fluxo"] as const;
 type Aba = (typeof abas)[number];
-const filtros = ["abertas", "sem_data", "recebidas"] as const;
-type Filtro = (typeof filtros)[number];
+// "abertas" (padrão) mostra todos os grupos; "recebidas" fica por compatibilidade com links antigos
+const filtros = ["abertas", "atrasadas", "sem_data", "recebidas"] as const;
 
 const busca = z.object({
   aba: z.enum(abas).optional().catch(undefined),
   filtro: z.enum(filtros).optional().catch(undefined),
+  recebidas: z.boolean().optional().catch(undefined),
   cobranca: z.string().uuid().optional().catch(undefined),
   cliente: z.string().uuid().optional().catch(undefined),
 });
@@ -41,57 +51,84 @@ export const Route = createFileRoute("/app/financeiro")({
   component: Financeiro,
 });
 
-const rotulosAba: Record<Aba, string> = {
-  cobrancas: "Cobranças",
-  mensalidades: "Mensalidades",
-  despesas: "Despesas",
-  fluxo: "Fluxo de caixa",
-};
+const gruposAbertos: { id: GrupoCobranca; titulo: string; tom: GrupoLista["tom"] }[] = [
+  { id: "atrasadas", titulo: "Atrasadas", tom: "risco" },
+  { id: "semana", titulo: "Esta semana", tom: "atencao" },
+  { id: "trinta", titulo: "Próximos 30 dias", tom: "neutro" },
+  { id: "depois", titulo: "Mais adiante", tom: "neutro" },
+  { id: "sem_data", titulo: "Sem data", tom: "neutro" },
+];
+
+const normalizar = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function Financeiro() {
-  const { aba = "cobrancas", filtro = "abertas", cobranca, cliente } = Route.useSearch();
+  const {
+    aba = "cobrancas",
+    filtro = "abertas",
+    recebidas: mostrarRecebidas,
+    cobranca,
+    cliente,
+  } = Route.useSearch();
   const navigate = Route.useNavigate();
   const q = useQuery({ queryKey: chavesFinanceiro.painel, queryFn: painelFinanceiro });
+  const g = useQuery({ queryKey: chavesFinanceiro.graficos, queryFn: graficosFinanceiro });
   const m = useMutacoesFinanceiro();
   const { session } = useSession();
   const remetente =
     ((session?.user.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] ?? "";
   const [painel, setPainel] = useState<null | "cobranca" | "mensalidade" | "despesa">(null);
   const [despesa, setDespesa] = useState<Despesa | null>(null);
+  const [termo, setTermo] = useState("");
+  const [receber, setReceber] = useState(false);
 
   const d = q.data;
-  const grupos = useMemo(() => {
-    // filtro de exibição; números e somas vêm prontos do banco
-    const c = (d?.cobrancas ?? []).filter((x) => !cliente || x.client_id === cliente);
-    return {
-      abertas: c.filter((x) => x.situacao === "aberta" && x.vencimento !== null),
-      sem_data: c.filter((x) => x.situacao === "aberta" && x.vencimento === null),
-      recebidas: c.filter((x) => x.situacao === "paga"),
-    };
-  }, [d?.cobrancas, cliente]);
+  const verRecebidas = mostrarRecebidas === true || filtro === "recebidas";
+  const grupos = useMemo<GrupoLista[]>(() => {
+    // Só filtro de exibição sobre a lista já carregada; números e somas vêm prontos do banco
+    if (!d) return [];
+    const t = normalizar(termo.trim());
+    const c = d.cobrancas.filter(
+      (x) =>
+        (!cliente || x.client_id === cliente) &&
+        (!t || normalizar(`${x.empresa} ${x.descricao} ${x.projeto ?? ""}`).includes(t)),
+    );
+    const porGrupo = new Map<GrupoCobranca, CobrancaLinha[]>();
+    for (const x of c) {
+      if (x.situacao !== "aberta") continue;
+      const k = grupoDaCobranca(x, d.hoje);
+      porGrupo.set(k, [...(porGrupo.get(k) ?? []), x]);
+    }
+    const lista: GrupoLista[] = gruposAbertos
+      .filter((gr) => filtro === "abertas" || filtro === "recebidas" || gr.id === filtro)
+      .map((gr) => ({ ...gr, itens: porGrupo.get(gr.id) ?? [] }));
+    if (verRecebidas)
+      lista.push({
+        id: "recebidas",
+        titulo: "Recebidas (6 meses)",
+        tom: "ok",
+        itens: c.filter((x) => x.situacao === "paga"),
+      });
+    return lista.filter((gr) => gr.itens.length > 0);
+  }, [d, cliente, termo, filtro, verRecebidas]);
+
   const empresaFiltrada = cliente
     ? (d?.cobrancas.find((x) => x.client_id === cliente)?.empresa ?? "este cliente")
     : null;
   const aberta = cobranca ? (d?.cobrancas.find((c) => c.id === cobranca) ?? null) : null;
-  const abrir = (id: string | undefined) =>
+  const abrir = (id: string | undefined, pagar = false) => {
+    setReceber(pagar);
     void navigate({ search: (s) => ({ ...s, cobranca: id }), replace: true });
-
-  const hoje = d
-    ? dataLocal(d.hoje).toLocaleDateString("pt-BR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      })
-    : "";
+  };
+  const irPara = (s: Partial<z.infer<typeof busca>>) =>
+    void navigate({ search: (atual) => ({ ...atual, ...s }), replace: true });
 
   return (
     <div className="flex flex-col gap-6">
       <CabecalhoPagina
         grupo="Gestão"
         titulo="Financeiro"
-        resumo={d ? `Hoje, ${hoje}. O que entra, o que sai e o que vem pela frente.` : " "}
         acao={
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
             <button
               type="button"
               className={classeBotaoSecundario}
@@ -100,14 +137,22 @@ function Financeiro() {
                 setPainel("despesa");
               }}
             >
-              <Plus className="size-4" aria-hidden="true" /> Nova despesa
+              <Plus className="size-4" aria-hidden="true" />
+              <span className="sm:hidden" aria-hidden="true">
+                Despesa
+              </span>
+              <span className="max-sm:sr-only">Nova despesa</span>
             </button>
             <button
               type="button"
               className={classeAcaoPrincipal}
               onClick={() => setPainel("cobranca")}
             >
-              <Plus className="size-4" aria-hidden="true" /> Nova cobrança
+              <Plus className="size-4" aria-hidden="true" />
+              <span className="sm:hidden" aria-hidden="true">
+                Cobrança
+              </span>
+              <span className="max-sm:sr-only">Nova cobrança</span>
             </button>
           </div>
         }
@@ -120,12 +165,23 @@ function Financeiro() {
         />
       ) : !d ? (
         <div className="flex flex-col gap-4" aria-busy="true">
-          <div className="h-28 animate-pulse rounded-2xl bg-white" />
+          <div className="h-24 animate-pulse rounded-2xl bg-white" />
           <div className="h-72 animate-pulse rounded-2xl bg-white" />
         </div>
       ) : (
         <>
-          <FinanceiroNumeros n={d.numeros} />
+          <FinanceiroNumeros
+            n={d.numeros}
+            hoje={d.hoje}
+            resultado={g.data?.resultado_mes}
+            filtro={filtro === "atrasadas" ? "atrasadas" : "todas"}
+            aoFiltrar={(f) =>
+              irPara({
+                aba: undefined,
+                filtro: f === "atrasadas" ? "atrasadas" : undefined,
+              })
+            }
+          />
           {d.numeros.avisos_cliente > 0 && (
             <p className="flex items-center gap-3 rounded-2xl bg-sit-info p-4 text-[14.5px] text-sit-info-t">
               <BellRing className="size-5 shrink-0" aria-hidden="true" />
@@ -135,93 +191,125 @@ function Financeiro() {
             </p>
           )}
 
-          <div
-            role="tablist"
-            aria-label="Seções do financeiro"
-            className="-mx-4 flex gap-1 overflow-x-auto border-b border-hub-borda px-4 sm:mx-0 sm:px-0"
-          >
-            {abas.map((a) => (
-              <button
-                key={a}
-                role="tab"
-                type="button"
-                aria-selected={aba === a}
-                onClick={() =>
-                  void navigate({
-                    search: (s) => ({ ...s, aba: a === "cobrancas" ? undefined : a }),
-                    replace: true,
-                  })
-                }
-                className={cn(
-                  "-mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-[15px]",
-                  aba === a
-                    ? "border-hub-tinta font-semibold"
-                    : "border-transparent text-hub-suave hover:text-hub-tinta",
-                )}
-              >
-                {rotulosAba[a]}
-                {a === "mensalidades" && d.numeros.mensalidades_ativas > 0 && (
-                  <span className="rounded-md bg-sit-neutro px-1.5 text-[12.5px] tabular-nums">
-                    {d.numeros.mensalidades_ativas}
-                  </span>
-                )}
-              </button>
-            ))}
+          {g.isError ? (
+            <EstadoErro
+              titulo="Não foi possível carregar os gráficos"
+              aoTentarDeNovo={() => void g.refetch()}
+            />
+          ) : !g.data ? (
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" aria-busy="true">
+              <div className="h-80 animate-pulse rounded-2xl bg-white" />
+              <div className="h-80 animate-pulse rounded-2xl bg-white" />
+            </div>
+          ) : (
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+              <GraficoEntradasSaidas meses={g.data.meses} />
+              <GraficoMensalidades
+                meses={g.data.meses}
+                planos={g.data.planos}
+                mrrCents={d.numeros.mrr_cents}
+                ativas={d.numeros.mensalidades_ativas}
+              />
+            </div>
+          )}
+
+          <div className="border-b border-hub-borda">
+            <Abas<Aba>
+              rotulo="Seções do financeiro"
+              ativa={aba}
+              aoEscolher={(a) => irPara({ aba: a === "cobrancas" ? undefined : a })}
+              opcoes={[
+                { id: "cobrancas", rotulo: "Cobranças" },
+                {
+                  id: "mensalidades",
+                  rotulo: "Mensalidades",
+                  contagem:
+                    d.numeros.mensalidades_ativas > 0 ? `${moeda(d.numeros.mrr_cents)}/mês` : "",
+                },
+                {
+                  id: "despesas",
+                  rotulo: "Despesas",
+                  contagem: moeda(d.numeros.despesas_mes_cents),
+                },
+                { id: "fluxo", rotulo: "Fluxo de caixa" },
+              ]}
+              className="-mb-px"
+            />
           </div>
 
           {aba === "cobrancas" && (
             <div className="flex flex-col gap-4">
-              <FiltrosChip<Filtro>
-                rotulo="Situação das cobranças"
-                ativo={filtro}
-                aoEscolher={(f) =>
-                  void navigate({
-                    search: (s) => ({ ...s, filtro: f === "abertas" ? undefined : f }),
-                    replace: true,
-                  })
-                }
-                opcoes={[
-                  { id: "abertas", rotulo: "A receber", contagem: grupos.abertas.length },
-                  { id: "sem_data", rotulo: "Sem data", contagem: grupos.sem_data.length },
-                  {
-                    id: "recebidas",
-                    rotulo: "Recebidas (6 meses)",
-                    contagem: grupos.recebidas.length,
-                  },
-                ]}
-              />
-              {empresaFiltrada && (
-                <p className="flex flex-wrap items-center gap-2 text-[14.5px]">
-                  Só as cobranças de <strong>{empresaFiltrada}</strong>.
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+                <label className="flex h-11 items-center gap-2 rounded-xl border border-[#DADAD3] bg-white px-3.5 text-hub-suave sm:w-[300px]">
+                  <Search className="size-4 shrink-0" aria-hidden="true" />
+                  <span className="sr-only">Buscar cliente ou cobrança</span>
+                  <input
+                    type="search"
+                    value={termo}
+                    onChange={(e) => setTermo(e.target.value)}
+                    placeholder="Buscar cliente ou cobrança"
+                    autoComplete="off"
+                    className="w-full min-w-0 bg-transparent text-[16px] text-hub-tinta outline-none placeholder:text-hub-suave md:text-[14px]"
+                  />
+                </label>
+                <label className="flex min-h-11 items-center gap-2.5 text-[14px] text-[#2A2D33] sm:ml-auto">
+                  <input
+                    type="checkbox"
+                    checked={verRecebidas}
+                    onChange={(e) =>
+                      irPara({
+                        recebidas: e.target.checked ? true : undefined,
+                        filtro: filtro === "recebidas" ? undefined : filtro,
+                      })
+                    }
+                    className="size-[18px] accent-[#0E1013]"
+                  />
+                  Mostrar recebidas (6 meses)
+                </label>
+              </div>
+              {(empresaFiltrada || filtro === "atrasadas" || filtro === "sem_data") && (
+                <p className="flex flex-wrap items-center gap-x-2 text-[14.5px]">
+                  {empresaFiltrada ? (
+                    <>
+                      Só as cobranças de <strong>{empresaFiltrada}</strong>
+                      {filtro === "atrasadas"
+                        ? " em atraso"
+                        : filtro === "sem_data"
+                          ? " sem data"
+                          : ""}
+                      .
+                    </>
+                  ) : filtro === "atrasadas" ? (
+                    "Só as cobranças em atraso."
+                  ) : (
+                    'Só as partes cobradas "na entrega". Defina o vencimento quando a entrega acontecer.'
+                  )}
                   <button
                     type="button"
                     className="inline-flex min-h-11 items-center font-medium text-[#1E3FA8] underline"
-                    onClick={() =>
-                      void navigate({
-                        search: (s) => ({ ...s, cliente: undefined }),
-                        replace: true,
-                      })
-                    }
+                    onClick={() => irPara({ cliente: undefined, filtro: undefined })}
                   >
                     Ver todas
                   </button>
                 </p>
               )}
-              {filtro === "sem_data" && grupos.sem_data.length > 0 && (
-                <p className="text-[14px] text-hub-suave">
-                  Partes cobradas "na entrega". Defina o vencimento quando a entrega acontecer.
-                </p>
-              )}
-              {grupos[filtro].length === 0 ? (
+              {grupos.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-6 text-[15px] text-hub-suave">
-                  {filtro === "abertas"
-                    ? "Nada a receber com data. As parcelas aparecem aqui quando um cliente aceita uma proposta."
-                    : filtro === "sem_data"
-                      ? "Nenhuma cobrança esperando data."
-                      : "Nenhum pagamento registrado nos últimos 6 meses."}
+                  {termo.trim()
+                    ? "Nenhuma cobrança com esse nome."
+                    : filtro === "atrasadas"
+                      ? "Nada atrasado."
+                      : filtro === "sem_data"
+                        ? "Nenhuma cobrança esperando data."
+                        : "Nada a receber. As parcelas aparecem aqui quando um cliente aceita uma proposta."}
                 </p>
               ) : (
-                <CobrancasLista itens={grupos[filtro]} hoje={d.hoje} aoAbrir={(c) => abrir(c.id)} />
+                <CobrancasLista
+                  grupos={grupos}
+                  hoje={d.hoje}
+                  aoAbrir={(c) => abrir(c.id)}
+                  aoReceber={(c) => abrir(c.id, true)}
+                />
               )}
             </div>
           )}
@@ -271,6 +359,7 @@ function Financeiro() {
         c={aberta}
         hoje={d?.hoje ?? ""}
         remetente={remetente}
+        pagarAoAbrir={receber}
         aoFechar={() => abrir(undefined)}
         aoPagar={(v) => m.pagar.mutate(v)}
         aoDesfazer={(c) => m.desfazer.mutate(c)}

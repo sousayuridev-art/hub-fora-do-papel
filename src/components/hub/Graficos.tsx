@@ -15,7 +15,7 @@ export type Serie = { nome: string; cor: string; valores: number[] };
 function tetoRedondo(max: number): number {
   if (max <= 0) return 1;
   const pot = 10 ** Math.floor(Math.log10(max));
-  for (const m of [1, 2, 2.5, 5, 10]) if (m * pot >= max) return m * pot;
+  for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * pot >= max) return m * pot;
   return 10 * pot;
 }
 

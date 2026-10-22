@@ -1,12 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { EstadoErro } from "@/components/hub/EstadoErro";
-import { dataLocal, moeda } from "@/lib/formatar";
-import { chavesFinanceiro, fluxoDeCaixa, type MesFluxo } from "@/lib/financeiro";
+import { moeda } from "@/lib/formatar";
+import { chavesFinanceiro, fluxoDeCaixa, mesCurto, type MesFluxo } from "@/lib/financeiro";
 import { cn } from "@/lib/utils";
-
-const nomeMes = (iso: string) =>
-  dataLocal(iso).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "");
 
 const entradas = (m: MesFluxo) => m.entradas_cents;
 const saidas = (m: MesFluxo) => m.saidas_cents;
@@ -45,10 +42,10 @@ export function FluxoCaixa() {
       </div>
       <div className="flex items-center gap-4 text-[13px] text-hub-suave">
         <span className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="size-2.5 rounded-sm bg-[#145A37]" /> Entradas
+          <span aria-hidden="true" className="size-2.5 rounded-sm bg-serie-1" /> Entradas
         </span>
         <span className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="size-2.5 rounded-sm bg-[#9A1C12]" /> Saídas
+          <span aria-hidden="true" className="size-2.5 rounded-sm bg-serie-2" /> Saídas
         </span>
       </div>
       <table className="w-full border-collapse text-[14px]">
@@ -82,7 +79,7 @@ export function FluxoCaixa() {
               )}
             >
               <th scope="row" className="py-3 pr-2 text-left font-medium capitalize">
-                {nomeMes(m.mes)}
+                {mesCurto(m.mes)}
                 {m.tipo === "futuro" && (
                   <span className="block text-[12.5px] font-normal text-hub-suave">previsto</span>
                 )}
@@ -91,14 +88,14 @@ export function FluxoCaixa() {
                 <span className="flex flex-col gap-1">
                   <span
                     className={cn(
-                      "h-2 rounded-full bg-[#145A37]",
+                      "h-2 rounded-full bg-serie-1",
                       m.tipo === "futuro" && "opacity-50",
                     )}
                     style={{ width: `${(entradas(m) / maior) * 100}%` }}
                   />
                   <span
                     className={cn(
-                      "h-2 rounded-full bg-[#9A1C12]",
+                      "h-2 rounded-full bg-serie-2",
                       m.tipo === "futuro" && "opacity-50",
                     )}
                     style={{ width: `${(saidas(m) / maior) * 100}%` }}
