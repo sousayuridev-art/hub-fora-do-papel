@@ -14,3 +14,8 @@ export const caminhoInterno = z
   )
   .optional()
   .catch(undefined);
+
+/** Tela de entrada certa para quem ia para `volta`: área do gestor ou entrada dos clientes. */
+export function entradaPara(volta: string | undefined): "/gestor" | "/entrar" {
+  return /^\/(app|seguranca)(\/|\?|$)/.test(volta ?? "") ? "/gestor" : "/entrar";
+}

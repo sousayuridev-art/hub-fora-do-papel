@@ -42,13 +42,12 @@ export const Route = createFileRoute("/seguranca")({
   validateSearch: busca,
   beforeLoad: async ({ context, location, search }) => {
     const { session, acesso } = await carregarAcesso(context.queryClient);
-    if (!session)
-      throw redirect({ to: "/entrar", search: { volta: location.href, modo: "equipe" } });
+    if (!session) throw redirect({ to: "/gestor", search: { volta: location.href } });
     if (acesso?.papel !== "owner")
       throw redirect({ to: acesso?.papel ? inicioDoPapel[acesso.papel] : "/sem-acesso" });
     // Com app ativado, mexer na segurança exige o código desta sessão.
     const n = await nivelDaSessao().catch(() => null);
-    if (!n) throw redirect({ to: "/entrar", search: { modo: "equipe" } });
+    if (!n) throw redirect({ to: "/gestor" });
     if (n.proximo === "aal2" && n.atual !== "aal2") {
       throw redirect({ to: "/entrar/codigo", search: { volta: location.href } });
     }
@@ -100,9 +99,7 @@ function Seguranca() {
         <SecaoSenha destaque={acao === "senha"} />
         <button
           type="button"
-          onClick={() =>
-            void supabase.auth.signOut().then(() => window.location.assign("/entrar?modo=equipe"))
-          }
+          onClick={() => void supabase.auth.signOut().then(() => window.location.assign("/gestor"))}
           className="min-h-11 self-start text-[14px] text-hub-suave underline underline-offset-4"
         >
           Sair
@@ -385,10 +382,10 @@ function SecaoSenha({ destaque }: { destaque: boolean }) {
         {salvar.isPending ? "Salvando…" : "Salvar senha"}
       </Button>
       <p className="text-[13px] text-hub-suave">
-        Esqueceu a senha? Na tela de entrada, use "Esqueci a senha": o link chega no e-mail e pede o
+        Esqueceu a senha? Na área do gestor, use "Esqueci a senha": o link chega no e-mail e pede o
         código do app.{" "}
-        <Link to="/entrar" search={{ modo: "equipe" }} className="underline">
-          Ir para a entrada
+        <Link to="/gestor" className="underline">
+          Ir para a área do gestor
         </Link>
       </p>
     </form>

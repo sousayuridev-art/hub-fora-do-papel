@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { caminhoInterno } from "@/lib/volta";
+import { caminhoInterno, entradaPara } from "@/lib/volta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
@@ -58,7 +58,7 @@ function Callback() {
       <TelaErro
         titulo="Este link não vale mais"
         mensagem="Links de acesso valem por 1 hora e só uma vez. Peça um novo na tela de entrada."
-        aoTentarDeNovo={() => void navigate({ to: "/entrar", search: { volta } })}
+        aoTentarDeNovo={() => void navigate({ to: entradaPara(volta), search: { volta } })}
       />
     );
   }

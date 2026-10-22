@@ -6,7 +6,7 @@
 O Hub guarda clientes, contratos, dinheiro e transcrições de reuniões. Entrar só com um link no e-mail deixa tudo nas mãos de quem tiver acesso ao e-mail. Com senha e código do app, quem rouba a senha ou o e-mail ainda não entra. Métrica: 100% dos acessos de gestor com código verificado.
 
 ## Escopo
-1. **Tela de entrada** com duas opções: "Sou cliente" (link no e-mail, como hoje) e "Sou da equipe Fora do Papel" (e-mail e senha). Quem chega indo para `/app` vê a da equipe; quem chega indo para o portal vê a do cliente.
+1. **Duas entradas separadas (decisão do Yuri, 22/10):** `/entrar` é só dos clientes (link no e-mail) e `/gestor` é a área do gestor (e-mail e senha), sem abas nem link de uma para a outra. Quem vai para `/app` sem sessão cai em `/gestor`; quem vai para o portal cai em `/entrar`. O endereço antigo `/entrar?modo=equipe` leva para `/gestor`.
 2. **Código do app (segunda etapa):** depois da senha, a tela pede o código de 6 dígitos (`inputMode="numeric"`, `autoComplete="one-time-code"`).
 3. **Página Segurança** (`/seguranca`, só para gestor logado):
    - Criar ou trocar a senha: mínimo de 12 caracteres, com confirmação, e medidor simples.
@@ -33,7 +33,8 @@ O Hub guarda clientes, contratos, dinheiro e transcrições de reuniões. Entrar
 - Sessão antiga, de antes do código: na primeira navegação o Hub pede o código.
 
 ## Critérios de aceite
-- [ ] Entrar com e-mail, senha e código e cair no Painel.
+- [ ] Entrar por `/gestor` com e-mail, senha e código e cair no Painel.
+- [ ] `/entrar` mostra só a entrada do cliente.
 - [ ] Sem código, nenhuma tela de `/app` abre e o banco recusa as RPCs de dono (teste de banco com `aal1` e fator ativo).
 - [ ] Link por e-mail sozinho não abre o Hub para quem tem app ativado.
 - [ ] Ativar o app pelo QR e entrar de novo pedindo o código.

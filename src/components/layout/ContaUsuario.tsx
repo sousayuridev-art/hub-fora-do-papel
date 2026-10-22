@@ -27,7 +27,7 @@ export function ContaUsuario({ cartao = false }: { cartao?: boolean }) {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       queryClient.clear();
-      await navigate({ to: "/entrar" });
+      await navigate({ to: "/gestor" });
     } catch (e) {
       erro(mensagemDeErro(e), { tentarDeNovo: () => void sair() });
     }

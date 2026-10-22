@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as GestorRouteImport } from './routes/gestor'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as SegurancaRouteImport } from './routes/seguranca'
 import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
@@ -53,6 +54,11 @@ const AppRoute = AppRouteImport.update({
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GestorRoute = GestorRouteImport.update({
+  id: '/gestor',
+  path: '/gestor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortalRoute = PortalRouteImport.update({
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/entrar': typeof EntrarRoute
+  '/gestor': typeof GestorRoute
   '/portal': typeof PortalRouteWithChildren
   '/seguranca': typeof SegurancaRoute
   '/sem-acesso': typeof SemAcessoRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
+  '/gestor': typeof GestorRoute
   '/seguranca': typeof SegurancaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/entrar': typeof EntrarRoute
+  '/gestor': typeof GestorRoute
   '/portal': typeof PortalRouteWithChildren
   '/seguranca': typeof SegurancaRoute
   '/sem-acesso': typeof SemAcessoRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/entrar'
+    | '/gestor'
     | '/portal'
     | '/seguranca'
     | '/sem-acesso'
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/entrar'
+    | '/gestor'
     | '/seguranca'
     | '/sem-acesso'
     | '/app/configuracoes'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/entrar'
+    | '/gestor'
     | '/portal'
     | '/seguranca'
     | '/sem-acesso'
@@ -387,6 +399,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   EntrarRoute: typeof EntrarRoute
+  GestorRoute: typeof GestorRoute
   PortalRoute: typeof PortalRouteWithChildren
   SegurancaRoute: typeof SegurancaRoute
   SemAcessoRoute: typeof SemAcessoRoute
@@ -418,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gestor': {
+      id: '/gestor'
+      path: '/gestor'
+      fullPath: '/gestor'
+      preLoaderRoute: typeof GestorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal': {
@@ -671,6 +691,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   EntrarRoute: EntrarRoute,
+  GestorRoute: GestorRoute,
   PortalRoute: PortalRouteWithChildren,
   SegurancaRoute: SegurancaRoute,
   SemAcessoRoute: SemAcessoRoute,

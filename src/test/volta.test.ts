@@ -15,3 +15,14 @@ describe("parâmetro volta do login", () => {
     expect(volta.parse("/\n/site-falso.com")).toBeUndefined();
   });
 });
+
+describe("tela de entrada certa", () => {
+  it("gestor para o Hub e a Segurança; cliente para o resto", async () => {
+    const { entradaPara } = await import("@/lib/volta");
+    expect(entradaPara("/app/clientes")).toBe("/gestor");
+    expect(entradaPara("/seguranca?acao=senha")).toBe("/gestor");
+    expect(entradaPara("/portal")).toBe("/entrar");
+    expect(entradaPara("/application")).toBe("/entrar");
+    expect(entradaPara(undefined)).toBe("/entrar");
+  });
+});

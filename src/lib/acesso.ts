@@ -1,4 +1,5 @@
 import { redirect } from "@tanstack/react-router";
+import { entradaPara } from "@/lib/volta";
 import type { QueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase";
@@ -57,7 +58,8 @@ export async function carregarAcesso(queryClient: QueryClient) {
  */
 export async function exigirPapel(queryClient: QueryClient, papel: Papel, caminho: string) {
   const { session, acesso } = await carregarAcesso(queryClient);
-  if (!session) throw redirect({ to: "/entrar", search: { volta: caminho } });
+  if (!session)
+    throw redirect({ to: papel === "owner" ? "/gestor" : "/entrar", search: { volta: caminho } });
   if (!acesso?.papel) throw redirect({ to: "/sem-acesso" });
   if (acesso.papel !== papel) throw redirect({ to: inicioDoPapel[acesso.papel] });
   if (papel === "owner") await exigirCodigo(caminho);
@@ -75,7 +77,7 @@ export async function exigirCodigo(caminho: string) {
     .catch((e: unknown) => ({ data: null, error: e }));
   if (error || !data) {
     await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
-    throw redirect({ to: "/entrar", search: { volta: caminho } });
+    throw redirect({ to: "/gestor", search: { volta: caminho } });
   }
   if (data.currentLevel === "aal2") return;
   if (data.nextLevel === "aal2")
@@ -86,7 +88,7 @@ export async function exigirCodigo(caminho: string) {
 /** Páginas que servem aos dois papéis (ex.: recibo): só exige estar logado com algum acesso. */
 export async function exigirAcesso(queryClient: QueryClient, caminho: string) {
   const { session, acesso } = await carregarAcesso(queryClient);
-  if (!session) throw redirect({ to: "/entrar", search: { volta: caminho } });
+  if (!session) throw redirect({ to: entradaPara(caminho), search: { volta: caminho } });
   if (!acesso?.papel) throw redirect({ to: "/sem-acesso" });
   if (acesso.papel === "owner") await exigirCodigo(caminho);
   return { acesso };

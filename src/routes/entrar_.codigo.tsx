@@ -23,7 +23,7 @@ export const Route = createFileRoute("/entrar_/codigo")({
   // Só faz sentido com sessão aberta e app ativado sem o código ainda.
   beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getSession();
-    if (!data.session) throw redirect({ to: "/entrar", search: { volta: search.volta } });
+    if (!data.session) throw redirect({ to: "/gestor", search: { volta: search.volta } });
     const n = await nivelDaSessao().catch(() => null);
     if (n?.atual === "aal2") throw redirect({ href: search.volta ?? "/app" });
     if (n?.proximo !== "aal2")
@@ -58,7 +58,7 @@ function Codigo() {
 
   async function sair() {
     await supabase.auth.signOut();
-    await navigate({ to: "/entrar", search: { modo: "equipe" }, replace: true });
+    await navigate({ to: "/gestor", replace: true });
   }
 
   return (

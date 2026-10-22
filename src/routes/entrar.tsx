@@ -12,16 +12,14 @@ import { Simbolo } from "@/components/layout/Marca";
 import { TelaCarregando } from "@/components/feedback/TelaCarregando";
 import { carregarAcesso, inicioDoPapel } from "@/lib/acesso";
 import { supabase } from "@/lib/supabase";
-import { erro, mensagemDeErro, ok } from "@/lib/notify";
-import { entrarComSenha, enviarLinkRecuperacao, mensagemDeSeguranca } from "@/lib/seguranca";
-import { cn } from "@/lib/utils";
+import { erro, mensagemDeErro } from "@/lib/notify";
 import { previaDoLink } from "@/lib/enderecoPublico";
 
 const buscaEntrar = z.object({
   volta: caminhoInterno,
   /** E-mail já preenchido (vem do "Abrir meu portal" depois do aceite: CX-4). */
   email: z.string().trim().email().max(160).optional().catch(undefined),
-  /** "equipe" = e-mail, senha e código do app (SEG-1); "cliente" = link no e-mail. */
+  /** Endereço antigo da entrada do gestor ("?modo=equipe"): leva para /gestor. */
   modo: z.enum(["cliente", "equipe"]).optional().catch(undefined),
 });
 
@@ -30,6 +28,8 @@ export const Route = createFileRoute("/entrar")({
   validateSearch: buscaEntrar,
   // Quem já está logado não vê o formulário: vai direto para a sua área.
   beforeLoad: async ({ context, search }) => {
+    if (search.modo === "equipe")
+      throw redirect({ to: "/gestor", search: { volta: search.volta } });
     const { session, acesso } = await carregarAcesso(context.queryClient);
     if (!session || !acesso) return;
     if (acesso.papel && search.volta) throw redirect({ href: search.volta });
@@ -51,136 +51,16 @@ export const Route = createFileRoute("/entrar")({
 
 const emailValido = z.string().trim().email();
 
-/** Entrada: cliente por link no e-mail; equipe por e-mail, senha e código do app (SEG-1). */
+/** Entrada dos clientes: link de acesso no e-mail. O gestor entra por /gestor (SEG-1). */
 function Entrar() {
-  const { volta, email: sugerido, modo } = Route.useSearch();
-  const navigate = Route.useNavigate();
-  const equipe = modo ? modo === "equipe" : !sugerido && !(volta ?? "").startsWith("/portal");
+  const { volta, email: sugerido } = Route.useSearch();
   return (
     <div className="capa-escura flex min-h-dvh items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm rounded-3xl bg-[#F5F5F2] p-7 text-hub-tinta shadow-[0_30px_60px_-30px_rgba(0,0,0,0.7)] md:p-8">
         <Simbolo tamanho={32} />
-        <div
-          role="tablist"
-          aria-label="Quem está entrando"
-          className="mt-5 grid grid-cols-2 gap-1 rounded-xl bg-[#E8E8E2] p-1 text-[14px]"
-        >
-          {(
-            [
-              ["cliente", "Sou cliente"],
-              ["equipe", "Sou da equipe"],
-            ] as const
-          ).map(([id, rotulo]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={(id === "equipe") === equipe}
-              onClick={() => void navigate({ search: (s) => ({ ...s, modo: id }), replace: true })}
-              className={cn(
-                "min-h-11 rounded-lg px-3",
-                (id === "equipe") === equipe
-                  ? "bg-white font-semibold shadow-[0_1px_2px_rgba(14,16,19,0.08)]"
-                  : "text-[#4A4D54]",
-              )}
-            >
-              {rotulo}
-            </button>
-          ))}
-        </div>
-        {equipe ? <FormEquipe volta={volta} /> : <FormCliente volta={volta} sugerido={sugerido} />}
+        <FormCliente volta={volta} sugerido={sugerido} />
       </div>
     </div>
-  );
-}
-
-/** Equipe Fora do Papel: e-mail e senha; o código do app vem na tela seguinte. */
-function FormEquipe({ volta }: { volta: string | undefined }) {
-  const navigate = Route.useNavigate();
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [falha, setFalha] = useState<string | null>(null);
-
-  const entrar = useMutation({
-    mutationFn: () => entrarComSenha(email.trim(), senha),
-    onSuccess: () => void navigate({ href: volta ?? "/app", replace: true }),
-    onError: (e) => setFalha(mensagemDeSeguranca(e)),
-  });
-  const recuperar = useMutation({
-    mutationFn: () => enviarLinkRecuperacao(email.trim()),
-    onSuccess: () =>
-      ok("Se o e-mail for de um gestor, o link para criar nova senha chega em instantes."),
-    // Mesma resposta com ou sem conta, para não revelar quais e-mails existem.
-    onError: (e) =>
-      /rate limit|too many/i.test(e.message)
-        ? erro(mensagemDeSeguranca(e))
-        : ok("Se o e-mail for de um gestor, o link para criar nova senha chega em instantes."),
-  });
-  const emailOk = emailValido.safeParse(email).success;
-
-  function aoEnviar(evento: FormEvent) {
-    evento.preventDefault();
-    setFalha(null);
-    if (emailOk && senha.length > 0) entrar.mutate();
-  }
-
-  return (
-    <form onSubmit={aoEnviar} className="mt-5 flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-marca text-[28px] font-extrabold leading-tight tracking-[-0.03em]">
-          Entrar no Hub
-        </h1>
-        <p className="text-[15px] text-hub-suave">
-          E-mail e senha. Depois, o código de 6 dígitos do seu app autenticador.
-        </p>
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="email-equipe">E-mail</Label>
-        <Input
-          id="email-equipe"
-          type="email"
-          inputMode="email"
-          autoComplete="username"
-          autoFocus
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="h-12 bg-white text-base"
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="senha">Senha</Label>
-        <Input
-          id="senha"
-          type="password"
-          autoComplete="current-password"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          aria-invalid={falha !== null}
-          aria-describedby={falha ? "senha-erro" : undefined}
-          className="h-12 bg-white text-base"
-        />
-        {falha && (
-          <p id="senha-erro" role="alert" className="text-[13px] text-[#9A1C12]">
-            {falha}
-          </p>
-        )}
-      </div>
-      <Button
-        type="submit"
-        className="h-12 w-full text-[15px]"
-        disabled={entrar.isPending || !emailOk || !senha}
-      >
-        {entrar.isPending ? "Entrando…" : "Entrar"}
-      </Button>
-      <button
-        type="button"
-        disabled={!emailOk || recuperar.isPending}
-        onClick={() => recuperar.mutate()}
-        className="min-h-11 self-start text-sm font-medium text-[#3A3F47] underline underline-offset-4 disabled:opacity-50"
-      >
-        Esqueci a senha
-      </button>
-    </form>
   );
 }
 
@@ -193,8 +73,6 @@ function FormCliente({
   sugerido: string | undefined;
 }) {
   const [email, setEmail] = useState(sugerido ?? "");
-  // Quem vem para o portal vê o texto do cliente (CX-4); o Yuri vê o de sempre.
-  const doPortal = (volta ?? "").startsWith("/portal");
   const [invalido, setInvalido] = useState(false);
 
   const enviarLink = useMutation({
@@ -244,12 +122,12 @@ function FormCliente({
         <form onSubmit={aoEnviar} noValidate className="mt-5 flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <h1 className="font-marca text-[28px] font-extrabold leading-tight tracking-[-0.03em]">
-              {doPortal ? "Entrar no seu portal" : "Entrar"}
+              Entrar no seu portal
             </h1>
             <p className="text-[15px] text-hub-suave">
-              {doPortal
-                ? "Aqui você acompanha o projeto, aprova cada entrega e faz pedidos de ajuste. Sem senha: o link de acesso chega no seu e-mail."
-                : "Sem senha: enviamos um link de acesso para o seu e-mail."}
+              {
+                "Aqui você acompanha o projeto, aprova cada entrega e faz pedidos de ajuste. Sem senha: o link de acesso chega no seu e-mail."
+              }
             </p>
           </div>
           <div className="flex flex-col gap-2">
@@ -274,11 +152,7 @@ function FormCliente({
             )}
           </div>
           <Button type="submit" className="h-12 w-full text-[15px]" disabled={enviarLink.isPending}>
-            {enviarLink.isPending
-              ? "Enviando…"
-              : doPortal
-                ? "Receber meu link de acesso"
-                : "Enviar link de acesso"}
+            {enviarLink.isPending ? "Enviando…" : "Receber meu link de acesso"}
           </Button>
         </form>
       )}
