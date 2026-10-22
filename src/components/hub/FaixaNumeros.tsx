@@ -6,6 +6,8 @@ export type TomNumero = "risco" | "atencao" | "ok";
 
 export type ItemNumero = {
   rotulo: string;
+  /** Ícone de ajuda ao lado do rótulo (só em células sem clique, para não aninhar botões). */
+  ajuda?: ReactNode;
   valor: ReactNode;
   apoio?: ReactNode;
   /** Pinta só a célula que pede ação (risco/atenção) ou o apoio positivo (ok). */
@@ -37,8 +39,14 @@ export function FaixaNumeros({ itens, className }: { itens: ItemNumero[]; classN
       {itens.map((i, n) => {
         const conteudo = (
           <>
-            <span className={cn("text-[13px]", i.tom && i.tom !== "ok" ? "" : "text-hub-suave")}>
+            <span
+              className={cn(
+                "flex items-center gap-1 text-[13px]",
+                i.tom && i.tom !== "ok" ? "" : "text-hub-suave",
+              )}
+            >
               {i.rotulo}
+              {!i.aoClicar && i.ajuda}
             </span>
             <span className="text-[22px] font-semibold tabular-nums leading-tight md:text-[24px]">
               {i.valor}
@@ -56,7 +64,7 @@ export function FaixaNumeros({ itens, className }: { itens: ItemNumero[]; classN
           </>
         );
         const base = cn(
-          "flex min-w-[150px] shrink-0 snap-start flex-col gap-1 rounded-2xl border border-hub-borda bg-white px-4 py-3 text-left md:min-w-0 md:rounded-none md:border-0 md:px-5 md:py-4",
+          "flex min-w-[150px] max-w-[230px] shrink-0 snap-start md:max-w-none flex-col gap-1 rounded-2xl border border-hub-borda bg-white px-4 py-3 text-left md:min-w-0 md:rounded-none md:border-0 md:px-5 md:py-4",
           n > 0 && "md:border-l md:border-[#ECECE6]",
           i.tom && i.tom !== "ok" && fundo[i.tom],
           i.ativo && "ring-2 ring-inset ring-hub-tinta",

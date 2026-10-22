@@ -8,12 +8,15 @@ import {
   removerInvestimento,
   salvarCampanha,
   salvarOrcamento,
+  type Lancamento,
+  type PaginaLancamentos,
   type PainelTrafego,
   type Periodo,
   type Plataforma,
 } from "@/lib/trafego";
 
-type Investimento = PainelTrafego["investimentos"][number];
+type Investimento = Lancamento;
+type Foto = [readonly unknown[], PaginaLancamentos | undefined][];
 
 /** Mutações do tráfego: tela muda na hora, volta se o banco recusar, e recarrega as contas do banco. */
 export function useMutacoesTrafego(periodo: Periodo) {
@@ -26,31 +29,52 @@ export function useMutacoesTrafego(periodo: Periodo) {
     return qc.getQueryData<PainelTrafego>(chave);
   }
   const voltar = (a: PainelTrafego | undefined) => a && qc.setQueryData(chave, a);
+
+  /** Páginas de lançamentos em cache (para mexer na hora e voltar se der erro). */
+  const fotoLancamentos = (): Foto =>
+    qc.getQueriesData<PaginaLancamentos>({ queryKey: chavesTrafego.lancamentosTodos });
+  const voltarLancamentos = (f: Foto | undefined) => f?.forEach(([k, v]) => qc.setQueryData(k, v));
+  /** Chave: ["trafego", "lancamentos", periodo, campanha, pagina]. */
+  const mexerLancamentos = (
+    f: (pg: PaginaLancamentos, chave: readonly unknown[]) => PaginaLancamentos,
+  ) => fotoLancamentos().forEach(([k, v]) => v && qc.setQueryData(k, f(v, k)));
   const recarregar = () => void qc.invalidateQueries({ queryKey: chavesTrafego.tudo });
 
   const registrar = useMutation({
     mutationFn: registrarInvestimento,
     onMutate: async (v) => {
       const a = await antes();
-      if (a) {
-        const campanha = a.campanhas.find((c) => c.id === v.campanha);
-        const novo: Investimento = {
-          id: `temp-${Date.now()}`,
-          data: v.data,
-          plataforma: campanha?.plataforma ?? "meta",
-          campanha_id: v.campanha,
-          campanha: campanha?.nome ?? "",
-          valor_cents: v.valorCents,
-          cliques: v.cliques,
-          nota: v.nota || null,
-        };
+      const campanha = a?.campanhas.find((c) => c.id === v.campanha);
+      const novo: Investimento = {
+        id: `temp-${Date.now()}`,
+        data: v.data,
+        plataforma: campanha?.plataforma ?? "meta",
+        campanha_id: v.campanha,
+        campanha: campanha?.nome ?? "",
+        valor_cents: v.valorCents,
+        cliques: v.cliques,
+        nota: v.nota || null,
+      };
+      if (a)
         qc.setQueryData<PainelTrafego>(chave, { ...a, investimentos: [novo, ...a.investimentos] });
-      }
-      return { a };
+      const f = fotoLancamentos();
+      // Entra no topo da 1ª página das listas que mostram essa campanha
+      mexerLancamentos((pg, k) =>
+        k[4] === 0 && (k[3] == null || k[3] === v.campanha)
+          ? {
+              ...pg,
+              total: pg.total + 1,
+              total_cents: pg.total_cents + v.valorCents,
+              itens: [novo, ...pg.itens].slice(0, pg.por_pagina),
+            }
+          : pg,
+      );
+      return { a, f };
     },
     onSuccess: () => ok("Investimento registrado."),
     onError: (e, v, ctx) => {
       voltar(ctx?.a);
+      voltarLancamentos(ctx?.f);
       erro(falhou(e), { tentarDeNovo: () => registrar.mutate(v) });
     },
     onSettled: recarregar,
@@ -65,7 +89,18 @@ export function useMutacoesTrafego(periodo: Periodo) {
           ...a,
           investimentos: a.investimentos.filter((x) => x.id !== v.id),
         });
-      return { a };
+      const f = fotoLancamentos();
+      mexerLancamentos((pg) =>
+        pg.itens.some((x) => x.id === v.id)
+          ? {
+              ...pg,
+              total: pg.total - 1,
+              total_cents: pg.total_cents - v.valor_cents,
+              itens: pg.itens.filter((x) => x.id !== v.id),
+            }
+          : pg,
+      );
+      return { a, f };
     },
     onSuccess: (_r, v) =>
       ok("Investimento removido.", {
@@ -80,6 +115,7 @@ export function useMutacoesTrafego(periodo: Periodo) {
       }),
     onError: (e, v, ctx) => {
       voltar(ctx?.a);
+      voltarLancamentos(ctx?.f);
       erro(falhou(e), { tentarDeNovo: () => remover.mutate(v) });
     },
     onSettled: recarregar,
