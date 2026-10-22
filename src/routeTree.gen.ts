@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as SegurancaRouteImport } from './routes/seguranca'
 import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppConfiguracoesRouteImport } from './routes/app/configuracoes'
@@ -25,6 +26,7 @@ import { Route as AppRelatoriosRouteImport } from './routes/app/relatorios'
 import { Route as AppReunioesRouteImport } from './routes/app/reunioes'
 import { Route as AppTrafegoRouteImport } from './routes/app/trafego'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as EntrarCodigoRouteImport } from './routes/entrar_.codigo'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as PortalAprovacoesRouteImport } from './routes/portal/aprovacoes'
 import { Route as PortalArquivosRouteImport } from './routes/portal/arquivos'
@@ -56,6 +58,11 @@ const EntrarRoute = EntrarRouteImport.update({
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SegurancaRoute = SegurancaRouteImport.update({
+  id: '/seguranca',
+  path: '/seguranca',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SemAcessoRoute = SemAcessoRouteImport.update({
@@ -116,6 +123,11 @@ const AppTrafegoRoute = AppTrafegoRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarCodigoRoute = EntrarCodigoRouteImport.update({
+  id: '/entrar_/codigo',
+  path: '/entrar/codigo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortalIndexRoute = PortalIndexRouteImport.update({
@@ -184,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/portal': typeof PortalRouteWithChildren
+  '/seguranca': typeof SegurancaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
@@ -195,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/app/reunioes': typeof AppReunioesRoute
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/entrar/codigo': typeof EntrarCodigoRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
@@ -212,6 +226,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
+  '/seguranca': typeof SegurancaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
@@ -223,6 +238,7 @@ export interface FileRoutesByTo {
   '/app/reunioes': typeof AppReunioesRoute
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/entrar/codigo': typeof EntrarCodigoRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
@@ -243,6 +259,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/portal': typeof PortalRouteWithChildren
+  '/seguranca': typeof SegurancaRoute
   '/sem-acesso': typeof SemAcessoRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
@@ -254,6 +271,7 @@ export interface FileRoutesById {
   '/app/reunioes': typeof AppReunioesRoute
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/entrar_/codigo': typeof EntrarCodigoRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
@@ -275,6 +293,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/entrar'
     | '/portal'
+    | '/seguranca'
     | '/sem-acesso'
     | '/app/configuracoes'
     | '/app/financeiro'
@@ -286,6 +305,7 @@ export interface FileRouteTypes {
     | '/app/reunioes'
     | '/app/trafego'
     | '/auth/callback'
+    | '/entrar/codigo'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
     | '/portal/pagamentos'
@@ -303,6 +323,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/entrar'
+    | '/seguranca'
     | '/sem-acesso'
     | '/app/configuracoes'
     | '/app/financeiro'
@@ -314,6 +335,7 @@ export interface FileRouteTypes {
     | '/app/reunioes'
     | '/app/trafego'
     | '/auth/callback'
+    | '/entrar/codigo'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
     | '/portal/pagamentos'
@@ -333,6 +355,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/entrar'
     | '/portal'
+    | '/seguranca'
     | '/sem-acesso'
     | '/app/configuracoes'
     | '/app/financeiro'
@@ -344,6 +367,7 @@ export interface FileRouteTypes {
     | '/app/reunioes'
     | '/app/trafego'
     | '/auth/callback'
+    | '/entrar_/codigo'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
     | '/portal/pagamentos'
@@ -364,8 +388,10 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   EntrarRoute: typeof EntrarRoute
   PortalRoute: typeof PortalRouteWithChildren
+  SegurancaRoute: typeof SegurancaRoute
   SemAcessoRoute: typeof SemAcessoRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  EntrarCodigoRoute: typeof EntrarCodigoRoute
   PropostaTokenRoute: typeof PropostaTokenRoute
   ReciboIdRoute: typeof ReciboIdRoute
   PreviaPropostaIdRoute: typeof PreviaPropostaIdRoute
@@ -399,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seguranca': {
+      id: '/seguranca'
+      path: '/seguranca'
+      fullPath: '/seguranca'
+      preLoaderRoute: typeof SegurancaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sem-acesso': {
@@ -483,6 +516,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar_/codigo': {
+      id: '/entrar_/codigo'
+      path: '/entrar/codigo'
+      fullPath: '/entrar/codigo'
+      preLoaderRoute: typeof EntrarCodigoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal/': {
@@ -632,8 +672,10 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   EntrarRoute: EntrarRoute,
   PortalRoute: PortalRouteWithChildren,
+  SegurancaRoute: SegurancaRoute,
   SemAcessoRoute: SemAcessoRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  EntrarCodigoRoute: EntrarCodigoRoute,
   PropostaTokenRoute: PropostaTokenRoute,
   ReciboIdRoute: ReciboIdRoute,
   PreviaPropostaIdRoute: PreviaPropostaIdRoute,

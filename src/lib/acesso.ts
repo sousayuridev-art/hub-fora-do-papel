@@ -60,7 +60,24 @@ export async function exigirPapel(queryClient: QueryClient, papel: Papel, caminh
   if (!session) throw redirect({ to: "/entrar", search: { volta: caminho } });
   if (!acesso?.papel) throw redirect({ to: "/sem-acesso" });
   if (acesso.papel !== papel) throw redirect({ to: inicioDoPapel[acesso.papel] });
+  if (papel === "owner") await exigirCodigo(caminho);
   return { acesso };
+}
+
+/**
+ * Gestor (card SEG-1): sem app autenticador, vai ativar; com app e sem o código nesta sessão,
+ * vai digitar o código. O banco recusa as ações de dono do mesmo jeito (aal2).
+ */
+export async function exigirCodigo(caminho: string) {
+  // Sessão ilegível (token corrompido) também volta para a entrada, em vez da tela de erro.
+  const { data, error } = await supabase.auth.mfa
+    .getAuthenticatorAssuranceLevel()
+    .catch((e: unknown) => ({ data: null, error: e }));
+  if (error || !data) throw redirect({ to: "/entrar", search: { volta: caminho } });
+  if (data.currentLevel === "aal2") return;
+  if (data.nextLevel === "aal2")
+    throw redirect({ to: "/entrar/codigo", search: { volta: caminho } });
+  throw redirect({ to: "/seguranca", search: { volta: caminho, ativar: true } });
 }
 
 /** Páginas que servem aos dois papéis (ex.: recibo): só exige estar logado com algum acesso. */
@@ -68,5 +85,6 @@ export async function exigirAcesso(queryClient: QueryClient, caminho: string) {
   const { session, acesso } = await carregarAcesso(queryClient);
   if (!session) throw redirect({ to: "/entrar", search: { volta: caminho } });
   if (!acesso?.papel) throw redirect({ to: "/sem-acesso" });
+  if (acesso.papel === "owner") await exigirCodigo(caminho);
   return { acesso };
 }

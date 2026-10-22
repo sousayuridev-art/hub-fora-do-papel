@@ -9,6 +9,7 @@ import { EstadoErro } from "@/components/hub/EstadoErro";
 import { PrecosFormulario } from "@/components/precos/PrecosFormulario";
 import { SecaoRecebimento } from "@/components/financeiro/SecaoRecebimento";
 import { SecaoGoogle } from "@/components/reunioes/SecaoGoogle";
+import { SecaoSeguranca } from "@/components/hub/SecaoSeguranca";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import { chavesPrecos, lerPrecos } from "@/lib/precos";
@@ -86,6 +87,8 @@ function Configuracoes() {
       <SecaoRecebimento />
 
       <SecaoGoogle />
+
+      <SecaoSeguranca />
 
       <section className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-white p-5 md:p-6">
         <h2 className="font-titulo text-lg font-bold">Conexão com o banco</h2>
