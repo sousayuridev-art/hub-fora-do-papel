@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import type { LinkProps } from "@tanstack/react-router";
 
+import { BotaoVoltar } from "@/components/hub/BotaoVoltar";
 import { cn } from "@/lib/utils";
 
 /**
@@ -9,6 +11,9 @@ import { cn } from "@/lib/utils";
  *
  * A faixa sai do contêiner da página com margens negativas e se estende até as bordas da
  * janela com sombra + clip-path, sem criar rolagem lateral.
+ *
+ * Com `migalha` (telas de detalhe), o celular ganha o botão Voltar à esquerda da migalha
+ * (card RD-9): histórico quando a pessoa veio de dentro do Hub, senão `voltarPara`.
  */
 export function CabecalhoPagina({
   grupo,
@@ -16,16 +21,19 @@ export function CabecalhoPagina({
   resumo,
   acao,
   migalha,
+  voltarPara = "/app",
   abas,
   selo,
   className,
 }: {
-  grupo?: string;
+  grupo?: string | undefined;
   titulo: ReactNode;
   resumo?: ReactNode;
   acao?: ReactNode;
   /** Caminho de volta (ex.: Projetos › Sistema), acima do título. */
   migalha?: ReactNode;
+  /** Lista da seção, para onde o Voltar leva quem entrou direto pelo endereço. */
+  voltarPara?: NonNullable<LinkProps["to"]>;
   /** Abas sublinhadas presas ao fio de baixo da faixa. */
   abas?: ReactNode;
   /** Selo de situação ao lado do título (fora do h1, ex.: etapa na ficha do cliente). */
@@ -41,7 +49,12 @@ export function CabecalhoPagina({
         className,
       )}
     >
-      {migalha && <div className="text-[13.5px] text-hub-suave">{migalha}</div>}
+      {migalha && (
+        <div className="flex min-w-0 items-center gap-1 text-[13.5px] text-hub-suave max-md:-mt-2 max-md:-mb-1">
+          <BotaoVoltar para={voltarPara} />
+          <div className="min-w-0">{migalha}</div>
+        </div>
+      )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
           {grupo && <span className="text-[12.5px] text-hub-suave">{grupo}</span>}

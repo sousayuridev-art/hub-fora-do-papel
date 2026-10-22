@@ -53,7 +53,7 @@ export function ClientesTabela({ itens }: { itens: ClienteLinha[] }) {
       <div
         role="row"
         className={cn(
-          "hidden gap-4 border-b border-hub-borda px-5 py-3 text-[13.5px] text-hub-suave lg:grid",
+          "hidden gap-4 border-b border-hub-borda px-5 py-3 text-[13.5px] font-medium text-hub-suave lg:grid",
           colunas,
         )}
       >

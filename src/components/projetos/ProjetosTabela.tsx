@@ -30,7 +30,7 @@ export function ProjetosTabela({ projetos }: { projetos: ProjetoResumo[] }) {
       <div
         aria-hidden="true"
         className={cn(
-          "hidden gap-x-4 border-b border-hub-borda px-5 py-3 text-[13px] text-hub-suave lg:grid",
+          "hidden gap-x-4 border-b border-hub-borda px-5 py-3 text-[13.5px] font-medium text-hub-suave lg:grid",
           gradeProjetos,
         )}
       >

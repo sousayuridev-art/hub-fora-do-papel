@@ -12,13 +12,13 @@ const x = (r: number | null) => (r == null ? "—" : `${r.toLocaleString("pt-BR"
  */
 export function TrafegoRetorno({ p }: { p: PainelTrafego }) {
   const i = p.indicadores;
-  const th = "py-3 pr-3 font-normal";
+  const th = "py-3 pr-3 font-medium";
   return (
     <div className="overflow-x-auto rounded-2xl border border-hub-borda bg-white">
       <table className="w-full min-w-[560px] text-[14px] whitespace-nowrap tabular-nums">
         <caption className="sr-only">Retorno por mês de entrada</caption>
         <thead>
-          <tr className="border-b border-hub-borda text-left text-[12.5px] text-hub-suave">
+          <tr className="border-b border-hub-borda text-left text-[13.5px] text-hub-suave">
             <th className={`${th} pl-4 md:pl-5`}>
               <span className="inline-flex items-center gap-1">
                 Mês de entrada

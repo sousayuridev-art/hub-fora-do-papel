@@ -32,7 +32,7 @@ export function PedidosLista({
     <div className="overflow-hidden rounded-2xl border border-hub-borda bg-white">
       <div
         aria-hidden="true"
-        className="hidden grid-cols-[72px_minmax(0,1.6fr)_minmax(0,1.2fr)_150px_110px_170px] gap-3 border-b border-hub-borda px-5 py-3 font-rotulo text-[12.5px] font-semibold uppercase tracking-[0.08em] text-hub-suave lg:grid"
+        className="hidden grid-cols-[72px_minmax(0,1.6fr)_minmax(0,1.2fr)_150px_110px_170px] gap-3 border-b border-hub-borda px-5 py-3 font-rotulo text-[13.5px] font-medium text-hub-suave lg:grid"
       >
         <span>Código</span>
         <span>Pedido</span>

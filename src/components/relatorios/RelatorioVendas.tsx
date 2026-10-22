@@ -151,7 +151,7 @@ export function RelatorioVendas({
             <table className="w-full min-w-[520px] border-collapse text-[14px]">
               <caption className="sr-only">Resultado por origem do contato</caption>
               <thead>
-                <tr className="text-left text-[13px] text-hub-suave">
+                <tr className="text-left text-[13.5px] text-hub-suave">
                   <th scope="col" className="py-2 pr-2 font-medium">
                     Origem
                   </th>

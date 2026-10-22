@@ -98,6 +98,7 @@ function Trafego() {
               aoEscolher={(id) =>
                 void navigate({
                   search: (s) => ({ ...s, periodo: id === "mes" ? undefined : id }),
+                  replace: true,
                 })
               }
             />
@@ -106,6 +107,27 @@ function Trafego() {
               Registrar investimento
             </button>
           </div>
+        }
+        abas={
+          <Abas
+            rotulo="Detalhes do tráfego"
+            opcoes={[
+              { id: "campanhas", rotulo: "Campanhas", contagem: dados.data?.campanhas.length },
+              { id: "retorno", rotulo: "Retorno por mês de entrada" },
+              {
+                id: "lancamentos",
+                rotulo: "Lançamentos",
+                contagem: lancamentos.data?.total,
+              },
+            ]}
+            ativa={aba}
+            aoEscolher={(id) =>
+              void navigate({
+                search: (s) => ({ ...s, aba: id === "campanhas" ? undefined : id }),
+                replace: true,
+              })
+            }
+          />
         }
       />
 
@@ -135,28 +157,6 @@ function Trafego() {
           <TrafegoFunil p={dados.data} etiqueta={etiqueta} />
 
           <div className="flex flex-col gap-4">
-            <div className="border-b border-hub-borda">
-              <Abas
-                rotulo="Detalhes do tráfego"
-                className="-mb-px"
-                opcoes={[
-                  { id: "campanhas", rotulo: "Campanhas", contagem: dados.data.campanhas.length },
-                  { id: "retorno", rotulo: "Retorno por mês de entrada" },
-                  {
-                    id: "lancamentos",
-                    rotulo: "Lançamentos",
-                    contagem: lancamentos.data?.total,
-                  },
-                ]}
-                ativa={aba}
-                aoEscolher={(id) =>
-                  void navigate({
-                    search: (s) => ({ ...s, aba: id === "campanhas" ? undefined : id }),
-                    replace: true,
-                  })
-                }
-              />
-            </div>
             <div role="tabpanel" aria-label={etiqueta}>
               {aba === "campanhas" && (
                 <TrafegoCampanhas

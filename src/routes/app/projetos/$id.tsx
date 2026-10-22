@@ -24,6 +24,7 @@ import {
   type ModoModulo,
 } from "@/components/projetos/ModuloPainel";
 import type { AcaoModulo } from "@/components/projetos/ModuloLinha";
+import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
 import type { Modulo } from "@/lib/projetos";
 import { ProjetoHoras } from "@/components/projetos/ProjetoHoras";
 import { ProjetoLinhaDoTempo } from "@/components/projetos/ProjetoLinhaDoTempo";
@@ -70,6 +71,10 @@ function Projeto() {
   const remetente =
     ((session?.user.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] ?? "";
   const [ciclo, setCiclo] = useState<number | null>(null);
+  // Abrir a tarefa cria entrada no histórico; fechar pela tela não (RD-9)
+  const painelTarefa = usePainelNaUrl(
+    (tid, o) => void navigate({ search: (s) => ({ ...s, tarefa: tid }), ...o }),
+  );
 
   if (q.isError) {
     const sumiu = /projeto_inexistente/.test(String((q.error as { message?: string })?.message));
@@ -104,8 +109,6 @@ function Projeto() {
   const tarefas = d.tarefas.filter(naoRemovida);
   const aberta = tarefaAberta ? tarefas.find((t) => t.id === tarefaAberta) : undefined;
   const cicloAtual = ciclo ?? aberta?.cycle ?? Math.max(1, ...tarefas.map((t) => t.cycle));
-  const abrirTarefa = (tid: string | undefined) =>
-    void navigate({ search: (s) => ({ ...s, tarefa: tid }), replace: true });
   const atual = faseAtual(d.fases);
   /** RD-10: o botão do bloco abre o painel ou a tela da ação. */
   const agirDestrava = (a: AcaoDestrava) => {
@@ -251,7 +254,7 @@ function Projeto() {
             ciclo={cicloAtual}
             aoTrocarCiclo={setCiclo}
             aoNovaTarefa={() => setPainel("tarefa")}
-            aoAbrir={(t) => abrirTarefa(t.id)}
+            aoAbrir={(t) => painelTarefa.abrir(t.id)}
             aoMover={(t, s) => m.mover.mutate({ id: t.id, situacao: s })}
             aoRemover={(t) => m.removerTar(t)}
           />
@@ -353,7 +356,7 @@ function Projeto() {
         tarefa={aberta ? daTarefaDoProjeto(aberta, d) : null}
         hoje={d.hoje}
         noProjeto
-        aoFechar={() => abrirTarefa(undefined)}
+        aoFechar={painelTarefa.fechar}
       />
       <LancarHorasPainel
         aberto={painel === "horas"}

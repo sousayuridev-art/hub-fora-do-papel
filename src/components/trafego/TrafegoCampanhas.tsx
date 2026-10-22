@@ -52,8 +52,8 @@ export function TrafegoCampanhas({
         <div className="overflow-hidden rounded-2xl border border-hub-borda bg-white">
           <table className="w-full text-[14px] max-md:hidden">
             <thead>
-              <tr className="border-b border-hub-borda text-left text-[12.5px] text-hub-suave">
-                <th className="py-3 pr-3 pl-5 font-normal">
+              <tr className="border-b border-hub-borda text-left text-[13.5px] text-hub-suave">
+                <th className="py-3 pr-3 pl-5 font-medium">
                   <span className="inline-flex items-center gap-1">
                     Campanha
                     <Ajuda sobre="a ligação do contato com a campanha">
@@ -62,10 +62,10 @@ export function TrafegoCampanhas({
                     </Ajuda>
                   </span>
                 </th>
-                <th className="py-3 pr-3 font-normal">Situação</th>
-                <th className="py-3 pr-3 text-right font-normal">Investido</th>
-                <th className="py-3 pr-3 text-right font-normal">Contatos</th>
-                <th className="py-3 pr-3 text-right font-normal">
+                <th className="py-3 pr-3 font-medium">Situação</th>
+                <th className="py-3 pr-3 text-right font-medium">Investido</th>
+                <th className="py-3 pr-3 text-right font-medium">Contatos</th>
+                <th className="py-3 pr-3 text-right font-medium">
                   <span className="inline-flex items-center gap-1">
                     Diagnósticos
                     <Ajuda sobre="diagnósticos por campanha">
@@ -74,7 +74,7 @@ export function TrafegoCampanhas({
                     </Ajuda>
                   </span>
                 </th>
-                <th className="py-3 pr-3 text-right font-normal">Por contato</th>
+                <th className="py-3 pr-3 text-right font-medium">Por contato</th>
                 <th className="py-2 pr-3 text-right">{novaCampanha}</th>
               </tr>
             </thead>

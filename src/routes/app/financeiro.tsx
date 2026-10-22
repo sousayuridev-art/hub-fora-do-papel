@@ -20,6 +20,7 @@ import { NovaCobrancaPainel } from "@/components/financeiro/NovaCobrancaPainel";
 import { NovaMensalidadePainel } from "@/components/financeiro/NovaMensalidadePainel";
 import { useMutacoesFinanceiro } from "@/components/financeiro/useMutacoesFinanceiro";
 import { useSession } from "@/hooks/useSession";
+import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
 import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
 import { moeda } from "@/lib/formatar";
 import {
@@ -115,9 +116,13 @@ function Financeiro() {
     ? (d?.cobrancas.find((x) => x.client_id === cliente)?.empresa ?? "este cliente")
     : null;
   const aberta = cobranca ? (d?.cobrancas.find((c) => c.id === cobranca) ?? null) : null;
-  const abrir = (id: string | undefined, pagar = false) => {
+  // Abrir a cobrança cria entrada no histórico; fechar pela tela não (RD-9)
+  const painelCobranca = usePainelNaUrl(
+    (id, o) => void navigate({ search: (s) => ({ ...s, cobranca: id }), ...o }),
+  );
+  const abrir = (id: string, pagar = false) => {
     setReceber(pagar);
-    void navigate({ search: (s) => ({ ...s, cobranca: id }), replace: true });
+    painelCobranca.abrir(id);
   };
   const irPara = (s: Partial<z.infer<typeof busca>>) =>
     void navigate({ search: (atual) => ({ ...atual, ...s }), replace: true });
@@ -155,6 +160,28 @@ function Financeiro() {
               <span className="max-sm:sr-only">Nova cobrança</span>
             </button>
           </div>
+        }
+        abas={
+          <Abas<Aba>
+            rotulo="Seções do financeiro"
+            ativa={aba}
+            aoEscolher={(a) => irPara({ aba: a === "cobrancas" ? undefined : a })}
+            opcoes={[
+              { id: "cobrancas", rotulo: "Cobranças" },
+              {
+                id: "mensalidades",
+                rotulo: "Mensalidades",
+                contagem:
+                  d && d.numeros.mensalidades_ativas > 0 ? `${moeda(d.numeros.mrr_cents)}/mês` : "",
+              },
+              {
+                id: "despesas",
+                rotulo: "Despesas",
+                contagem: d ? moeda(d.numeros.despesas_mes_cents) : "",
+              },
+              { id: "fluxo", rotulo: "Fluxo de caixa" },
+            ]}
+          />
         }
       />
 
@@ -212,30 +239,6 @@ function Financeiro() {
               />
             </div>
           )}
-
-          <div className="border-b border-hub-borda">
-            <Abas<Aba>
-              rotulo="Seções do financeiro"
-              ativa={aba}
-              aoEscolher={(a) => irPara({ aba: a === "cobrancas" ? undefined : a })}
-              opcoes={[
-                { id: "cobrancas", rotulo: "Cobranças" },
-                {
-                  id: "mensalidades",
-                  rotulo: "Mensalidades",
-                  contagem:
-                    d.numeros.mensalidades_ativas > 0 ? `${moeda(d.numeros.mrr_cents)}/mês` : "",
-                },
-                {
-                  id: "despesas",
-                  rotulo: "Despesas",
-                  contagem: moeda(d.numeros.despesas_mes_cents),
-                },
-                { id: "fluxo", rotulo: "Fluxo de caixa" },
-              ]}
-              className="-mb-px"
-            />
-          </div>
 
           {aba === "cobrancas" && (
             <div className="flex flex-col gap-4">
@@ -360,7 +363,7 @@ function Financeiro() {
         hoje={d?.hoje ?? ""}
         remetente={remetente}
         pagarAoAbrir={receber}
-        aoFechar={() => abrir(undefined)}
+        aoFechar={painelCobranca.fechar}
         aoPagar={(v) => m.pagar.mutate(v)}
         aoDesfazer={(c) => m.desfazer.mutate(c)}
         aoVencimento={(c, data) => m.atualizar.mutate({ id: c.id, campos: { vencimento: data } })}
