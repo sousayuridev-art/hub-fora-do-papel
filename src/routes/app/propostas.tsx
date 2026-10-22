@@ -1,30 +1,29 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Plus, SlidersHorizontal } from "lucide-react";
+import { Plus } from "lucide-react";
 import { z } from "zod";
 
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
-import { FiltrosChip } from "@/components/hub/FiltrosChip";
+import { ListaLateral } from "@/components/propostas/ListaLateral";
 import { NovaPropostaPainel } from "@/components/propostas/NovaPropostaPainel";
 import { PropostaEditor } from "@/components/propostas/PropostaEditor";
-import { PropostasLista } from "@/components/propostas/PropostasLista";
-import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
-import { moeda } from "@/lib/formatar";
+import { PropostasNumeros } from "@/components/propostas/PropostasNumeros";
+import { PropostasQuadro } from "@/components/propostas/PropostasQuadro";
+import { classeAcaoPrincipal } from "@/lib/estilos";
 import {
-  abasPropostas,
   chavesPropostas,
   detalheProposta,
-  listarPropostas,
+  quadroPropostas,
   resumoPropostas,
   type AbaPropostas,
 } from "@/lib/propostas";
-import { cn } from "@/lib/utils";
 
 const busca = z.object({
   id: z.string().uuid().optional().catch(undefined),
   aba: z.enum(["rascunho", "enviada", "aceita", "recusada"]).optional().catch(undefined),
+  filtro: z.enum(["sem_abrir"]).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/app/propostas")({
@@ -33,12 +32,29 @@ export const Route = createFileRoute("/app/propostas")({
   component: Propostas,
 });
 
+/** Lista ao lado do editor: aberta em telas largas; a escolha de quem usa fica guardada. */
+const CHAVE_LISTA = "hub:propostas:lista-recolhida";
+function listaRecolhidaInicial(): boolean {
+  try {
+    const salvo = window.localStorage.getItem(CHAVE_LISTA);
+    if (salvo !== null) return salvo === "1";
+  } catch {
+    // Sem armazenamento (janela privada): segue a largura da tela
+  }
+  return !window.matchMedia("(min-width: 1536px)").matches;
+}
+
+/**
+ * Propostas (card RD-5). Sem proposta aberta: números do topo e quadro em colunas.
+ * Com proposta aberta (?id=): editor em largura total, com a lista recolhível à esquerda.
+ */
 function Propostas() {
-  const { id, aba: abaUrl } = Route.useSearch();
+  const { id, aba: abaUrl, filtro } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [nova, setNova] = useState(false);
+  const [recolhida, setRecolhida] = useState(listaRecolhidaInicial);
 
-  const lista = useQuery({ queryKey: chavesPropostas.lista, queryFn: listarPropostas });
+  const quadro = useQuery({ queryKey: chavesPropostas.quadro, queryFn: quadroPropostas });
   const resumo = useQuery({ queryKey: chavesPropostas.resumo, queryFn: resumoPropostas });
   const detalhe = useQuery({
     queryKey: chavesPropostas.detalhe(id ?? ""),
@@ -46,123 +62,105 @@ function Propostas() {
     enabled: Boolean(id),
   });
 
-  const selecionada = lista.data?.find((p) => p.id === id);
+  const selecionada = quadro.data?.find((p) => p.id === id);
   const aba: AbaPropostas = abaUrl ?? selecionada?.status ?? "rascunho";
-  const daAba = (lista.data ?? []).filter((p) => p.status === aba);
-  const r = resumo.data;
+  const semAbrir = filtro === "sem_abrir";
+
+  const alternarLista = () =>
+    setRecolhida((atual) => {
+      try {
+        window.localStorage.setItem(CHAVE_LISTA, atual ? "0" : "1");
+      } catch {
+        // Preferência só nesta visita
+      }
+      return !atual;
+    });
 
   return (
     <div className="flex flex-col gap-5">
       <CabecalhoPagina
         grupo="Vender"
         titulo="Propostas"
-        resumo={
-          r ? (
-            <>
-              {r.enviada} {r.enviada === 1 ? "enviada" : "enviadas"} e {r.rascunho}{" "}
-              {r.rascunho === 1 ? "rascunho" : "rascunhos"} ·{" "}
-              <strong className="font-semibold text-hub-tinta">
-                {moeda(r.em_negociacao_cents)}
-              </strong>{" "}
-              em negociação · {r.aceitas_no_ano} {r.aceitas_no_ano === 1 ? "aceita" : "aceitas"}{" "}
-              neste ano
-            </>
-          ) : (
-            <span className="inline-block h-5 w-72 animate-pulse rounded bg-[#E4E4DF]" />
-          )
-        }
+        resumo="O que falta enviar e quem ainda não respondeu."
         acao={
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Link to="/app/configuracoes" className={classeBotaoSecundario}>
-              <SlidersHorizontal className="size-4" aria-hidden="true" />
-              Preços
-            </Link>
-            <button type="button" className={classeAcaoPrincipal} onClick={() => setNova(true)}>
-              <Plus className="size-4" aria-hidden="true" />
-              Nova proposta
-            </button>
-          </div>
+          <button type="button" className={classeAcaoPrincipal} onClick={() => setNova(true)}>
+            <Plus className="size-4" aria-hidden="true" />
+            Nova proposta
+          </button>
         }
       />
 
-      <div
-        className={cn(
-          "grid gap-4",
-          id ? "2xl:grid-cols-[280px_minmax(0,1fr)]" : "lg:grid-cols-[280px_minmax(0,1fr)]",
-        )}
-      >
-        <div
-          className={cn(
-            "flex min-w-0 flex-col gap-3 overflow-hidden rounded-2xl border border-hub-borda bg-white p-3 lg:sticky lg:top-6 lg:self-start",
-            id && "max-2xl:hidden",
+      {!id ? (
+        <>
+          {resumo.isError ? (
+            <EstadoErro
+              titulo="Não foi possível carregar os números"
+              aoTentarDeNovo={() => void resumo.refetch()}
+            />
+          ) : (
+            <PropostasNumeros
+              r={resumo.data}
+              filtroSemAbrir={semAbrir}
+              aoFiltrarSemAbrir={() =>
+                void navigate({
+                  search: (s) => ({ ...s, filtro: semAbrir ? undefined : "sem_abrir" }),
+                })
+              }
+            />
           )}
-        >
-          <FiltrosChip
-            rotulo="Situação das propostas"
-            opcoes={abasPropostas.map((a) => ({ id: a.id, rotulo: a.rotulo, contagem: r?.[a.id] }))}
-            ativo={aba}
-            aoEscolher={(novaAba) => void navigate({ search: (s) => ({ ...s, aba: novaAba }) })}
-          />
-          {lista.isPending ? (
-            <div className="flex flex-col gap-2" aria-busy="true">
-              {Array.from({ length: 3 }, (_, i) => (
-                <div key={i} className="h-24 animate-pulse rounded-xl bg-hub-fundo" />
+          {quadro.isPending ? (
+            <div className="grid gap-4 md:grid-cols-4" aria-busy="true">
+              {Array.from({ length: 4 }, (_, i) => (
+                <div key={i} className="h-64 animate-pulse rounded-2xl bg-white" />
               ))}
             </div>
-          ) : lista.isError ? (
+          ) : quadro.isError ? (
             <EstadoErro
-              titulo="Não foi possível carregar"
-              aoTentarDeNovo={() => void lista.refetch()}
-            />
-          ) : daAba.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-[#D6D6CF] p-4 text-[14px] text-hub-suave">
-              {aba === "rascunho"
-                ? 'Nenhum rascunho. Comece em "Nova proposta" ou pela ficha do cliente.'
-                : aba === "recusada"
-                  ? "Nenhuma proposta recusada. Quando acontecer, o motivo aparece aqui."
-                  : aba === "aceita"
-                    ? "Nenhuma proposta aceita ainda."
-                    : "Nenhuma proposta enviada."}
-            </p>
-          ) : (
-            <PropostasLista itens={daAba} selecionada={id} />
-          )}
-          <p className="border-t border-hub-borda px-1 pt-3 text-[13px] text-hub-suave">
-            O valor vem de Configurações › Preços. O que já foi enviado mantém o valor combinado.
-          </p>
-        </div>
-
-        <div className={cn("min-w-0", !id && "max-lg:hidden")}>
-          {!id ? (
-            <div className="flex flex-col items-start gap-3 rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-8">
-              <FileText className="size-8 text-hub-suave" aria-hidden="true" />
-              <h2 className="font-titulo text-xl font-bold">Escolha uma proposta</h2>
-              <p className="max-w-lg text-[15px] text-hub-suave">
-                Abra uma da lista ou crie uma nova a partir de uma oportunidade do funil. O valor é
-                calculado pelas regras de preço e o cliente aceita pelo link.
-              </p>
-              <button type="button" className={classeAcaoPrincipal} onClick={() => setNova(true)}>
-                <Plus className="size-4" aria-hidden="true" />
-                Nova proposta
-              </button>
-            </div>
-          ) : detalhe.isPending ? (
-            <div className="grid gap-4 xl:grid-cols-[1fr_340px]" aria-busy="true">
-              <div className="h-[600px] animate-pulse rounded-2xl bg-white" />
-              <div className="h-80 animate-pulse rounded-2xl bg-white" />
-            </div>
-          ) : detalhe.isError ? (
-            <EstadoErro
-              titulo="Não foi possível abrir a proposta"
-              aoTentarDeNovo={() => void detalhe.refetch()}
+              titulo="Não foi possível carregar as propostas"
+              aoTentarDeNovo={() => void quadro.refetch()}
             />
           ) : (
-            <PropostaEditor key={detalhe.data.proposta.id} detalhe={detalhe.data} />
+            <PropostasQuadro
+              cartoes={quadro.data}
+              r={resumo.data}
+              filtroSemAbrir={semAbrir}
+              aoLimparFiltro={() => void navigate({ search: (s) => ({ ...s, filtro: undefined }) })}
+            />
           )}
+        </>
+      ) : (
+        <div className="flex items-start gap-4">
+          <ListaLateral
+            cartoes={quadro.data ?? []}
+            carregando={quadro.isPending}
+            falhou={quadro.isError}
+            aoTentarDeNovo={() => void quadro.refetch()}
+            r={resumo.data}
+            aba={aba}
+            aoEscolherAba={(novaAba) => void navigate({ search: (s) => ({ ...s, aba: novaAba }) })}
+            selecionada={id}
+            recolhida={recolhida}
+            aoAlternar={alternarLista}
+          />
+          <div className="@container min-w-0 flex-1">
+            {detalhe.isPending ? (
+              <div className="grid gap-4 @min-[960px]:grid-cols-[1fr_340px]" aria-busy="true">
+                <div className="h-[600px] animate-pulse rounded-2xl bg-white" />
+                <div className="h-80 animate-pulse rounded-2xl bg-white" />
+              </div>
+            ) : detalhe.isError ? (
+              <EstadoErro
+                titulo="Não foi possível abrir a proposta"
+                aoTentarDeNovo={() => void detalhe.refetch()}
+              />
+            ) : (
+              <PropostaEditor key={detalhe.data.proposta.id} detalhe={detalhe.data} />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      <NovaPropostaPainel aberto={nova} aoMudar={setNova} propostas={lista.data ?? []} />
+      <NovaPropostaPainel aberto={nova} aoMudar={setNova} propostas={quadro.data ?? []} />
     </div>
   );
 }

@@ -163,13 +163,14 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
   const primeiroNome = detalhe.cliente.contato.split(" ")[0] ?? detalhe.cliente.contato;
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+    // Colunas pela largura da área do editor (container), não da janela: a lista ao lado pode estar aberta
+    <div className="grid gap-4 @min-[960px]:grid-cols-[minmax(0,1fr)_340px]">
       <div className="flex min-w-0 flex-col gap-4">
         <header className="flex flex-col gap-2 rounded-2xl border border-hub-borda bg-white p-5">
           <Link
             to="/app/propostas"
             search={{}}
-            className="inline-flex min-h-11 items-center gap-1.5 self-start text-[14px] text-hub-suave hover:text-hub-tinta 2xl:hidden"
+            className="inline-flex min-h-11 items-center gap-1.5 self-start text-[14px] text-hub-suave hover:text-hub-tinta lg:hidden"
           >
             <ArrowLeft className="size-4" aria-hidden="true" /> Todas as propostas
           </Link>
@@ -214,7 +215,7 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
       </div>
 
       <aside
-        className="flex flex-col gap-4 xl:sticky xl:top-6 xl:self-start"
+        className="flex flex-col gap-4 @min-[960px]:sticky @min-[960px]:top-6 @min-[960px]:self-start"
         aria-label="Valor e envio"
       >
         <PainelValor c={c} />
