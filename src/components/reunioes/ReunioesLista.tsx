@@ -162,7 +162,7 @@ export function ReunioesLista({
                     aria-hidden="true"
                     className="size-[7px] shrink-0 rounded-full bg-current"
                   />
-                  <span className="max-sm:sr-only">{rotuloSituacao[r.situacao]}</span>
+                  <span>{rotuloSituacao[r.situacao]}</span>
                 </span>
               </button>
             </div>

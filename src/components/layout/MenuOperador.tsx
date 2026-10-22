@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 
@@ -88,6 +88,13 @@ export function MenuOperador({
   // A barra de rolagem só aparece enquanto a pessoa rola o menu.
   const [rolando, setRolando] = useState(false);
   const relogio = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Em telas baixas, o item ativo (ex.: Financeiro) pode ficar abaixo da dobra: leva até ele.
+  const navRef = useRef<HTMLElement>(null);
+  const caminho = useRouterState({ select: (r) => r.location.pathname });
+  useEffect(() => {
+    const ativo = navRef.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    ativo?.scrollIntoView({ block: "nearest" });
+  }, [caminho]);
   const aoRolar = () => {
     setRolando(true);
     if (relogio.current) clearTimeout(relogio.current);
@@ -119,6 +126,7 @@ export function MenuOperador({
         </button>
       </div>
       <nav
+        ref={navRef}
         aria-label="Menu principal"
         onScroll={aoRolar}
         data-rolando={rolando}

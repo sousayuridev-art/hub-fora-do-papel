@@ -29,7 +29,8 @@ function LinhaBarra({
 }) {
   return (
     <li className="grid grid-cols-[100px_minmax(0,1fr)_minmax(96px,auto)] items-center gap-3 text-[14px] md:grid-cols-[112px_minmax(0,1fr)_minmax(120px,auto)]">
-      <span className="leading-tight break-words">{nome}</span>
+      {/* Quebra depois da barra ("Instagram/ Facebook"), nunca no meio da palavra */}
+      <span className="leading-tight">{nome.replaceAll("/", "/\u200b")}</span>
       <span
         aria-hidden="true"
         className={cn("relative h-[22px] rounded-r-[4px]", trilho && "bg-[#EDEDE7]")}
@@ -208,10 +209,13 @@ export function RelatorioVendas({
             {v.perdas.map((p) => (
               <li
                 key={p.motivo}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-[14px] sm:grid-cols-[200px_minmax(0,1fr)_auto]"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 text-[14px] sm:grid-cols-[200px_minmax(0,1fr)_auto]"
               >
                 <span>{rotuloPerda[p.motivo as MotivoPerda] ?? p.motivo}</span>
-                <span aria-hidden="true" className="hidden h-2 rounded-full bg-[#E6E6E0] sm:block">
+                <span
+                  aria-hidden="true"
+                  className="col-span-2 row-start-2 block h-2 rounded-full bg-[#E6E6E0] sm:col-span-1 sm:row-start-auto"
+                >
                   <span
                     className="block h-full rounded-full bg-[#9A1C12]"
                     style={{ width: `${(p.quantidade / maiorMotivo) * 100}%` }}

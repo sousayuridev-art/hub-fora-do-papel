@@ -11,7 +11,7 @@ export function Quadro({ children, className }: { children: ReactNode; className
   return (
     <div
       className={cn(
-        "-mx-4 flex snap-x snap-mandatory gap-0 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:auto-cols-fr md:grid-flow-col md:overflow-visible md:px-0",
+        "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-0 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:auto-cols-fr md:grid-flow-col md:overflow-visible md:px-0",
         className,
       )}
     >

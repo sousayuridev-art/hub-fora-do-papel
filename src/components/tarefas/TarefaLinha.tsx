@@ -64,11 +64,12 @@ export function TarefaLinha({
           onClick={aoAbrir}
           disabled={temp}
           className={cn(
-            "truncate text-left text-[15px] font-semibold leading-snug after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-hub-tinta",
+            // Sem overflow no botão: o "after" cobre a linha inteira (toque em qualquer ponto abre).
+            "min-w-0 max-w-full text-left text-[15px] font-semibold leading-snug after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-hub-tinta",
             pronta && "text-hub-suave line-through decoration-1",
           )}
         >
-          {t.title}
+          <span className="block truncate">{t.title}</span>
         </button>
         <span className="truncate text-[13px] text-hub-suave">
           {origemDaTarefa(t)}

@@ -49,8 +49,10 @@ function Tarefas() {
   const navigate = Route.useNavigate();
   const celular = useIsMobile();
   const vista = celular ? "lista" : (busca.vista ?? "lista");
+  // Filtros e abas trocam o endereço sem encher o histórico; abrir ou fechar uma tarefa cria
+  // entrada, para "Voltar" fechar o painel em vez de sair da Central.
   const mudar = (p: Partial<BuscaTarefas>) =>
-    void navigate({ search: (s) => ({ ...s, ...p }), replace: true });
+    void navigate({ search: (s) => ({ ...s, ...p }), replace: !("tarefa" in p) });
 
   const filtros = filtrosDaBusca(busca);
   const lista = useQuery({

@@ -11,7 +11,7 @@ import { NovaPropostaPainel } from "@/components/propostas/NovaPropostaPainel";
 import { PropostaEditor } from "@/components/propostas/PropostaEditor";
 import { PropostasNumeros } from "@/components/propostas/PropostasNumeros";
 import { PropostasQuadro } from "@/components/propostas/PropostasQuadro";
-import { classeAcaoPrincipal } from "@/lib/estilos";
+import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
 import {
   chavesPropostas,
   detalheProposta,
@@ -83,7 +83,11 @@ function Propostas() {
         titulo="Propostas"
         resumo="O que falta enviar e quem ainda não respondeu."
         acao={
-          <button type="button" className={classeAcaoPrincipal} onClick={() => setNova(true)}>
+          <button
+            type="button"
+            className={id ? classeBotaoSecundario : classeAcaoPrincipal}
+            onClick={() => setNova(true)}
+          >
             <Plus className="size-4" aria-hidden="true" />
             Nova proposta
           </button>

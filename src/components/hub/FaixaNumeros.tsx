@@ -31,7 +31,7 @@ export function FaixaNumeros({ itens, className }: { itens: ItemNumero[]; classN
   return (
     <div
       className={cn(
-        "-mx-4 flex snap-x gap-2 overflow-x-auto px-4 md:mx-0 md:grid md:gap-0 md:overflow-hidden md:rounded-2xl md:border md:border-hub-borda md:bg-white md:px-0",
+        "-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 md:mx-0 md:grid md:gap-0 md:overflow-hidden md:rounded-2xl md:border md:border-hub-borda md:bg-white md:px-0",
         className,
       )}
       style={{ gridTemplateColumns: `repeat(${itens.length}, minmax(0, 1fr))` }}

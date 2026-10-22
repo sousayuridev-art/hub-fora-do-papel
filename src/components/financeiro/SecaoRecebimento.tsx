@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { CampoTexto } from "@/components/hub/Campo";
 import { CampoNumero } from "@/components/hub/CampoNumero";
-import { classeAcaoPrincipal } from "@/lib/estilos";
+import { classeBotaoSecundario } from "@/lib/estilos";
 import {
   chavesFinanceiro,
   lerRecebimento,
@@ -112,7 +112,7 @@ export function SecaoRecebimento() {
           )}
           <button
             type="submit"
-            className={`${classeAcaoPrincipal} self-start`}
+            className={`${classeBotaoSecundario} self-start`}
             disabled={pixIncompleto || salvar.isPending || q.isPending}
           >
             Salvar recebimento

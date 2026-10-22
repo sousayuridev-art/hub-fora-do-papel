@@ -53,7 +53,8 @@ export function ProjetoLinha({ p }: { p: ProjetoResumo }) {
       )}
     >
       <span className="flex min-w-0 items-start justify-between gap-3 lg:flex-col lg:justify-start lg:gap-0">
-        <span className="flex min-w-0 flex-col">
+        {/* max-w-full: com items-start, o nome não pode passar da coluna e cobrir a vizinha */}
+        <span className="flex min-w-0 max-w-full flex-col">
           <b className="truncate text-[15.5px] font-semibold">{p.nome}</b>
           <span className="truncate text-[13.5px] text-hub-suave">
             {p.empresa}
