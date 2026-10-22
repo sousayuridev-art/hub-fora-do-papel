@@ -15,7 +15,14 @@ export function iniciais(texto: string) {
 }
 
 /** Usuário logado + botão de sair. `cartao`: versão em cartão para o rodapé do menu do Hub. */
-export function ContaUsuario({ cartao = false }: { cartao?: boolean }) {
+export function ContaUsuario({
+  cartao = false,
+  compacto = false,
+}: {
+  cartao?: boolean;
+  /** Menu recolhido: só o botão de sair, com as iniciais no título. */
+  compacto?: boolean;
+}) {
   const { session } = useSession();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -31,6 +38,20 @@ export function ContaUsuario({ cartao = false }: { cartao?: boolean }) {
     } catch (e) {
       erro(mensagemDeErro(e), { tentarDeNovo: () => void sair() });
     }
+  }
+
+  if (compacto) {
+    return (
+      <button
+        type="button"
+        onClick={() => void sair()}
+        className="flex size-11 items-center justify-center self-center rounded-full bg-[#FFB020] text-[13px] font-bold text-hub-tinta hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        aria-label={`Sair (${nome})`}
+        title={`${nome} · sair`}
+      >
+        {iniciais(nome)}
+      </button>
+    );
   }
 
   return (

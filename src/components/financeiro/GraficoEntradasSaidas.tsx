@@ -20,9 +20,6 @@ export function GraficoEntradasSaidas({ meses }: { meses: MesGrafico[] }) {
           <h2 id="entradas-t" className="text-[16px] font-semibold">
             Entradas e saídas
           </h2>
-          <span className="text-[13px] text-hub-suave">
-            Últimos 6 meses · resultado embaixo de cada mês
-          </span>
         </div>
         <Legenda series={[entradas, saidas]} />
       </div>

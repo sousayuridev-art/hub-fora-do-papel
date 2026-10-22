@@ -36,7 +36,6 @@ function InvestimentoSemanal({ t, falhou }: { t: TendenciaTrafego | undefined; f
     <Cartao
       id="semanas"
       titulo="Investimento por semana"
-      apoio="8 semanas, em reais · número embaixo = contatos que chegaram"
       acao={
         <Legenda
           series={[

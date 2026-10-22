@@ -251,10 +251,6 @@ function Clientes() {
               <span className="font-semibold text-hub-tinta">
                 {visiveis.length} de {lista.data.length}
               </span>
-              <span>
-                {moeda(r.em_negociacao_cents)} em diagnósticos e propostas ·{" "}
-                {moeda(r.fechado_cents)} em projetos fechados
-              </span>
             </p>
           )}
         </>

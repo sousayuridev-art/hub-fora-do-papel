@@ -41,9 +41,6 @@ export function LigarReunioes({
         <h2 id="ligar-t" className="text-[16px] font-semibold">
           Ligue estas reuniões a um cliente · {total}
         </h2>
-        <p className="text-[13px] text-hub-suave">
-          Sem cliente, a reunião não aparece na ficha nem no projeto.
-        </p>
       </div>
       <ul className="grid gap-3 lg:grid-cols-2">
         {itens.map((r) => {

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { itemConfiguracoes, menuOperador, type ItemMenu } from "@/components/layout/navegacao";
 import { ContaUsuario } from "@/components/layout/ContaUsuario";
-import { Simbolo } from "@/components/layout/Marca";
+import { SimboloPapel } from "@/components/layout/Marca";
+import { cn } from "@/lib/utils";
 import { chavesTarefas, resumoTarefas } from "@/lib/tarefas";
 
 /** Tarefas atrasadas (do banco; o mesmo número do atalho "Atrasadas" da Central sem filtros). */
@@ -22,7 +23,15 @@ function useContador(tipo: ItemMenu["contador"]): number | null {
 const classeItem =
   "group flex min-h-11 items-center gap-3 rounded-xl px-3 text-[14.5px] font-medium text-menu-texto transition-colors hover:bg-menu-hover hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB020]";
 
-function LinkMenu({ item, aoNavegar }: { item: ItemMenu; aoNavegar?: (() => void) | undefined }) {
+function LinkMenu({
+  item,
+  aoNavegar,
+  recolhido = false,
+}: {
+  item: ItemMenu;
+  aoNavegar?: (() => void) | undefined;
+  recolhido?: boolean;
+}) {
   const Icone = item.icone;
   const contador = useContador(item.contador);
   return (
@@ -30,7 +39,9 @@ function LinkMenu({ item, aoNavegar }: { item: ItemMenu; aoNavegar?: (() => void
       to={item.para}
       activeOptions={{ exact: item.exato ?? false }}
       onClick={aoNavegar}
-      className={classeItem}
+      className={cn(classeItem, recolhido && "relative justify-center px-0")}
+      title={recolhido ? item.rotulo : undefined}
+      aria-label={recolhido ? item.rotulo : undefined}
       activeProps={{
         className:
           "!bg-menu-ativo !text-hub-tinta font-semibold shadow-[0_6px_16px_-8px_rgb(255_176_32_/_0.7)]",
@@ -44,8 +55,15 @@ function LinkMenu({ item, aoNavegar }: { item: ItemMenu; aoNavegar?: (() => void
             strokeWidth={isActive ? 2.1 : 1.8}
             aria-hidden="true"
           />
-          <span className="flex-1 truncate">{item.rotulo}</span>
-          {contador ? (
+          {!recolhido && <span className="flex-1 truncate">{item.rotulo}</span>}
+          {contador && recolhido ? (
+            <span
+              className="absolute right-1.5 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#FFB020] px-1 text-[11px] font-bold tabular-nums text-hub-tinta"
+              aria-label={`${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`}
+            >
+              {contador}
+            </span>
+          ) : contador ? (
             <span
               className={
                 isActive
@@ -57,7 +75,7 @@ function LinkMenu({ item, aoNavegar }: { item: ItemMenu; aoNavegar?: (() => void
               {contador}
             </span>
           ) : null}
-          {item.emBreve && (
+          {item.emBreve && !recolhido && (
             <span
               className={
                 isActive
@@ -80,10 +98,14 @@ function LinkMenu({ item, aoNavegar }: { item: ItemMenu; aoNavegar?: (() => void
  */
 export function MenuOperador({
   aoNavegar,
-  aoBuscar,
+  recolhido = false,
+  aoRecolher,
 }: {
   aoNavegar?: (() => void) | undefined;
-  aoBuscar: () => void;
+  /** Só ícones (computador). */
+  recolhido?: boolean;
+  /** Botão de recolher/abrir; ausente na gaveta do celular. */
+  aoRecolher?: (() => void) | undefined;
 }) {
   // A barra de rolagem só aparece enquanto a pessoa rola o menu.
   const [rolando, setRolando] = useState(false);
@@ -101,53 +123,74 @@ export function MenuOperador({
     relogio.current = setTimeout(() => setRolando(false), 900);
   };
 
+  const IconeRecolher = recolhido ? PanelLeftOpen : PanelLeftClose;
   return (
-    <div className="flex h-full flex-col bg-menu text-menu-texto">
-      <div className="flex flex-col gap-4 px-4 pb-2 pt-5">
+    <div className="menu-marca flex h-full flex-col text-menu-texto">
+      <div
+        className={cn(
+          "flex items-center gap-2 pb-3 pt-5",
+          recolhido ? "flex-col px-3" : "justify-between pl-5 pr-3",
+        )}
+      >
         <Link
           to="/app"
           onClick={aoNavegar}
-          className="flex min-h-11 items-center gap-2.5 self-start rounded-full bg-white/6 py-1.5 pl-1.5 pr-4 ring-1 ring-white/10"
+          aria-label="Fora do Papel · ir para o Painel"
+          className="flex min-h-11 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB020]"
         >
-          <Simbolo tamanho={30} />
-          <span className="font-marca text-[15px] font-semibold text-white">Fora do Papel</span>
-          <span className="text-[13px] font-medium text-menu-rotulo">Hub</span>
+          <SimboloPapel tamanho={30} />
+          {!recolhido && (
+            <span className="font-marca text-[18px] font-extrabold leading-none tracking-[-0.02em] text-[#F5F5F2]">
+              Fora do Papel
+            </span>
+          )}
         </Link>
-        <button
-          type="button"
-          onClick={aoBuscar}
-          className="flex min-h-11 items-center gap-2 rounded-xl bg-white/6 px-3 text-left text-[14px] text-[#A9ADB5] ring-1 ring-white/8 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB020]"
-        >
-          <Search className="size-4" aria-hidden="true" />
-          <span className="flex-1">Buscar…</span>
-          <kbd className="rounded-md bg-white/10 px-1.5 py-0.5 font-sans text-[12px] font-medium text-[#C9CBD0]">
-            Ctrl K
-          </kbd>
-        </button>
+        {aoRecolher && (
+          <button
+            type="button"
+            onClick={aoRecolher}
+            aria-label={recolhido ? "Abrir o menu" : "Recolher o menu"}
+            title={recolhido ? "Abrir o menu" : "Recolher o menu"}
+            className="flex size-11 shrink-0 items-center justify-center rounded-lg text-[#B4B8BF] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB020]"
+          >
+            <IconeRecolher className="size-5" aria-hidden="true" />
+          </button>
+        )}
       </div>
       <nav
         ref={navRef}
         aria-label="Menu principal"
         onScroll={aoRolar}
         data-rolando={rolando}
-        className="rolagem-discreta flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-3"
+        className={cn(
+          "rolagem-discreta flex flex-1 flex-col gap-4 overflow-y-auto py-3",
+          recolhido ? "px-3" : "px-4",
+        )}
       >
         {menuOperador.map((grupo) => (
           <div key={grupo.titulo ?? "inicio"} className="flex flex-col gap-1">
-            {grupo.titulo && (
-              <span className="px-3 pb-1 text-[12.5px] font-semibold uppercase tracking-[0.08em] text-menu-rotulo">
-                {grupo.titulo}
-              </span>
-            )}
+            {grupo.titulo &&
+              (recolhido ? (
+                <span aria-hidden="true" className="mx-2 mb-1 h-px bg-white/10" />
+              ) : (
+                <span className="px-3 pb-1 text-[12.5px] font-semibold uppercase tracking-[0.08em] text-menu-rotulo">
+                  {grupo.titulo}
+                </span>
+              ))}
             {grupo.itens.map((item) => (
-              <LinkMenu key={item.para} item={item} aoNavegar={aoNavegar} />
+              <LinkMenu key={item.para} item={item} aoNavegar={aoNavegar} recolhido={recolhido} />
             ))}
           </div>
         ))}
       </nav>
-      <div className="flex flex-col gap-2 border-t border-menu-borda px-4 py-3">
-        <LinkMenu item={itemConfiguracoes} aoNavegar={aoNavegar} />
-        <ContaUsuario cartao />
+      <div
+        className={cn(
+          "flex flex-col gap-2 border-t border-white/10 py-3",
+          recolhido ? "px-3" : "px-4",
+        )}
+      >
+        <LinkMenu item={itemConfiguracoes} aoNavegar={aoNavegar} recolhido={recolhido} />
+        <ContaUsuario cartao compacto={recolhido} />
       </div>
     </div>
   );

@@ -242,6 +242,14 @@
 
 /* Capa escura das páginas do cliente (direção A, cards CX-3 e CX-5):
    brilho azul-marinho no canto, um calor âmbar discreto embaixo e grade fina. */
+/* Menu lateral do Hub (22/10): fundo no degradê da marca — azul-marinho no topo, âmbar suave no pé. */
+.menu-marca {
+  background-color: #0e1013;
+  background-image:
+    radial-gradient(ellipse 140% 42% at 0% 0%, rgb(46 72 150 / 0.5) 0, rgb(46 72 150 / 0) 72%),
+    radial-gradient(ellipse 110% 30% at 100% 100%, rgb(255 176 32 / 0.11) 0, rgb(255 176 32 / 0) 72%);
+}
+
 .capa-escura {
   background-color: #0e1013;
   background-image:

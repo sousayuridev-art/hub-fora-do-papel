@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Marca } from "@/components/layout/Marca";
 import { MenuOperador } from "@/components/layout/MenuOperador";
 import { BuscaGeral } from "@/components/layout/BuscaGeral";
+import { cn } from "@/lib/utils";
 
 /**
  * Casca do sistema interno (proposta 2).
@@ -13,6 +14,23 @@ import { BuscaGeral } from "@/components/layout/BuscaGeral";
 export function OperatorLayout({ children }: { children: ReactNode }) {
   const [gavetaAberta, setGavetaAberta] = useState(false);
   const [buscaAberta, setBuscaAberta] = useState(false);
+  // Menu recolhido (só ícones), lembrado por pessoa neste navegador.
+  const [recolhido, setRecolhido] = useState(() => {
+    try {
+      return typeof window !== "undefined" && localStorage.getItem("hub-menu-recolhido") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const alternarMenu = () =>
+    setRecolhido((r) => {
+      try {
+        localStorage.setItem("hub-menu-recolhido", r ? "0" : "1");
+      } catch {
+        /* sem armazenamento: vale só nesta visita */
+      }
+      return !r;
+    });
 
   useEffect(() => {
     function atalho(e: KeyboardEvent) {
@@ -27,8 +45,13 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-hub-fundo text-hub-tinta">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-70 border-r border-menu-borda md:block">
-        <MenuOperador aoBuscar={() => setBuscaAberta(true)} />
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 hidden border-r border-menu-borda transition-[width] duration-200 md:block",
+          recolhido ? "w-[84px]" : "w-70",
+        )}
+      >
+        <MenuOperador recolhido={recolhido} aoRecolher={alternarMenu} />
       </aside>
 
       <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-hub-borda bg-white/95 px-2 backdrop-blur md:hidden">
@@ -54,19 +77,18 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
       <Sheet open={gavetaAberta} onOpenChange={setGavetaAberta}>
         <SheetContent side="left" className="w-72 border-0 bg-menu p-0 text-menu-texto">
           <SheetTitle className="sr-only">Menu</SheetTitle>
-          <MenuOperador
-            aoNavegar={() => setGavetaAberta(false)}
-            aoBuscar={() => {
-              setGavetaAberta(false);
-              setBuscaAberta(true);
-            }}
-          />
+          <MenuOperador aoNavegar={() => setGavetaAberta(false)} />
         </SheetContent>
       </Sheet>
 
       <BuscaGeral aberta={buscaAberta} aoMudar={setBuscaAberta} />
 
-      <main className="overflow-x-clip md:pl-70">
+      <main
+        className={cn(
+          "overflow-x-clip transition-[padding] duration-200",
+          recolhido ? "md:pl-[84px]" : "md:pl-70",
+        )}
+      >
         <div className="mx-auto w-full max-w-[1320px] px-4 py-6 md:px-8 md:py-7">{children}</div>
       </main>
     </div>
