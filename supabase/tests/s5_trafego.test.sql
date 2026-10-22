@@ -32,7 +32,7 @@ create temp table t (chave text primary key, valor jsonb);
 grant all on t to authenticated, anon;
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 
 insert into t values ('meta', public.trafego_campanha_salvar(null, 'Site lento', 'meta'));
 insert into t values ('google', public.trafego_campanha_salvar(null, 'Criação de site', 'google'));
@@ -56,7 +56,7 @@ select is((select (valor->'sem_campanha'->>'contatos')::int from t where chave =
 select is((select (valor->'orcamento'->>'gasto_cents')::int from t where chave = 'painel'), 20000, 'Orçamento do mês soma o gasto');
 
 -- ===== Outra agência =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.ad_spend)::int + (select count(*) from public.ad_campaigns)::int, 0,
   'Outra agência não vê o tráfego da Fora do Papel');
 

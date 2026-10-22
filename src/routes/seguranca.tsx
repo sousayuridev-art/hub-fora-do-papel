@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { caminhoInterno } from "@/lib/volta";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { KeyRound, ShieldCheck, Smartphone } from "lucide-react";
@@ -31,11 +32,7 @@ import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 const busca = z.object({
-  volta: z
-    .string()
-    .regex(/^\/(?![/\\])/, "caminho interno")
-    .optional()
-    .catch(undefined),
+  volta: caminhoInterno,
   ativar: z.boolean().optional().catch(undefined),
   acao: z.enum(["senha"]).optional().catch(undefined),
 });
@@ -51,7 +48,8 @@ export const Route = createFileRoute("/seguranca")({
       throw redirect({ to: acesso?.papel ? inicioDoPapel[acesso.papel] : "/sem-acesso" });
     // Com app ativado, mexer na segurança exige o código desta sessão.
     const n = await nivelDaSessao().catch(() => null);
-    if (n?.proximo === "aal2" && n.atual !== "aal2") {
+    if (!n) throw redirect({ to: "/entrar", search: { modo: "equipe" } });
+    if (n.proximo === "aal2" && n.atual !== "aal2") {
       throw redirect({ to: "/entrar/codigo", search: { volta: location.href } });
     }
     return { email: session.user.email ?? "", volta: search.volta };
@@ -64,6 +62,7 @@ export const Route = createFileRoute("/seguranca")({
 /** Senha e app autenticador do gestor (card SEG-1). */
 function Seguranca() {
   const { volta, acao } = Route.useSearch();
+  const navigate = useNavigate();
   const { email } = Route.useRouteContext();
   const apps = useQuery({ queryKey: chavesSeguranca.apps, queryFn: appsAtivos });
   const semApp = apps.data?.length === 0;
@@ -74,12 +73,13 @@ function Seguranca() {
         <div className="flex items-center justify-between gap-4">
           <Simbolo tamanho={32} />
           {!semApp && apps.isSuccess && (
-            <a
-              href={volta ?? "/app"}
-              className="min-h-11 content-center text-[15px] font-medium underline underline-offset-4"
+            <button
+              type="button"
+              onClick={() => void navigate({ href: volta ?? "/app" })}
+              className="min-h-11 text-[15px] font-medium underline underline-offset-4"
             >
               Ir para o Hub
-            </a>
+            </button>
           )}
         </div>
         <div className="flex flex-col gap-1">

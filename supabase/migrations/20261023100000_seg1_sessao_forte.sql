@@ -1,18 +1,16 @@
 -- =====================================================================
 -- Hub Fora do Papel · SEG-1 · Login do gestor com senha e código do app
 -- Card: docs/cards/SEG-1-login-do-gestor.md
--- Quem tem app autenticador ativado só age como dono com sessão verificada pelo código
--- (aal2). Vale para toda RLS e RPC de dono, porque todas passam por is_tenant_owner
+-- Dono só age com sessão verificada pelo código do app (aal2). Vale para toda RLS e RPC de dono, porque todas passam por is_tenant_owner
 -- ou _tenant_do_dono. Sessão só com senha ou só com link não basta.
 -- =====================================================================
 
--- Sessão forte: código do app verificado nesta sessão, ou a pessoa ainda não tem app ativado
--- (nesse caso o Hub obriga a ativar antes de abrir qualquer tela de gestor).
+-- Sessão forte: código do app verificado nesta sessão (aal2). Sem exceção para quem ainda
+-- não ativou o app: a página Segurança só usa a API de autenticação e my_access, então o
+-- gestor consegue ativar o app sem passar por aqui (revisão de segurança do SEG-1).
 create or replace function public._sessao_forte()
-returns boolean language sql stable security definer set search_path = public, auth as $$
-  select coalesce(auth.jwt() ->> 'aal', 'aal1') = 'aal2'
-      or not exists (select 1 from auth.mfa_factors f
-                      where f.user_id = auth.uid() and f.status::text = 'verified');
+returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce(auth.jwt() ->> 'aal', 'aal1') = 'aal2';
 $$;
 revoke all on function public._sessao_forte() from public, anon, authenticated;
 

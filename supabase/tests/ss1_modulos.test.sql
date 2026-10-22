@@ -26,7 +26,7 @@ insert into public.projects (id, tenant_id, client_id, name, status, plan_name, 
 
 -- ===== Hub (Yuri) =====
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok($$ select public.modulo_criar('50000000-0000-0000-0000-000000000001', 'RH') $$,
   '22023', 'projeto_nao_sob_medida', 'Projeto padrão não tem módulos');
 select is((public.projeto_tipo_definir('50000000-0000-0000-0000-000000000001', 'sob_medida')) ->> 'tipo', 'sob_medida',
@@ -62,10 +62,10 @@ declare i int; v uuid;
 begin
   for i in 1..3 loop
     v := (select id from public.approvals where status = 'aguardando');
-    perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+    perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
     set local role authenticated;
     perform public.portal_pedir_ajuste(v, 'Falta o campo de banco de horas');
-    perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+    perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
     if i < 3 then
       perform public.modulo_mover((select id from public.project_modules where name = 'RH'), 'testes');
       perform public.modulo_pedir_aprovacao((select id from public.project_modules where name = 'RH'));
@@ -79,7 +79,7 @@ select is((select count(*)::int from public.event_outbox where event = 'modulo.r
 select is((select count(*)::int from public.event_outbox where event = 'modulo.ajuste'), 3, 'Todo ajuste gera o evento de ajuste');
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok($$ select public.modulo_editar((select id from public.project_modules where name = 'RH'), 'RH', 'direta') $$,
   '22023', 'caminho_travado', 'Não troca para publicação direta para pular o ajuste do cliente');
 select throws_ok($$ select public.modulo_pedir_aprovacao((select id from public.project_modules where name = 'RH')) $$,
@@ -93,12 +93,12 @@ reset role;
 select set_config('teste.aprovacao', (select id::text from public.approvals where status = 'aguardando'), true) is not null as ok_id;
 set local role authenticated;
 
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select lives_ok($$ select public.portal_aprovar(current_setting('teste.aprovacao')::uuid, 'Pode publicar') $$,
   'Cliente aprova o RH');
 select is((select count(*)::int from public.project_modules), 0, 'Pessoa do portal não lê a tabela de módulos');
 
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is((select status::text from public.project_modules where name = 'RH'), 'aprovado', 'RH aprovado');
 select is((public.modulo_publicar((select id from public.project_modules where name = 'RH'), 'Folha de ponto e férias',
   'https://plamev.test/rh')) ->> 'mensalidade_iniciada', 'true', 'Primeira publicação');
@@ -109,7 +109,7 @@ select ok((select final_release_at is null from public.projects where id = '5000
   'Ainda não é a publicação final');
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select lives_ok($$ select public.modulo_editar((select id from public.project_modules where name = 'Financeiro'), 'Financeiro', 'direta') $$,
   'Financeiro com publicação direta');
 select lives_ok($$ select public.modulo_mover((select id from public.project_modules where name = 'Financeiro'), 'desenvolvimento') $$,
@@ -128,15 +128,15 @@ select is((select path::text from public.module_releases where module_id = (sele
 
 -- ===== Portal e outra agência =====
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is(jsonb_array_length((public.portal_inicio()) -> 'projeto' -> 'modulos'), 2, 'Portal mostra os módulos (sem os fora do escopo)');
 select ok(not ((public.portal_inicio()) -> 'projeto' -> 'modulos' -> 0 ? 'link_testes')
           and (public.portal_inicio()) -> 'projeto' -> 'modulos' -> 0 ->> 'link' = 'https://plamev.test/rh',
   'Portal vê o link de produção e não vê dados internos');
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok($$ select public.modulo_criar('50000000-0000-0000-0000-000000000001', 'Invasor') $$,
   'P0002', null, 'Outra agência não mexe nos módulos');
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select lives_ok($$ select public.modulo_mover((select id from public.project_modules where name = 'Estoque'), 'planejado') $$,
   'Estoque volta ao escopo');
 reset role;

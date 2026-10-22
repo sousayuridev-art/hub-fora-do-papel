@@ -53,7 +53,7 @@ select ok(not exists (select 1 from pg_class c join pg_namespace n on n.oid = c.
 -- CX-0: quem tinha acesso antes dos perfis é responsável pelo contrato (quem não aprova fica como equipe)
 update public.client_members set profile = 'responsavel' where can_approve;
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 
 -- 2. Reabrir troca o link
 select public.proposta_reabrir('40000000-0000-0000-0000-000000000002');
@@ -66,14 +66,14 @@ select throws_ok($$ update public.deals set value_cents = 5 where id = '30000000
   '22023', null, 'Valor da oportunidade fechada por aceite não muda');
 update public.deals set stage = 'fechado', closed_at = now() where id = '30000000-0000-0000-0000-000000000002';
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is(((public.painel_novidades()) ->> 'fechado_mes_cents')::int, 1200000, 'Fechado no mês usa o total da proposta aceita');
 
 -- 3. Lançar dá data às partes "na entrega"
 reset role;
 update public.launch_items set done = true where project_id = (select (valor #>> '{}')::uuid from t where chave = 'proj');
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select public.projeto_lancar((select (valor #>> '{}')::uuid from t where chave = 'proj'));
 select is((select count(*) from public.charges where project_id = (select (valor #>> '{}')::uuid from t where chave = 'proj')
             and kind = 'parcela' and due_date is null)::int, 0, 'Lançar dá vencimento a todas as partes');
@@ -86,10 +86,10 @@ select is((select due_date from public.charges where project_id = (select (valor
 update public.charges set due_date = current_date - 5 where proposal_id = '40000000-0000-0000-0000-000000000001' and sequence = 1;
 update public.charges set client_reported_at = now() where proposal_id = '40000000-0000-0000-0000-000000000001' and sequence = 2;
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select ok((public.painel_fila()) -> 'itens' @> '[{"tipo":"cobranca_atrasada"}]', 'Fila do Painel mostra cobrança atrasada');
 select ok((public.painel_fila()) -> 'itens' @> '[{"tipo":"pagamento_avisado"}]', 'Fila do Painel mostra aviso de pagamento');
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is(((public.portal_pendencias()) ->> 'pagamentos')::int, 2,
   'Portal conta as partes vencidas ou vencendo, menos a que o cliente já avisou');
 select is(((public.portal_pendencias()) ->> 'total')::int, ((public.portal_pendencias()) ->> 'aprovacoes')::int
@@ -97,7 +97,7 @@ select is(((public.portal_pendencias()) ->> 'total')::int, ((public.portal_pende
   'Total do portal é a soma dos selos');
 
 -- 4. Encerrar a mensalidade conclui o projeto
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select public.mensalidade_situacao((select id from public.subscriptions
   where project_id = (select (valor #>> '{}')::uuid from t where chave = 'proj')), 'encerrada');
 select is((select status::text from public.projects where id = (select (valor #>> '{}')::uuid from t where chave = 'proj')),
@@ -115,7 +115,7 @@ update public.requests set client_decision = 'aprovado', decided_at = now(), sta
 update public.charges set status = 'paga', paid_at = current_date, paid_cents = 50000, paid_method = 'pix', receipt_number = 900
  where request_id = '70000000-0000-0000-0000-000000000001' and sequence = 1;
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is(((public.pedido_recusar('70000000-0000-0000-0000-000000000001', 'Cliente desistiu')) ->> 'pago_cents')::int, 50000,
   'Recusar adicional pago informa o valor já pago');
 select ok((public.painel_fila()) -> 'itens' @> '[{"tipo":"adicional_pago_recusado"}]',
@@ -131,7 +131,7 @@ values ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-0000000
 insert into public.client_tasks (tenant_id, client_id, project_id, title) values
   ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001', 'Logo');
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok($$ select public.projeto_cancelar('50000000-0000-0000-0000-000000000001', 'ok') $$,
   '22023', null, 'Cancelar exige motivo');
 select is(((public.projeto_cancelar_previa('50000000-0000-0000-0000-000000000001')) ->> 'cobrancas')::int, 1,

@@ -64,7 +64,7 @@ insert into t select 'diag', to_jsonb(id::text) from public.charges
 -- CX-0: quem tinha acesso antes dos perfis é responsável pelo contrato (quem não aprova fica como equipe)
 update public.client_members set profile = 'responsavel' where can_approve;
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 insert into t select 'p1', to_jsonb((select id from public.charges where proposal_id = '40000000-0000-0000-0000-000000000001' and sequence = 1)::text);
 select is((public.cobranca_pagar((select (valor #>> '{}')::uuid from t where chave = 'p1'), current_date, 480000, 'pix')) ->> 'recibo',
   '2', 'Pagamento registrado ganha o recibo seguinte');
@@ -97,14 +97,14 @@ select is(jsonb_array_length((public.financeiro_fluxo()) -> 'meses'), 7, 'Fluxo 
 select ok(((public.financeiro_fluxo()) -> 'meses' -> 3 ->> 'despesas_fixas_cents')::int = 5000, 'Despesa fixa entra no mês atual');
 
 -- ===== Paula (cliente) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select public.portal_adicional_decidir((select (valor->>'id')::uuid from t where chave = 'ped'), true);
 reset role;
 select is((select string_agg(amount_cents::text || ':' || coalesce(due_date::text, 'entrega'), ',' order by sequence)
              from public.charges where request_id = (select (valor->>'id')::uuid from t where chave = 'ped')),
   '60000:' || (current_date + 3)::text || ',60000:entrega', 'Serviço adicional aprovado: 50% em 3 dias e 50% na entrega');
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.charges)::int + (select count(*) from public.expenses)::int, 0,
   'Cliente não lê as tabelas do financeiro');
 select ok(not exists (select 1 from jsonb_array_elements((public.portal_pagamentos()) -> 'cobrancas') x
@@ -121,7 +121,7 @@ select throws_ok(format($$ select public.recibo(%L) $$,
 select is((public.recibo((select (valor #>> '{}')::uuid from t where chave = 'p1'))) ->> 'numero', '2', 'Cliente abre o próprio recibo');
 
 -- ===== Outra agência =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is(jsonb_array_length((public.financeiro_painel()) -> 'cobrancas'), 0, 'Outra agência não vê cobranças');
 select throws_ok(format($$ select public.cobranca_pagar(%L, current_date, 1, 'pix') $$,
     (select (valor #>> '{}')::uuid from t where chave = 'p2')),
@@ -136,7 +136,7 @@ reset role;
 update public.launch_items set done = true
  where project_id = (select id from public.projects where proposal_id = '40000000-0000-0000-0000-000000000001');
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select public.projeto_lancar((select id from public.projects where proposal_id = '40000000-0000-0000-0000-000000000001'));
 reset role;
 select is((select amount_cents || ':' || start_month from public.subscriptions
@@ -146,7 +146,7 @@ select is((select amount_cents || ':' || start_month from public.subscriptions
 
 -- Correções da revisão de segurança
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok(format($$ select public.pedido_enviar_cliente(%L) $$, (select valor->>'id' from t where chave = 'ped')),
   '22023', null, 'Serviço adicional já aprovado não volta para o cliente decidir');
 insert into t select 'm3', public.mensalidade_criar('20000000-0000-0000-0000-000000000002', 'Futura', 30000,
@@ -155,14 +155,14 @@ select public.mensalidade_situacao((select (valor->>'id')::uuid from t where cha
 reset role;
 update public.subscriptions set start_month = start_month where id = (select (valor->>'id')::uuid from t where chave = 'm3');
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select public.financeiro_painel();
 reset role;
 select is((select count(*) from public.charges where subscription_id = (select (valor->>'id')::uuid from t where chave = 'm3'))::int, 0,
   'Mensalidade encerrada antes de começar não cobra nenhum mês');
 -- Pausar e retomar no mesmo mês não deixa mês sem cobrar nem cobra a mais
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select public.mensalidade_situacao((select (valor->>'id')::uuid from t where chave = 'mens'), 'pausada');
 select public.mensalidade_situacao((select (valor->>'id')::uuid from t where chave = 'mens'), 'ativa');
 reset role;
@@ -173,7 +173,7 @@ insert into public.subscription_pauses (tenant_id, subscription_id, from_month, 
 select tenant_id, id, start_month, start_month from public.subscriptions where id = (select (valor->>'id')::uuid from t where chave = 'mens');
 delete from public.charges where subscription_id = (select (valor->>'id')::uuid from t where chave = 'mens');
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select public.financeiro_painel();
 reset role;
 select is((select count(*) from public.charges where subscription_id = (select (valor->>'id')::uuid from t where chave = 'mens'))::int, 1,

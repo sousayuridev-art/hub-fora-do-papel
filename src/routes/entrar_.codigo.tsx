@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { caminhoInterno } from "@/lib/volta";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
@@ -13,11 +14,7 @@ import { supabase } from "@/lib/supabase";
 import { mensagemDeSeguranca, nivelDaSessao, verificarCodigo } from "@/lib/seguranca";
 
 const busca = z.object({
-  volta: z
-    .string()
-    .regex(/^\/(?![/\\])/, "caminho interno")
-    .optional()
-    .catch(undefined),
+  volta: caminhoInterno,
 });
 
 export const Route = createFileRoute("/entrar_/codigo")({

@@ -47,7 +47,7 @@ insert into public.charges (id, tenant_id, client_id, project_id, kind, descript
 set local role authenticated;
 
 -- ===== Equipe (Paula) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated","aal":"aal2"}', true);
 select is((public.portal_minha_empresa()) ->> 'perfil', 'equipe', 'Portal sabe que a Paula é da equipe');
 select throws_ok($$ select public.portal_pagamentos() $$, '42501', 'sem_permissao_financeiro', 'Equipe não abre Pagamentos');
 select throws_ok($$ select public.portal_cobranca_avisar('80000000-0000-0000-0000-000000000001') $$, '42501',
@@ -70,7 +70,7 @@ select lives_ok($$ select public.portal_aprovar('60000000-0000-0000-0000-0000000
   'Equipe com permissão aprova entrega');
 
 -- ===== Responsável (Marina) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is((public.portal_minha_empresa()) ->> 'perfil', 'responsavel', 'Marina é responsável');
 select lives_ok($$ select public.portal_pagamentos() $$, 'Responsável abre Pagamentos');
 select is(((public.portal_pendencias()) ->> 'pagamentos')::int, 1, 'Conta que vence em 4 dias entra; a de 20 dias não');
@@ -80,7 +80,7 @@ select is(jsonb_array_length((public.portal_aprovacoes()) -> 'adicionais'), 1, '
 select lives_ok($$ select public.recibo('80000000-0000-0000-0000-000000000003') $$, 'Responsável abre recibo');
 
 -- ===== Hub (Yuri) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is((public.portal_convidar('20000000-0000-0000-0000-000000000001', 'joao@bemcuidar.test', 'equipe', false)) ->> 'perfil',
   'equipe', 'Convite com perfil');
 select throws_ok($$ select public.portal_convidar('20000000-0000-0000-0000-000000000001', 'x@bemcuidar.test', 'dono') $$,
@@ -107,7 +107,7 @@ select throws_ok($$ select public.portal_convidar('20000000-0000-0000-0000-00000
   '22023', 'precisa_responsavel', 'Empresa sem responsável não começa por convite de equipe');
 
 -- ===== João aceita o convite e entra como equipe sem aprovar =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c3","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c3","role":"authenticated","aal":"aal2"}', true);
 select is((public.portal_aceitar_convite()) ->> 'ligados', '1', 'João aceita o convite');
 reset role;
 select is((select profile || '/' || can_approve::text from public.client_members

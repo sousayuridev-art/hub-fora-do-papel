@@ -34,7 +34,7 @@ select isnt((select diagnostic_paid_at from public.deals where id = '30000000-00
 
 -- ===== Yuri (dono) =====
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 
 insert into t values ('otica', public.proposta_criar('30000000-0000-0000-0000-000000000001'));
 insert into t values ('sorriso', public.proposta_criar('30000000-0000-0000-0000-000000000002'));
@@ -87,13 +87,13 @@ select throws_ok(format($$ select public.proposta_salvar(%L, null, '{"titulo":"x
   '22023', null, 'Proposta enviada não é editada sem reabrir');
 
 -- ===== Outra agência =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.proposals)::int, 0, 'Outra agência não vê propostas');
 select throws_ok(format($$ select public.proposta_detalhe(%L) $$, (select valor->>'id' from t where chave = 'otica')),
   'P0002', null, 'Outra agência não abre a proposta');
 
 -- ===== Cliente do portal =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.proposals)::int + (select count(*) from public.pricing_settings)::int, 0,
   'Cliente do portal não lê propostas nem preços');
 

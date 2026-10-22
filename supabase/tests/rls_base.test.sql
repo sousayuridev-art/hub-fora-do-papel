@@ -35,7 +35,7 @@ insert into public.client_members (client_id, user_id, tenant_id) values
 
 -- Como a Paula (cliente da Sorriso)
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 
 select is((select count(*) from public.clients)::int, 0, 'Paula não lê a tabela de clientes (campos internos)');
 select is(public.portal_minha_empresa() ->> 'empresa', 'Clínica Sorriso Leve', 'Paula vê só a própria empresa pelo portal');
@@ -48,12 +48,12 @@ select is((select company_name from public.clients where id = '20000000-0000-000
 
 -- Como o Yuri (dono da Fora do Papel)
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.clients)::int, 2, 'Yuri vê os 2 clientes do seu tenant');
 select is((select count(*) from public.tenants)::int, 1, 'Yuri vê só o próprio tenant');
 
 -- Como a outra agência
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.clients)::int, 0, 'Outra agência não vê clientes da Fora do Papel');
 select throws_ok(
   $$ insert into public.clients (tenant_id, company_name, contact_name, whatsapp)

@@ -20,7 +20,7 @@ create temp table t (chave text primary key, valor jsonb);
 grant all on t to authenticated;
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 insert into t select 'ok', public.projeto_criar('20000000-0000-0000-0000-000000000001', 'Site em dia', 0, 10, current_date + 30);
 insert into t select 'risco', public.projeto_criar('20000000-0000-0000-0000-000000000001', 'Site atrasado', 0, 1, current_date - 2);
 select public.horas_lancar((select (valor->>'id')::uuid from t where chave = 'risco'), current_date, 90);
@@ -43,7 +43,7 @@ select ok(exists (select 1 from jsonb_array_elements((public.projeto_detalhe((se
 select is(jsonb_array_length(public.painel_entregas()), 2, 'Painel lista as duas entregas que pedem atenção');
 select is((public.painel_entregas()) -> 0 ->> 'nome', 'Site atrasado', 'Risco aparece primeiro');
 
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is(jsonb_array_length(public.painel_entregas()), 0, 'Outra agência não vê');
 
 select * from finish();

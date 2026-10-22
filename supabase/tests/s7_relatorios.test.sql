@@ -31,7 +31,7 @@ insert into public.time_entries (tenant_id, project_id, worked_on, minutes)
 values ('10000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001', current_date, 600);
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 create temp table r as select public.relatorios('mes') as v;
 
 select is((select (v->'vendas'->>'contatos')::int from r), 3, 'Três contatos chegaram no período');
@@ -46,7 +46,7 @@ select is((select (v->'margem'->'projetos'->0->>'vh_real_cents')::int from r), 6
 select is((select (v->'margem'->'projetos'->0->>'vh_estimado_cents')::int from r), 30000, 'Valor por hora estimado: R$ 6.000 ÷ 20 h');
 select is((select (v->'margem'->'projetos'->0->>'folga_horas')::numeric from r), 14.0, 'Folga até o piso: 24 h − 10 h');
 
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is(((public.relatorios('mes')) -> 'vendas' ->> 'contatos')::int, 0, 'Outra agência não vê');
 
 select * from finish();

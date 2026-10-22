@@ -49,14 +49,14 @@ select throws_ok($$ select count(*) from public.site_contatos $$, '42501', null,
 -- Dono da Fora do Papel
 reset role;
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.site_contatos)::int, 3, 'dono vê os 3 contatos gravados');
 select is((select count(*) from public.event_outbox where event = 'site.contato_recebido')::int, 3,
   'cada contato gerou 1 evento');
 select is((select porte from public.site_contatos where email = 'fabio@teste.com'), '11_50', 'porte gravado no contato');
 
 -- Dono de outra agência
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.site_contatos)::int, 0, 'outra agência não vê os contatos');
 
 select * from finish();

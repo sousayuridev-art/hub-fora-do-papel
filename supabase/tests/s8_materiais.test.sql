@@ -37,7 +37,7 @@ select is((select public from storage.buckets where id = 'materiais'), false, 'B
 
 -- ===== Yuri =====
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 insert into t select 'txt', public.material_salvar(null, 'texto', 'textos', 'Boas-vindas', null, 'Olá! Seja bem-vindo.', null, null, false);
 insert into t select 'guia', public.material_salvar(null, 'link', 'guias', 'Guia do painel', null, 'https://guia.exemplo.test',
   '20000000-0000-0000-0000-000000000002', null, true);
@@ -61,7 +61,7 @@ select is((public.material_confirmar((select (valor->>'id')::uuid from t where c
 select is(((public.materiais_lista()) -> 'contagem' ->> 'todos')::int, 3, 'Lista do dono com os 3 materiais');
 
 -- ===== Paula (Sorriso) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is(jsonb_array_length((public.portal_arquivos()) -> 'da_agencia'), 2, 'Cliente vê o que foi compartilhado com a empresa');
 select is((select count(*) from storage.objects where bucket_id = 'materiais')::int, 1, 'Cliente lê o arquivo compartilhado');
 select is((select count(*) from public.materials)::int, 0, 'Cliente não lê a tabela de materiais');
@@ -85,12 +85,12 @@ select is((select status from public.client_tasks where id = '60000000-0000-0000
 set local role authenticated;
 
 -- ===== Bruno (Ótica) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from storage.objects where bucket_id = 'materiais')::int, 0, 'Outra empresa não lê os arquivos');
 select is(jsonb_array_length((public.portal_arquivos()) -> 'da_agencia'), 0, 'Outra empresa não vê os materiais');
 
 -- ===== Lixeira e exclusão (Yuri) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select lives_ok(format($$ select public.material_lixeira(%L, true) $$, (select valor->>'id' from t where chave = 'arq')),
   'Arquivo vai para a lixeira');
 select throws_ok(format($$ select public.material_excluir(%L) $$, (select valor->>'id' from t where chave = 'arq')),
@@ -102,11 +102,11 @@ select is((select count(*) from storage.objects where name = (select valor->>'ca
   'Dono apaga o arquivo que está na lixeira');
 select lives_ok(format($$ select public.material_excluir(%L) $$, (select valor->>'id' from t where chave = 'arq')),
   'Depois de apagar o arquivo, exclui de vez');
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is(jsonb_array_length((public.portal_arquivos()) -> 'da_agencia'), 1, 'Cliente deixa de ver o que foi excluído');
 
 -- ===== Outra agência =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is(((public.materiais_lista()) -> 'contagem' ->> 'todos')::int, 0, 'Outra agência não vê nada');
 select throws_ok(format($$ select public.material_lixeira(%L, true) $$, (select valor->>'id' from t where chave = 'txt')),
   'P0002', null, 'Outra agência não mexe');

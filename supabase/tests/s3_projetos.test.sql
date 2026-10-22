@@ -78,7 +78,7 @@ select is((select count(*) from public.event_outbox where event = 'projeto.criad
 -- CX-0: quem tinha acesso antes dos perfis é responsável pelo contrato (quem não aprova fica como equipe)
 update public.client_members set profile = 'responsavel' where can_approve;
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 
 insert into t select 'ap', public.aprovacao_pedir((select (valor->>'id')::uuid from t where chave = 'proj'), 'Layout da página inicial',
   'Confira o layout', array['Página inicial', 'Cores e fontes'], 'https://previa.foradopapel.test/sorriso',
@@ -119,21 +119,21 @@ select throws_ok($$ select public.portal_convidar('20000000-0000-0000-0000-00000
   '22023', null, 'E-mail de dono não vira cliente');
 
 -- ===== Outra agência =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.projects)::int + (select count(*) from public.requests)::int, 0,
   'Outra agência não vê projetos nem pedidos');
 select throws_ok(format($$ select public.projeto_detalhe(%L) $$, (select valor->>'id' from t where chave = 'proj')),
   'P0002', null, 'Outra agência não abre o projeto');
 
 -- ===== Estagiária (sem permissão de aprovar) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c4","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c4","role":"authenticated","aal":"aal2"}', true);
 select throws_ok(format($$ select public.portal_aprovar(%L) $$, (select valor->>'id' from t where chave = 'ap')),
   '42501', null, 'Quem não pode aprovar não aprova entrega');
 select throws_ok(format($$ select public.portal_adicional_decidir(%L, true) $$, (select valor->>'id' from t where chave = 'ped')),
   '42501', null, 'Quem não pode aprovar não decide serviço adicional');
 
 -- ===== Cliente do portal (Paula, Sorriso) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.projects)::int + (select count(*) from public.time_entries)::int
         + (select count(*) from public.project_tasks)::int + (select count(*) from public.project_events)::int, 0,
   'Cliente não lê tabelas internas (horas, tarefas, eventos)');
@@ -150,9 +150,9 @@ select lives_ok(format($$ select public.portal_adicional_decidir(%L, true) $$, (
 select is((public.portal_pedido_criar('Novo banner de campanha')) ->> 'codigo', 'CS-03', 'Pedido feito pelo portal');
 
 -- ===== Convidado (Bruno, Ótica) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c3","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c3","role":"authenticated","aal":"aal2"}', true);
 select is((public.portal_aceitar_convite()) ->> 'ligados', '0', 'E-mail sem convite não ganha acesso');
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated","aal":"aal2"}', true);
 select throws_ok($$ select public.portal_pendencias() $$, '42501', null, 'Antes do convite aceito, sem portal');
 select is((public.portal_aceitar_convite()) ->> 'ligados', '0', 'E-mail ainda não confirmado não liga o convite');
 reset role;
@@ -162,7 +162,7 @@ select is((public.portal_aceitar_convite()) ->> 'ligados', '1', 'Primeiro acesso
 select is((public.portal_inicio()) ->> 'empresa', 'Ótica Visão Clara', 'Convidado vê só a própria empresa');
 
 -- ===== Yuri de novo =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok(format($$ select public.pedido_classificar(%L, 'adicional', 40) $$, (select valor->>'id' from t where chave = 'ped')),
   '22023', null, 'Depois do sim do cliente, o preço não muda');
 select is((public.pedido_iniciar((select (valor->>'id')::uuid from t where chave = 'ped'))) ->> 'status', 'fazendo',

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { caminhoInterno } from "@/lib/volta";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { MailCheck } from "lucide-react";
@@ -17,11 +18,7 @@ import { cn } from "@/lib/utils";
 import { previaDoLink } from "@/lib/enderecoPublico";
 
 const buscaEntrar = z.object({
-  volta: z
-    .string()
-    .regex(/^\/(?![/\\])/, "caminho interno")
-    .optional()
-    .catch(undefined),
+  volta: caminhoInterno,
   /** E-mail já preenchido (vem do "Abrir meu portal" depois do aceite: CX-4). */
   email: z.string().trim().email().max(160).optional().catch(undefined),
   /** "equipe" = e-mail, senha e código do app (SEG-1); "cliente" = link no e-mail. */
@@ -113,7 +110,11 @@ function FormEquipe({ volta }: { volta: string | undefined }) {
     mutationFn: () => enviarLinkRecuperacao(email.trim()),
     onSuccess: () =>
       ok("Se o e-mail for de um gestor, o link para criar nova senha chega em instantes."),
-    onError: (e) => erro(mensagemDeSeguranca(e)),
+    // Mesma resposta com ou sem conta, para não revelar quais e-mails existem.
+    onError: (e) =>
+      /rate limit|too many/i.test(e.message)
+        ? erro(mensagemDeSeguranca(e))
+        : ok("Se o e-mail for de um gestor, o link para criar nova senha chega em instantes."),
   });
   const emailOk = emailValido.safeParse(email).success;
 

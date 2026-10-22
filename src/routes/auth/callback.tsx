@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { caminhoInterno } from "@/lib/volta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
@@ -9,11 +10,7 @@ import { supabase } from "@/lib/supabase";
 const buscaCallback = z.object({
   code: z.string().optional().catch(undefined),
   token_hash: z.string().optional().catch(undefined),
-  volta: z
-    .string()
-    .regex(/^\/(?![/\\])/, "caminho interno")
-    .optional()
-    .catch(undefined),
+  volta: caminhoInterno,
 });
 
 export const Route = createFileRoute("/auth/callback")({

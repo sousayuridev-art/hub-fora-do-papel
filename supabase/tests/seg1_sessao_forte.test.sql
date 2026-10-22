@@ -17,13 +17,14 @@ insert into public.client_members (client_id, user_id, tenant_id, profile) value
   ('20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000c1', '10000000-0000-0000-0000-000000000001', 'responsavel');
 
 set local role authenticated;
--- Sem app ativado: funciona como antes (o Hub obriga a ativar pela tela).
+-- Sem app ativado, sessão só com link ou senha também não é dona (precisa ativar o app antes).
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal1"}', true);
-select ok(public.is_tenant_owner('10000000-0000-0000-0000-000000000001'), 'Sem app ativado, sessão comum ainda é dono');
+select ok(not public.is_tenant_owner('10000000-0000-0000-0000-000000000001'), 'Sem app ativado, sessão sem código não é dona');
 reset role;
 
-insert into auth.mfa_factors (user_id, status) values ('00000000-0000-0000-0000-0000000000a1', 'verified');
-insert into auth.mfa_factors (user_id, status) values ('00000000-0000-0000-0000-0000000000c1', 'verified');
+insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at) values
+  (gen_random_uuid(), '00000000-0000-0000-0000-0000000000a1', 'Celular', 'totp', 'verified', now(), now()),
+  (gen_random_uuid(), '00000000-0000-0000-0000-0000000000c1', 'Celular', 'totp', 'verified', now(), now());
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal1"}', true);

@@ -27,7 +27,7 @@ grant all on t to authenticated, anon;
 
 -- ===== Dono =====
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok($$ insert into public.memberships (tenant_id, user_id, role)
   values ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000a2', 'owner') $$,
   '42501', null, 'Dono não dá papel a outra pessoa pelo app');
@@ -47,7 +47,7 @@ insert into t select 'env', public.proposta_enviar((select (valor->>'id')::uuid 
 select is((select status::text from public.proposals), 'enviada', 'Depois de conferir os preços, envia');
 
 -- ===== Cliente do portal =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.clients)::int, 0, 'Cliente do portal não lê a tabela de clientes');
 select is(public.portal_minha_empresa() ->> 'empresa', 'Clínica Sorriso', 'Portal recebe só o nome da empresa');
 select ok(not (public.portal_minha_empresa() ? 'referred_by'), 'Portal não vê quem indicou');
@@ -64,7 +64,7 @@ reset role;
 
 -- Fechada por aceite não reabre
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok(format($$ select public.funil_mover(%L, 'contato', null, 'Passo', current_date) $$, '30000000-0000-0000-0000-000000000001'),
   '22023', null, 'Oportunidade fechada por aceite não volta para etapa aberta');
 select is((public.painel_novidades() -> 'novidades' -> 0 ->> 'tipo'), 'proposta_aceita', 'Painel mostra o aceite em Novidades');

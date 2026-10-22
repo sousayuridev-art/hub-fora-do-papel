@@ -26,7 +26,7 @@ grant all on t to authenticated, anon;
 
 -- ===== Yuri (dono) =====
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 
 insert into t values ('a', public.funil_criar_contato('Ateliê Maré', 'Lia Fontes', '(79) 9 0000-0101', null,
   'anuncio_meta', 'Primeiro contato pelo WhatsApp', current_date));
@@ -82,13 +82,13 @@ select is(jsonb_array_length(public.painel_hoje() -> 'itens'), 1, 'Painel mostra
 select is((public.clientes_resumo() ->> 'negociacao')::int, 1, 'Resumo de clientes conta quem está em negociação');
 
 -- ===== Outra agência =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.v_funil)::int, 0, 'Outra agência não vê o funil da Fora do Papel');
 select throws_ok(format($$ select public.funil_mover(%L, 'proposta', null) $$, (select (valor->>'deal_id') from t where chave = 'a')),
   'P0002', null, 'Outra agência não move oportunidade alheia');
 
 -- ===== Paula (cliente do portal) =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*) from public.deals)::int + (select count(*) from public.deal_events)::int
           + (select count(*) from public.client_notes)::int, 0, 'Cliente do portal não vê nada do funil');
 select throws_ok($$ select public.funil_criar_contato('X', 'Y', '79900000888', null, 'outro', 'P', current_date) $$,

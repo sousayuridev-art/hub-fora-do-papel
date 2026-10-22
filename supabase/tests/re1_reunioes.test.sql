@@ -81,7 +81,7 @@ select is((select client_id from public.meetings where tenant_id = '10000000-000
 
 -- ===== Dono (Yuri) =====
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is(jsonb_array_length((public.reunioes_listar()) -> 'itens'), 3, 'Dono vê as reuniões da agência');
 select is(((public.reunioes_listar()) ->> 'sem_cliente')::int, 2, 'Contador de sem cliente');
 select is(jsonb_array_length((public.reunioes_listar('sem_transcricao')) -> 'itens'), 1, 'Filtro sem transcrição');
@@ -124,10 +124,10 @@ reset role;
 -- Outra dona tenta confirmar o pedido do Yuri (permissão dada no navegador errado)
 select set_config('teste.codigo', (select confirm_code from public.google_oauth_states limit 1), true) is not null as guardado;
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok($$ select public.google_confirmar(current_setting('teste.codigo')) $$,
   '22023', 'pedido_invalido', 'Só quem pediu confirma a ligação');
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is((public.google_confirmar(current_setting('teste.codigo'))) ->> 'email',
   'yuri@foradopapel.com.br', 'Yuri confirma e o Google fica ligado');
 reset role;
@@ -146,15 +146,15 @@ select lives_ok($$ select public.google_busca_concluir('10000000-0000-0000-0000-
 reset role;
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is((public.google_situacao()) ->> 'situacao', 'religar', 'Configurações mostram "Ligar de novo"');
 select ok(not ((public.google_situacao()) ? 'token_cipher'), 'Situação nunca traz o token');
 
 -- ===== Outra agência e pessoa do portal =====
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated","aal":"aal2"}', true);
 select throws_ok($$ select public.reuniao_abrir((select id from public.meetings where conference_record = 'conferenceRecords/abc-2')) $$,
   'P0002', 'nao_encontrada', 'Outra agência não abre reunião');
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 select is((select count(*)::int from public.meetings) + (select count(*)::int from public.meeting_transcripts), 0,
   'Pessoa do portal não vê reunião nem transcrição');
 reset role;

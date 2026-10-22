@@ -73,7 +73,10 @@ export async function exigirCodigo(caminho: string) {
   const { data, error } = await supabase.auth.mfa
     .getAuthenticatorAssuranceLevel()
     .catch((e: unknown) => ({ data: null, error: e }));
-  if (error || !data) throw redirect({ to: "/entrar", search: { volta: caminho } });
+  if (error || !data) {
+    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+    throw redirect({ to: "/entrar", search: { volta: caminho } });
+  }
   if (data.currentLevel === "aal2") return;
   if (data.nextLevel === "aal2")
     throw redirect({ to: "/entrar/codigo", search: { volta: caminho } });

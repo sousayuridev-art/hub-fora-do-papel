@@ -28,7 +28,7 @@ insert into t select 'deal', to_jsonb(d.id::text) from public.deals d join publi
 insert into t select 'versao', to_jsonb(d.updated_at) from public.deals d join public.clients c on c.id = d.client_id where c.email = 'ana@exemplo.test';
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 select is((public.funil_atualizar((select (valor #>> '{}')::uuid from t where chave = 'deal'),
                                   (select (valor #>> '{}')::timestamptz from t where chave = 'versao'),
                                   '{"frente":"sistemas"}')) ->> 'service_line', 'sistemas', 'Yuri troca a frente no Hub');
@@ -48,7 +48,7 @@ select is(((public.precos_salvar('{"capacity_hours":160}',
 select is(((public.capacidade_resumo()) ->> 'capacidade_h')::int, 160, 'Capacidade no resumo');
 
 -- Outra agência não lê a capacidade da Fora do Papel
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated","aal":"aal2"}', true);
 select is(((public.capacidade_resumo()) ->> 'capacidade_h')::int, 200, 'Outra agência vê só a dela');
 
 select * from finish();
