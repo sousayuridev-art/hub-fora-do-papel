@@ -12,6 +12,7 @@ import { MateriaisLista } from "@/components/materiais/MateriaisLista";
 import { MaterialFormPainel, type DadosMaterial } from "@/components/materiais/MaterialFormPainel";
 import { MaterialPainel } from "@/components/materiais/MaterialPainel";
 import { useMutacoesMateriais } from "@/components/materiais/useMutacoesMateriais";
+import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
 import { classeAcaoPrincipal } from "@/lib/estilos";
 import {
   categoriasMaterial,
@@ -90,9 +91,10 @@ function Materiais() {
   }, [d?.itens, pasta, cliente, origem, termo]);
 
   const aberto = material ? (d?.itens.find((x) => x.id === material) ?? null) : null;
-  // Abrir ou fechar um material cria entrada: o Voltar do celular fecha o painel (RD-9)
-  const abrir = (id: string | undefined) =>
-    void navigate({ search: (s) => ({ ...s, material: id }) });
+  // Abrir o material cria entrada no histórico; fechar pela tela não (RD-9)
+  const painelMaterial = usePainelNaUrl(
+    (id, o) => void navigate({ search: (s) => ({ ...s, material: id }), ...o }),
+  );
 
   const salvar = async (v: DadosMaterial) => {
     if (v.tipo === "arquivo" && !v.id) {
@@ -199,7 +201,7 @@ function Materiais() {
                     : "Nada encontrado com esses filtros."}
               </p>
             ) : (
-              <MateriaisLista itens={itens} aoAbrir={(x) => abrir(x.id)} />
+              <MateriaisLista itens={itens} aoAbrir={(x) => painelMaterial.abrir(x.id)} />
             )}
           </div>
         </div>
@@ -207,9 +209,9 @@ function Materiais() {
 
       <MaterialPainel
         m={aberto}
-        aoFechar={() => abrir(undefined)}
+        aoFechar={painelMaterial.fechar}
         aoEditar={(x) => {
-          abrir(undefined);
+          painelMaterial.fechar();
           setForm({ aberto: true, material: x });
         }}
         aoLixeira={(x, excluir) => m.lixeira.mutate({ m: x, excluir })}

@@ -20,6 +20,7 @@ import { NovaCobrancaPainel } from "@/components/financeiro/NovaCobrancaPainel";
 import { NovaMensalidadePainel } from "@/components/financeiro/NovaMensalidadePainel";
 import { useMutacoesFinanceiro } from "@/components/financeiro/useMutacoesFinanceiro";
 import { useSession } from "@/hooks/useSession";
+import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
 import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
 import { moeda } from "@/lib/formatar";
 import {
@@ -115,10 +116,13 @@ function Financeiro() {
     ? (d?.cobrancas.find((x) => x.client_id === cliente)?.empresa ?? "este cliente")
     : null;
   const aberta = cobranca ? (d?.cobrancas.find((c) => c.id === cobranca) ?? null) : null;
-  const abrir = (id: string | undefined, pagar = false) => {
+  // Abrir a cobrança cria entrada no histórico; fechar pela tela não (RD-9)
+  const painelCobranca = usePainelNaUrl(
+    (id, o) => void navigate({ search: (s) => ({ ...s, cobranca: id }), ...o }),
+  );
+  const abrir = (id: string, pagar = false) => {
     setReceber(pagar);
-    // Abrir ou fechar uma cobrança cria entrada: o Voltar do celular fecha o painel (RD-9)
-    void navigate({ search: (s) => ({ ...s, cobranca: id }) });
+    painelCobranca.abrir(id);
   };
   const irPara = (s: Partial<z.infer<typeof busca>>) =>
     void navigate({ search: (atual) => ({ ...atual, ...s }), replace: true });
@@ -359,7 +363,7 @@ function Financeiro() {
         hoje={d?.hoje ?? ""}
         remetente={remetente}
         pagarAoAbrir={receber}
-        aoFechar={() => abrir(undefined)}
+        aoFechar={painelCobranca.fechar}
         aoPagar={(v) => m.pagar.mutate(v)}
         aoDesfazer={(c) => m.desfazer.mutate(c)}
         aoVencimento={(c, data) => m.atualizar.mutate({ id: c.id, campos: { vencimento: data } })}

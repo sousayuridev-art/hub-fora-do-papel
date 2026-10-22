@@ -12,6 +12,7 @@ import { PedidoPainel } from "@/components/pedidos/PedidoPainel";
 import { PedidosLista } from "@/components/pedidos/PedidosLista";
 import { RegistrarPedidoPainel } from "@/components/pedidos/RegistrarPedidoPainel";
 import { useMutacoesPedidos } from "@/components/pedidos/useMutacoesPedidos";
+import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
 import { classeAcaoPrincipal } from "@/lib/estilos";
 import {
   abasPedidos,
@@ -78,9 +79,10 @@ function Pedidos() {
   }, [lista.data, aba, cliente, termo]);
 
   const aberto = pedido ? ((lista.data ?? []).find((p) => p.id === pedido) ?? null) : null;
-  // Abrir ou fechar um pedido cria entrada: o Voltar do celular fecha o painel (RD-9)
-  const abrir = (id: string | undefined) =>
-    void navigate({ search: (s) => ({ ...s, pedido: id }) });
+  // Abrir o pedido cria entrada no histórico; fechar pela tela não (RD-9)
+  const painelPedido = usePainelNaUrl(
+    (id, o) => void navigate({ search: (s) => ({ ...s, pedido: id }), ...o }),
+  );
   const r = resumo.data;
 
   return (
@@ -156,13 +158,13 @@ function Pedidos() {
             : "Nenhum pedido com esses filtros."}
         </p>
       ) : (
-        <PedidosLista itens={visiveis} aoAbrir={(p) => abrir(p.id)} />
+        <PedidosLista itens={visiveis} aoAbrir={(p) => painelPedido.abrir(p.id)} />
       )}
 
       <PedidoPainel
         p={aberto}
         horaCents={hora}
-        aoFechar={() => abrir(undefined)}
+        aoFechar={painelPedido.fechar}
         aoClassificar={(p, c, horas, nota) => m.classificar.mutate({ p, c, horas, nota })}
         aoEnviar={(p) => m.enviar.mutate({ p })}
         aoIniciar={(p) => m.iniciar.mutate({ p })}

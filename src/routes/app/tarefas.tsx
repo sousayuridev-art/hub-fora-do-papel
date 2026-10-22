@@ -17,6 +17,7 @@ import { TarefasLista } from "@/components/tarefas/TarefasLista";
 import { naoRemovida, useMutacoesTarefa } from "@/components/tarefas/useMutacoesTarefa";
 import { useProjetosAtivos } from "@/components/tarefas/useProjetosAtivos";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
 import { classeAcaoPrincipal } from "@/lib/estilos";
 import type { TipoTarefa } from "@/lib/projetos";
 import {
@@ -49,10 +50,13 @@ function Tarefas() {
   const navigate = Route.useNavigate();
   const celular = useIsMobile();
   const vista = celular ? "lista" : (busca.vista ?? "lista");
-  // Filtros e abas trocam o endereço sem encher o histórico; abrir ou fechar uma tarefa cria
-  // entrada, para "Voltar" fechar o painel em vez de sair da Central.
+  // Filtros e abas trocam o endereço sem encher o histórico; abrir uma tarefa cria entrada,
+  // para "Voltar" fechar o painel em vez de sair da Central; fechar pela tela não (RD-9).
   const mudar = (p: Partial<BuscaTarefas>) =>
-    void navigate({ search: (s) => ({ ...s, ...p }), replace: !("tarefa" in p) });
+    void navigate({ search: (s) => ({ ...s, ...p }), replace: true });
+  const painelTarefa = usePainelNaUrl(
+    (tarefa, o) => void navigate({ search: (s) => ({ ...s, tarefa }), ...o }),
+  );
 
   const filtros = filtrosDaBusca(busca);
   const lista = useQuery({
@@ -87,7 +91,7 @@ function Tarefas() {
     enabled: !!busca.tarefa && !naLista && lista.isSuccess,
   });
   const aberta = naLista ?? (busca.tarefa ? (sozinha.data ?? null) : null);
-  const abrir = (t: TarefaVista) => mudar({ tarefa: t.id });
+  const abrir = (t: TarefaVista) => painelTarefa.abrir(t.id);
 
   function criar(v: NovaTarefa, p: ProjetoOpcao | null) {
     m.criar.mutate(hoje ? { ...v, vista: tarefaProvisoria(v, p, hoje) } : v);
@@ -183,7 +187,7 @@ function Tarefas() {
         <TarefasLista itens={itens} hoje={hoje} aoAbrir={abrir} aoConcluir={m.alternarPronta} />
       )}
 
-      <TarefaPainel tarefa={aberta} hoje={hoje} aoFechar={() => mudar({ tarefa: undefined })} />
+      <TarefaPainel tarefa={aberta} hoje={hoje} aoFechar={painelTarefa.fechar} />
       <NovaTarefaCentralPainel
         aberto={novaAberta}
         aoMudar={setNovaAberta}
