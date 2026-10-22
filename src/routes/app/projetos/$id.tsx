@@ -136,7 +136,7 @@ function Projeto() {
       case "proxima_tarefa":
         if (a.alvo) {
           setCiclo(null);
-          abrirTarefa(a.alvo);
+          painelTarefa.abrir(a.alvo);
         } else setPainel("tarefa");
         return;
     }
