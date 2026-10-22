@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Propostas proposta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Bricolage+Grotesque:wght@800&amp;display=swap">
+<style>body{margin:0;background:#F5F5F2} a{color:#1E3FA8} a:hover{color:#0E1013}</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1100px; font-family: Poppins, system-ui, sans-serif; color: #0E1013; background: #F5F5F2">
+  <nav aria-label="Menu" style="flex: 0 0 248px; background: #0E1013; color: #D5D7DC; padding: 20px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; font-size: 14.5px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px">
+      <span style="position: relative; width: 26px; height: 26px"><span style="position: absolute; left: 0; bottom: 0; width: 18px; height: 18px; border: 2px solid #F5F5F2; border-radius: 2px"></span><span style="position: absolute; right: 0; top: 0; width: 13px; height: 13px; background: #FFB020; border-radius: 2px"></span></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; color: #F5F5F2; font-size: 16px">Fora do Papel</span>
+    </div>
+    <span style="padding: 10px">Painel</span>
+    <span style="padding: 10px">Tarefas</span>
+    <span style="padding: 14px 10px 4px; font-size: 11.5px; letter-spacing: 0.08em; color: #8A8D93">VENDER</span>
+    <span style="padding: 10px">Funil de vendas</span>
+    <span style="padding: 10px">Clientes</span>
+    <span style="padding: 10px">Reuniões</span>
+    <span style="padding: 10px; background: #FFB020; color: #0E1013; border-radius: 10px; font-weight: 600">Propostas</span>
+    <span style="padding: 10px">Tráfego pago</span>
+    <span style="padding: 14px 10px 4px; font-size: 11.5px; letter-spacing: 0.08em; color: #8A8D93">ENTREGAR</span>
+    <span style="padding: 10px">Projetos</span>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="background: #FFFFFF; border-bottom: 1px solid #E4E4DE; padding: 28px 48px 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 12.5px; color: #5B5F66">Vender</span>
+        <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: #1B2B5C">Propostas</h1>
+        <span style="font-size: 14px; color: #5B5F66">O que falta enviar e quem ainda não respondeu.</span>
+      </div>
+      <button type="button" style="height: 44px; padding: 0 18px; border-radius: 12px; border: 0; background: #FFB020; font: 600 14.5px Poppins, sans-serif">Nova proposta</button>
+    </header>
+
+    <div style="padding: 24px 48px 56px; display: flex; flex-direction: column; gap: 22px">
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; overflow: hidden">
+        <div style="padding: 18px 22px; border-right: 1px solid #ECECE6; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5B5F66">Em negociação</span><b style="font-size: 24px; font-weight: 600">R$ 18.800</b><span style="font-size: 12.5px; color: #5B5F66">4 propostas enviadas</span></div>
+        <button type="button" style="text-align: left; padding: 18px 22px; border: 0; border-right: 1px solid #F3E2BD; background: #FFF1D6; font-family: Poppins, sans-serif; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #7A4200">Sem abrir há mais de 3 dias</span><b style="font-size: 24px; font-weight: 600; color: #7A4200">1</b><span style="font-size: 12.5px; color: #7A4200">Ótica Nova · enviada há 5 dias</span></button>
+        <div style="padding: 18px 22px; border-right: 1px solid #ECECE6; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5B5F66">Aceitas no ano</span><b style="font-size: 24px; font-weight: 600">R$ 21.400</b><span style="font-size: 12.5px; color: #5B5F66">3 propostas</span></div>
+        <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5B5F66">Taxa de aceite</span><b style="font-size: 24px; font-weight: 600">43%</b><span style="font-size: 12.5px; color: #5B5F66">3 de 7 respondidas</span></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: stretch; min-height: 640px">
+        <sc-for list="{{colunas}}" as="c" hint-placeholder-count="4">
+          <section aria-label="{{c.nome}}" style="padding: 0 18px; border-left: {{c.divisa}}; display: flex; flex-direction: column; gap: 10px">
+            <span aria-hidden="true" style="height: 3px; border-radius: 2px; background: {{c.barra}}"></span>
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 6px 2px 4px">
+              <span style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 15.5px; font-weight: 600">{{c.nome}}</b><span style="font-size: 14px; font-weight: 600; color: #4A4D54">{{c.total}}</span></span>
+              <span style="font-size: 12.5px; color: #5B5F66">{{c.descricao}}</span>
+            </div>
+            <sc-for list="{{c.cartoes}}" as="p" hint-placeholder-count="2">
+              <div style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(14,16,19,0.04)">
+                <span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 12.5px; color: #5B5F66">{{p.cliente}}</span><b style="font-size: 14px; font-weight: 600">{{p.valor}}</b></span>
+                <span style="font-size: 14.5px; font-weight: 500; line-height: 1.35">{{p.titulo}}</span>
+                <span style="font-size: 12.5px; color: {{p.infoCor}}">{{p.info}}</span>
+              </div>
+            </sc-for>
+            <a href="#" style="font-size: 13.5px; padding: 6px 2px; min-height: 32px">{{c.rodape}}</a>
+          </section>
+        </sc-for>
+      </div>
+      
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const cinza = '#5B5F66', aten = '#7A4200', ok = '#145A37', risco = '#9A1C12';
+    const P = (cliente, valor, titulo, info, infoCor) => ({ cliente, valor, titulo, info, infoCor });
+    const col = (nome, descricao, total, barra, divisa, cartoes, rodape) => ({ nome, descricao, total, barra, divisa, cartoes, rodape });
+    return { colunas: [
+      col('Rascunhos', 'O que falta para enviar', '2', '#B9B9B2', '0', [
+        P('Doce Sabor', 'R$ 3.200', 'Cardápio digital com pedidos', 'Falta: itens fora do escopo e fases', aten),
+        P('Auto Reparos', '[VALOR]', 'Agenda de serviços', 'Falta: valor e mensalidade', aten)
+      ], ''),
+      col('Enviadas', 'Esperando resposta', '4', '#1E3FA8', '1px solid #E4E4DE', [
+        P('Ótica Nova', 'R$ 1.200', 'Diagnóstico Essencial', 'Enviada há 5 dias · não abriu', risco),
+        P('Clínica Bem Cuidar', 'R$ 9.540', 'Sistema de agendamento', 'Aberta 2 vezes · vale até 30/10', cinza),
+        P('Casa Aurora', 'R$ 6.800', 'Loja virtual', 'Aberta ontem · vale até 05/11', cinza)
+      ], 'Ver mais 1'),
+      col('Aceitas', 'Viraram projeto', '3', '#145A37', '1px solid #E4E4DE', [
+        P('Rede Patas', 'R$ 16.000', 'Sistema Rede Patas', 'Aceita em 25/09 · projeto criado', ok),
+        P('Lavanderia Fácil', 'R$ 2.460', 'Automação de pedidos', 'Aceita em 02/10 · projeto criado', ok)
+      ], 'Ver as 3 do ano'),
+      col('Recusadas', 'Com o motivo', '4', '#9A1C12', '1px solid #E4E4DE', [
+        P('Pet Vida', 'R$ 4.800', 'Site com agendamento', 'Motivo: preço acima do esperado', cinza)
+      ], 'Ver as 4 do ano')
+    ] };
+  }
+}
+</script>
+</body>
+</html>

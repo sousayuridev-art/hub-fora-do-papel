@@ -175,6 +175,10 @@
   --color-sit-ok: #e3f4ea;
   --color-sit-ok-t: #145a37;
   --color-coluna: #ecece6;
+  /* Redesenho (22/10): título das páginas em azul-marinho; séries de gráfico validadas para daltonismo */
+  --color-titulo: #1b2b5c;
+  --color-serie-1: #2f55d4;
+  --color-serie-2: #c27c0e;
   /* HUB-VIS-2: uma família só (Poppins, como a referência); Bricolage só no nome da marca */
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-titulo: "Poppins", ui-sans-serif, system-ui, sans-serif;

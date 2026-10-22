@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Clientes no celular</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Bricolage+Grotesque:wght@800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 1400px; overflow: hidden; background: #F5F5F2; font-family: Poppins, system-ui, sans-serif; color: #0E1013; display: flex; flex-direction: column">
+  <div style="height: 56px; flex: 0 0 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #FFFFFF; border-bottom: 1px solid #E4E4DE">
+    <button type="button" aria-label="Abrir menu" style="width: 44px; height: 44px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E1013" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 16px">Fora do Papel</span>
+    <button type="button" aria-label="Novo contato" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: #FFB020; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E1013" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+  </div>
+
+  <div style="padding: 20px 16px 0; display: flex; flex-direction: column; gap: 4px">
+    <span style="font-size: 12.5px; color: #5B5F66">Vender</span>
+    <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: #1B2B5C">Clientes</h1>
+  </div>
+
+  <div style="display: flex; gap: 8px; padding: 16px 16px 4px; overflow: hidden">
+    <span style="flex: 0 0 132px; padding: 12px 14px; border-radius: 14px; background: #FDE8E6; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12.5px; color: #9A1C12">Vencidos</span><b style="font-size: 22px; font-weight: 600; color: #9A1C12">3</b></span>
+    <span style="flex: 0 0 132px; padding: 12px 14px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E4E4DE; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12.5px; color: #5B5F66">Para hoje</span><b style="font-size: 22px; font-weight: 600">4</b></span>
+    <span style="flex: 0 0 150px; padding: 12px 14px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E4E4DE; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12.5px; color: #5B5F66">Em negociação</span><b style="font-size: 22px; font-weight: 600">R$ 20.000</b></span>
+  </div>
+
+  <div style="padding: 12px 16px 0; display: flex; flex-direction: column; gap: 10px">
+    <label style="display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 14px; border: 1px solid #DADAD3; border-radius: 12px; background: #FFFFFF; color: #5B5F66">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input type="search" placeholder="Buscar" style="border: 0; outline: 0; font: 16px Poppins, sans-serif; background: transparent; width: 100%">
+    </label>
+    <div style="display: flex; gap: 6px; font-size: 13.5px">
+      <span style="padding: 9px 12px; border-radius: 10px; background: #0E1013; color: #FFFFFF; font-weight: 600">Todos 12</span>
+      <span style="padding: 9px 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4E4DE">Negociação 5</span>
+      <span style="padding: 9px 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4E4DE">Clientes 3</span>
+      <span style="padding: 9px 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4E4DE">Mais</span>
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+    <sc-for list="{{cartoes}}" as="c" hint-placeholder-count="8">
+      <div style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+          <b style="font-size: 15px; font-weight: 600">{{c.empresa}}</b>
+          <span style="font-size: 14px; font-weight: 600">{{c.valor}}</span>
+        </div>
+        <span style="font-size: 14px; color: #2A2D33">{{c.passo}} · <b style="font-weight: 600; color: {{c.cor}}">{{c.prazo}}</b></span>
+        <span style="font-size: 12.5px; color: #5B5F66">{{c.situacao}} · {{c.contato}}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const C = (empresa, valor, passo, prazo, cor, situacao, contato) => ({ empresa, valor, passo, prazo, cor, situacao, contato });
+    return { cartoes: [
+      C('Clínica Bem Cuidar', 'R$ 9.540', 'Retornar sobre a proposta', 'venceu ontem', '#9A1C12', 'Proposta', 'Marina Alves'),
+      C('Ótica Nova', 'R$ 1.200', 'Enviar resumo do diagnóstico', 'há 6 dias', '#9A1C12', 'Diagnóstico', 'Rui Barros'),
+      C('Pet Vida', '—', 'Primeira conversa', 'há 2 dias', '#9A1C12', 'Contato', 'Carla Nunes'),
+      C('Rede Patas', 'R$ 400/mês', 'Publicar módulo Financeiro', 'hoje, 15h', '#7A4200', 'Cliente', 'Marina Costa'),
+      C('Studio Leve', 'R$ 1.200/mês', 'Reunião de acompanhamento', 'hoje, 17h', '#7A4200', 'Cliente', 'Júlio Santos'),
+      C('Casa Aurora', 'R$ 6.800', 'Ajustar escopo da loja', 'amanhã', '#4A4D54', 'Negociação', 'Beatriz Lima'),
+      C('Lavanderia Fácil', 'R$ 2.460', 'Ligar para fechar', 'sex 24/10', '#4A4D54', 'Proposta', 'Paulo Reis'),
+      C('Mercado do Sítio', 'R$ 400/mês', 'Enviar relatório do mês', 'seg 27/10', '#4A4D54', 'Cliente', 'Ana Prado')
+    ] };
+  }
+}
+</script>
+</body>
+</html>

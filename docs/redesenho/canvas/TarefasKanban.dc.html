@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Central de Tarefas Kanban</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Bricolage+Grotesque:wght@800&amp;display=swap">
+<style>body{margin:0;background:#F5F5F2} a{color:#1E3FA8} a:hover{color:#0E1013}</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1000px; font-family: Poppins, system-ui, sans-serif; color: #0E1013; background: #F5F5F2">
+  <nav aria-label="Menu" style="flex: 0 0 248px; background: #0E1013; color: #D5D7DC; padding: 20px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; font-size: 14.5px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px">
+      <span style="position: relative; width: 26px; height: 26px"><span style="position: absolute; left: 0; bottom: 0; width: 18px; height: 18px; border: 2px solid #F5F5F2; border-radius: 2px"></span><span style="position: absolute; right: 0; top: 0; width: 13px; height: 13px; background: #FFB020; border-radius: 2px"></span></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; color: #F5F5F2; font-size: 16px">Fora do Papel</span>
+    </div>
+    <span style="padding: 10px">Painel</span>
+    <span style="padding: 10px; background: #FFB020; color: #0E1013; border-radius: 10px; font-weight: 600; display: flex; justify-content: space-between; align-items: center">Tarefas<span style="min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; border-radius: 11px; background: #0E1013; color: #FFFFFF; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center">4</span></span>
+    <span style="padding: 14px 10px 4px; font-size: 11.5px; letter-spacing: 0.08em; color: #8A8D93">VENDER</span>
+    <span style="padding: 10px">Funil de vendas</span>
+    <span style="padding: 10px">Clientes</span>
+    <span style="padding: 14px 10px 4px; font-size: 11.5px; letter-spacing: 0.08em; color: #8A8D93">ENTREGAR</span>
+    <span style="padding: 10px">Projetos</span>
+    <span style="padding: 10px">Pedidos de ajuste</span>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="background: #FFFFFF; border-bottom: 1px solid #E4E4DE; padding: 28px 48px 0; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: #1B2B5C">Tarefas</h1>
+          
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center">
+          <div role="group" aria-label="Vista" style="display: flex; padding: 3px; border-radius: 12px; background: #EDEDE7">
+            <button type="button" aria-pressed="false" style="height: 38px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; font: 14px Poppins, sans-serif; color: #4A4D54">Lista</button>
+            <button type="button" aria-pressed="true" style="height: 38px; padding: 0 14px; border: 0; border-radius: 9px; background: #FFFFFF; font: 600 14px Poppins, sans-serif; box-shadow: 0 1px 2px rgba(14,16,19,0.1)">Kanban</button>
+          </div>
+          <button type="button" style="height: 44px; padding: 0 18px; border-radius: 12px; border: 0; background: #FFB020; font: 600 14.5px Poppins, sans-serif">Nova tarefa</button>
+        </div>
+      </div>
+      <div role="tablist" aria-label="Tipo de tarefa" style="display: flex; gap: 28px; margin-bottom: -1px">
+        <button role="tab" aria-selected="false" type="button" style="padding: 0 0 12px; border: 0; background: transparent; font: 14.5px Poppins, sans-serif; color: #4A4D54">Todas 24</button>
+        <button role="tab" aria-selected="true" type="button" style="padding: 0 0 12px; border: 0; border-bottom: 2px solid #0E1013; background: transparent; font: 600 14.5px Poppins, sans-serif">Clientes 18</button>
+        <button role="tab" aria-selected="false" type="button" style="padding: 0 0 12px; border: 0; background: transparent; font: 14.5px Poppins, sans-serif; color: #4A4D54">Internas 4</button>
+        <button role="tab" aria-selected="false" type="button" style="padding: 0 0 12px; border: 0; background: transparent; font: 14.5px Poppins, sans-serif; color: #4A4D54">Hub 2</button>
+      </div>
+    </header>
+
+    <div style="padding: 24px 48px 56px; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+        <button type="button" aria-pressed="false" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #F3D3CF; background: #FDE8E6; color: #9A1C12; font: 600 13.5px Poppins, sans-serif">Atrasadas 3</button>
+        <button type="button" aria-pressed="false" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #DADAD3; background: #FFFFFF; font: 13.5px Poppins, sans-serif">Hoje 1</button>
+        <button type="button" aria-pressed="false" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #DADAD3; background: #FFFFFF; font: 13.5px Poppins, sans-serif">Esta semana 3</button>
+        <span aria-hidden="true" style="width: 1px; height: 24px; background: #DADAD3; margin: 0 4px"></span>
+        <button type="button" style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #DADAD3; background: #FFFFFF; font: 13.5px Poppins, sans-serif">Cliente</button>
+        <button type="button" style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #DADAD3; background: #FFFFFF; font: 13.5px Poppins, sans-serif">Projeto</button>
+        <button type="button" style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #DADAD3; background: #FFFFFF; font: 13.5px Poppins, sans-serif">Prioridade</button>
+      </div>
+
+      <div style="display: flex; gap: 28px; font-size: 14.5px; color: #4A4D54; flex-wrap: wrap">
+        <span><b style="font-size: 18px; font-weight: 700; color: #9A1C12">3</b> atrasadas</span>
+        <span><b style="font-size: 18px; font-weight: 700; color: #0E1013">1</b> para hoje</span>
+        <span><b style="font-size: 18px; font-weight: 700; color: #0E1013">3</b> em andamento</span>
+        <span><b style="font-size: 18px; font-weight: 700; color: #0E1013">9</b> prontas na semana</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: stretch; min-height: 640px">
+        <sc-for list="{{colunas}}" as="c" hint-placeholder-count="4">
+          <section aria-label="{{c.nome}}" style="padding: 0 18px; border-left: {{c.divisa}}; display: flex; flex-direction: column; gap: 10px">
+            <span aria-hidden="true" style="height: 3px; border-radius: 2px; background: {{c.barra}}"></span>
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 6px 2px 4px">
+              <span style="display: flex; justify-content: space-between; align-items: baseline"><b style="font-size: 15.5px; font-weight: 600">{{c.nome}}</b><span style="font-size: 14px; font-weight: 600; color: #4A4D54">{{c.total}}</span></span>
+              <span style="font-size: 12.5px; color: #5B5F66">{{c.descricao}}</span>
+            </div>
+            <sc-for list="{{c.cartoes}}" as="t" hint-placeholder-count="2">
+              <div style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(14,16,19,0.04)">
+                <span style="font-size: 12.5px; color: #5B5F66">{{t.origem}}</span>
+                <span style="font-size: 14.5px; font-weight: 500; line-height: 1.35">{{t.titulo}}</span>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
+                  <span style="padding: 2px 8px; border-radius: 6px; font-size: 12.5px; background: {{t.pf}}; color: {{t.pt}}">{{t.prazo}}</span>
+                  <span style="font-size: 12.5px; font-weight: 600; color: #9A1C12">{{t.prioridade}}</span>
+                  <span style="font-size: 12.5px; color: #5B5F66">{{t.extra}}</span>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ c.vazia }}" hint-placeholder-val="{{ false }}">
+              <div style="min-height: 64px; border: 1px dashed #D6D6CF; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #5B5F66">Nada por aqui</div>
+            </sc-if>
+            <a href="#" style="font-size: 13.5px; padding: 6px 2px; min-height: 32px">{{c.rodape}}</a>
+          </section>
+        </sc-for>
+      </div>
+      
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const atr = ['#FDE8E6', '#9A1C12'], hoje = ['#FFF1D6', '#7A4200'], neu = ['#F1F1EC', '#2A2D33'], ok = ['#E3F4EA', '#145A37'];
+    const C = (origem, titulo, prazo, cor, prioridade, extra) =>
+      ({ origem, titulo, prazo, pf: cor[0], pt: cor[1], prioridade, extra });
+    const col = (nome, descricao, total, barra, divisa, cartoes, rodape) =>
+      ({ nome, descricao, total, barra, divisa, cartoes, rodape, vazia: cartoes.length === 0 });
+    return { colunas: [
+      col('A fazer', 'Ainda não começadas', '7', '#B9B9B2', '0', [
+        C('Clínica Bem Cuidar › Agendamento', 'Revisar textos da página de serviços', 'venceu 21/10', atr, '', 'ciclo 2'),
+        C('Rede Patas › Sistema', 'Importar cadastro de fornecedores', 'sex 24/10', neu, '', 'Compras'),
+        C('Casa Aurora › Loja virtual', 'Configurar frete por região', 'sáb 25/10', neu, 'Alta', '')
+      ], 'Ver mais 4'),
+      col('Fazendo', 'Em execução agora', '3', '#1E3FA8', '1px solid #E4E4DE', [
+        C('Rede Patas › Sistema', 'Ajustar relatório de giro por loja', 'venceu 20/10', atr, 'Alta', 'PA-014'),
+        C('Casa Aurora › Loja virtual', 'Montar vitrine da página inicial', 'hoje', hoje, '', '')
+      ], ''),
+      col('Para aprovar', 'Esperando aprovação', '1', '#D48A00', '1px solid #E4E4DE', [
+        C('Lavanderia Fácil › Automação', 'Testar envio de pedidos no WhatsApp', 'venceu 19/10', atr, '', 'ciclo 3')
+      ], ''),
+      col('Pronto', 'Concluídas nos últimos 7 dias', '9', '#145A37', '1px solid #E4E4DE', [
+        C('Mercado do Sítio › Site', 'Publicar página de contato', 'feito 21/10', ok, '', '')
+      ], 'Mostrar as 9')
+    ] };
+  }
+}
+</script>
+</body>
+</html>

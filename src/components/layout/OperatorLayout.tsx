@@ -27,7 +27,7 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-hub-fundo text-hub-tinta">
-      <aside className="fixed inset-y-0 left-0 hidden w-70 border-r border-menu-borda md:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-70 border-r border-menu-borda md:block">
         <MenuOperador aoBuscar={() => setBuscaAberta(true)} />
       </aside>
 
@@ -66,7 +66,7 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
 
       <BuscaGeral aberta={buscaAberta} aoMudar={setBuscaAberta} />
 
-      <main className="md:pl-70">
+      <main className="overflow-x-clip md:pl-70">
         <div className="mx-auto w-full max-w-[1320px] px-4 py-6 md:px-8 md:py-7">{children}</div>
       </main>
     </div>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Financeiro proposta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Bricolage+Grotesque:wght@800&amp;display=swap">
+<style>body{margin:0;background:#F5F5F2} a{color:#1E3FA8}</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1520px; font-family: Poppins, system-ui, sans-serif; color: #0E1013; background: #F5F5F2">
+  <nav aria-label="Menu" style="flex: 0 0 248px; background: #0E1013; color: #D5D7DC; padding: 20px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; font-size: 14.5px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px">
+      <span style="position: relative; width: 26px; height: 26px"><span style="position: absolute; left: 0; bottom: 0; width: 18px; height: 18px; border: 2px solid #F5F5F2; border-radius: 2px"></span><span style="position: absolute; right: 0; top: 0; width: 13px; height: 13px; background: #FFB020; border-radius: 2px"></span></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; color: #F5F5F2; font-size: 16px">Fora do Papel</span>
+    </div>
+    <span style="padding: 10px">Painel</span>
+    <span style="padding: 14px 10px 4px; font-size: 11.5px; letter-spacing: 0.08em; color: #8A8D93">ENTREGAR</span>
+    <span style="padding: 10px">Projetos</span>
+    <span style="padding: 10px">Pedidos de ajuste</span>
+    <span style="padding: 14px 10px 4px; font-size: 11.5px; letter-spacing: 0.08em; color: #8A8D93">GESTÃO</span>
+    <span style="padding: 10px; background: #FFB020; color: #0E1013; border-radius: 10px; font-weight: 600">Financeiro</span>
+    <span style="padding: 10px">Relatórios</span>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="background: #FFFFFF; border-bottom: 1px solid #E4E4DE; padding: 28px 48px 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 12.5px; color: #5B5F66">Gestão</span>
+        <h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: #1B2B5C">Financeiro</h1>
+        
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button type="button" style="height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #DADAD3; background: #FFFFFF; font: 500 14.5px Poppins, sans-serif">Nova despesa</button>
+        <button type="button" style="height: 44px; padding: 0 18px; border-radius: 12px; border: 0; background: #FFB020; font: 600 14.5px Poppins, sans-serif">Nova cobrança</button>
+      </div>
+    </header>
+    <div style="padding: 24px 48px 56px; display: flex; flex-direction: column; gap: 22px">
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; overflow: hidden">
+      <button type="button" style="text-align: left; padding: 18px 22px; border: 0; border-right: 1px solid #F3D3CF; background: #FDE8E6; font-family: Poppins, sans-serif; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #9A1C12">Em atraso</span><b style="font-size: 24px; font-weight: 600; color: #9A1C12">R$ 3.580</b><span style="font-size: 12.5px; color: #9A1C12">2 cobranças · a mais antiga há 9 dias</span></button>
+      <button type="button" style="text-align: left; padding: 18px 22px; border: 0; border-right: 1px solid #ECECE6; background: transparent; font-family: Poppins, sans-serif; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5B5F66">A receber em 30 dias</span><b style="font-size: 24px; font-weight: 600">R$ 12.340</b><span style="font-size: 12.5px; color: #5B5F66">+ R$ 6.360 sem data</span></button>
+      <button type="button" style="text-align: left; padding: 18px 22px; border: 0; border-right: 1px solid #ECECE6; background: transparent; font-family: Poppins, sans-serif; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5B5F66">Recebido em outubro</span><b style="font-size: 24px; font-weight: 600">R$ 9.180</b><span style="font-size: 12.5px; color: #5B5F66">5 pagamentos</span></button>
+      <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5B5F66">Resultado de outubro</span><b style="font-size: 24px; font-weight: 600; color: #145A37">+ R$ 6.420</b><span style="font-size: 12.5px; color: #5B5F66">recebido menos R$ 2.760 de despesas</span></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px">
+      <section aria-labelledby="fluxo-t" style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap">
+          <div style="display: flex; flex-direction: column; gap: 2px"><h2 id="fluxo-t" style="margin: 0; font-size: 16px; font-weight: 600">Entradas e saídas</h2><span style="font-size: 13px; color: #5B5F66">Últimos 6 meses · resultado embaixo de cada mês</span></div>
+          <div style="display: flex; gap: 16px; font-size: 13px; color: #2A2D33">
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #2F55D4"></span>Entradas</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #C27C0E"></span>Saídas</span>
+          </div>
+        </div>
+        <div role="img" aria-label="Entradas e saídas por mês, de maio a outubro" style="position: relative; height: 230px; display: grid; grid-template-columns: 52px repeat(6, minmax(0, 1fr)); align-items: end">
+          <div style="position: absolute; left: 52px; right: 0; top: 0; border-top: 1px dashed #ECECE6"></div>
+          <div style="position: absolute; left: 52px; right: 0; top: 73px; border-top: 1px dashed #ECECE6"></div>
+          <div style="position: absolute; left: 52px; right: 0; top: 147px; border-top: 1px dashed #ECECE6"></div>
+          <div style="position: absolute; left: 52px; right: 0; bottom: 0; border-top: 1px solid #D6D6CF"></div>
+          <div style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; font-size: 12.5px; color: #5B5F66; transform: translateY(-8px)"><span>12 mil</span><span>8 mil</span><span>4 mil</span><span>0</span></div>
+          <sc-for list="{{meses}}" as="m" hint-placeholder-count="6">
+            <div style="position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 2px">
+              <span style="position: absolute; top: {{m.rotTopo}}; font-size: 12.5px; font-weight: 600; color: #0E1013">{{m.rotulo}}</span>
+              <span title="Entradas {{m.e}}" style="width: 22px; height: {{m.he}}; background: #2F55D4; border-radius: 4px 4px 0 0"></span>
+              <span title="Saídas {{m.s}}" style="width: 22px; height: {{m.hs}}; background: #C27C0E; border-radius: 4px 4px 0 0"></span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: 52px repeat(6, minmax(0, 1fr)); font-size: 12.5px; text-align: center">
+          <span></span>
+          <sc-for list="{{meses}}" as="m" hint-placeholder-count="6">
+            <span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #2A2D33">{{m.nome}}</span><b style="font-weight: 600; color: #145A37">{{m.res}}</b></span>
+          </sc-for>
+        </div>
+      </section>
+      <section aria-labelledby="mrr-t" style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><h2 id="mrr-t" style="margin: 0; font-size: 16px; font-weight: 600">Mensalidades por mês</h2><span style="font-size: 13px; color: #5B5F66">Receita que se repete · 6 meses</span></div>
+        <div style="display: flex; align-items: baseline; gap: 8px"><b style="font-size: 26px; font-weight: 600">R$ 2.800</b><span style="font-size: 13px; color: #145A37">+ R$ 1.200 desde maio</span></div>
+        <svg viewBox="0 0 300 150" role="img" aria-label="Mensalidades de maio a outubro: 1.600, 2.000, 2.000, 2.400, 2.800, 2.800" style="width: 100%; height: auto; overflow: visible">
+          <line x1="0" y1="140" x2="300" y2="140" stroke="#D6D6CF" stroke-width="1"></line>
+          <line x1="0" y1="80" x2="300" y2="80" stroke="#ECECE6" stroke-width="1" stroke-dasharray="3 3"></line>
+          <line x1="0" y1="20" x2="300" y2="20" stroke="#ECECE6" stroke-width="1" stroke-dasharray="3 3"></line>
+          <polyline points="10,100 66,80 122,80 178,60 234,40 290,40" fill="none" stroke="#2F55D4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+          <circle cx="290" cy="40" r="4.5" fill="#2F55D4" stroke="#FFFFFF" stroke-width="2"></circle>
+        </svg>
+        <div style="display: flex; justify-content: space-between; font-size: 12.5px; color: #5B5F66"><span>mai</span><span>jun</span><span>jul</span><span>ago</span><span>set</span><span>out</span></div>
+        <span style="font-size: 12.5px; color: #5B5F66">4 mensalidades ativas · Essencial 2, Evolução 1, Parceria 1</span>
+      </section>
+    </div>
+
+    <div role="tablist" aria-label="Financeiro" style="display: flex; gap: 28px; border-bottom: 1px solid #E4E4DE">
+      <button role="tab" aria-selected="true" type="button" style="padding: 0 0 12px; border: 0; border-bottom: 2px solid #0E1013; background: transparent; font: 600 14.5px Poppins, sans-serif">Cobranças</button>
+      <button role="tab" aria-selected="false" type="button" style="padding: 0 0 12px; border: 0; background: transparent; font: 14.5px Poppins, sans-serif; color: #4A4D54">Mensalidades · R$ 2.800/mês</button>
+      <button role="tab" aria-selected="false" type="button" style="padding: 0 0 12px; border: 0; background: transparent; font: 14.5px Poppins, sans-serif; color: #4A4D54">Despesas · R$ 2.760</button>
+      <button role="tab" aria-selected="false" type="button" style="padding: 0 0 12px; border: 0; background: transparent; font: 14.5px Poppins, sans-serif; color: #4A4D54">Fluxo de caixa</button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+      <label style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border: 1px solid #DADAD3; border-radius: 12px; background: #FFFFFF; flex: 0 1 300px; color: #5B5F66; font-size: 14px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <input type="search" placeholder="Buscar cliente ou cobrança" style="border: 0; outline: 0; font: 14px Poppins, sans-serif; background: transparent; width: 100%">
+      </label>
+      <label style="margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #2A2D33"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #0E1013"> Mostrar recebidas (6 meses)</label>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; overflow: hidden">
+      <sc-for list="{{grupos}}" as="g" hint-placeholder-count="3">
+        <div style="padding: 12px 22px 8px; font-size: 12.5px; font-weight: 600; color: {{g.cor}}; background: {{g.fundo}}; border-bottom: 1px solid #F0F0EA">{{g.titulo}}</div>
+        <sc-for list="{{g.itens}}" as="c" hint-placeholder-count="2">
+          <div style="display: grid; grid-template-columns: 2fr 2fr 1.1fr 1fr auto; align-items: center; gap: 12px; padding: 0 22px; min-height: 60px; border-bottom: 1px solid #F0F0EA; font-size: 14px">
+            <span style="display: flex; flex-direction: column"><b style="font-size: 14.5px; font-weight: 600">{{c.cliente}}</b><span style="font-size: 12.5px; color: #5B5F66">{{c.projeto}}</span></span>
+            <span>{{c.descricao}}</span>
+            <span style="color: {{c.vCor}}">{{c.vence}}</span>
+            <b style="text-align: right; font-weight: 600">{{c.valor}}</b>
+            <span style="display: flex; gap: 6px; justify-content: flex-end">
+              <button type="button" style="height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid #DADAD3; background: #FFFFFF; font: 500 13.5px Poppins, sans-serif">Recebi</button>
+              <button type="button" aria-label="Mais ações da cobrança" style="width: 36px; height: 36px; border-radius: 10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="#4A4D54" aria-hidden="true"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+            </span>
+          </div>
+        </sc-for>
+      </sc-for>
+      <div style="padding: 12px 22px; font-size: 12.5px; color: #5B5F66">Dados de exemplo · "Recebi" pede valor, data e forma num painel curto antes de gravar</div>
+    </div>
+  </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1520}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const C = (cliente, projeto, descricao, vence, vCor, valor) => ({ cliente, projeto, descricao, vence, vCor, valor });
+    const M = (nome, e, sd) => {
+      const px = (v) => Math.round(v / 12000 * 230) + 'px';
+      const r = e - sd;
+      return { nome, e: 'R$ ' + e.toLocaleString('pt-BR'), s: 'R$ ' + sd.toLocaleString('pt-BR'), he: px(e), hs: px(sd),
+        res: '+ ' + (r / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil', rotulo: '', rotTopo: '0' };
+    };
+    const meses = [M('mai', 7200, 3100), M('jun', 8400, 2900), M('jul', 6900, 3300), M('ago', 9800, 2700), M('set', 10200, 3050), M('out', 9180, 2760)];
+    meses[5].rotulo = 'R$ 9.180'; meses[5].rotTopo = (230 - Math.round(9180 / 12000 * 230) - 22) + 'px'; meses[5].nome = 'out (até hoje)';
+    return { meses, grupos: [
+      { titulo: 'Atrasadas · 2', cor: '#9A1C12', fundo: '#FFFBFA', itens: [
+        C('Ótica Nova', 'Diagnóstico Essencial', 'Diagnóstico', 'venceu 12/10', '#9A1C12', 'R$ 1.200'),
+        C('Lavanderia Fácil', 'Automação de pedidos', '2ª parcela de 3', 'venceu 18/10', '#9A1C12', 'R$ 2.380')
+      ]},
+      { titulo: 'Esta semana · 3', cor: '#7A4200', fundo: '#FFFCF5', itens: [
+        C('Clínica Bem Cuidar', 'Sistema de agendamento', '2ª parcela de 3', 'vence sex 24/10', '#7A4200', 'R$ 3.180'),
+        C('Studio Leve', 'Mensalidade Evolução', 'Mensalidade de outubro', 'vence sáb 25/10', '#7A4200', 'R$ 1.200'),
+        C('Mercado do Sítio', 'Mensalidade Essencial', 'Mensalidade de outubro', 'vence sáb 25/10', '#7A4200', 'R$ 400')
+      ]},
+      { titulo: 'Próximos 30 dias · 3', cor: '#4A4D54', fundo: '#FAFAF7', itens: [
+        C('Casa Aurora', 'Loja virtual', '2ª parcela de 3', 'vence 05/11', '#2A2D33', 'R$ 2.040'),
+        C('Rede Patas', 'Sistema Rede Patas', 'Mensalidade de novembro', 'vence 05/11', '#2A2D33', 'R$ 400'),
+        C('Rede Patas', 'Sistema Rede Patas', '3ª parcela de 4', 'vence 20/11', '#2A2D33', 'R$ 4.000')
+      ]}
+    ] };
+  }
+}
+</script>
+</body>
+</html>

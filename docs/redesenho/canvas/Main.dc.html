@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Base comum do Hub</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Bricolage+Grotesque:wght@700;800&amp;display=swap">
+<style>
+body{margin:0;background:#F5F5F2}
+a{color:#1E3FA8}a:hover{color:#0E1013}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 56px 64px 72px; font-family: Poppins, system-ui, sans-serif; color: #0E1013; display: flex; flex-direction: column; gap: 48px">
+
+  <div style="display: flex; flex-direction: column; gap: 8px; max-width: 860px">
+    <span style="font-size: 13px; color: #5B5F66">Base comum · vale para os oito menus</span>
+    <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em">Mesmas peças, cada tela com a sua organização</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #2A2D33">Hoje cada menu desenha os próprios números, filtros e listas. A proposta cria seis peças únicas e uma regra para cada uma. A sofisticação vem da composição: menos caixas, números no lugar certo e uma ação âmbar por tela.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+
+    <section style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600">1. Cabeçalho da tela</h2>
+      <div style="border: 1px solid #E4E4DE; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+      <div style="background: #FFFFFF; border-bottom: 1px solid #E4E4DE; padding: 24px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12.5px; color: #5B5F66">Vender</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: #1B2B5C">Clientes</span>
+            <span style="font-size: 14px; color: #5B5F66">Com quem falar hoje e o que está em jogo.</span>
+          </div>
+          <div style="display: flex; gap: 8px">
+            <button type="button" style="height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #DADAD3; background: #FFFFFF; font: 500 14.5px Poppins, sans-serif; color: #0E1013">Importar</button>
+            <button type="button" style="height: 44px; padding: 0 18px; border-radius: 12px; border: 0; background: #FFB020; font: 600 14.5px Poppins, sans-serif; color: #0E1013">Novo contato</button>
+          </div>
+        </div>
+      </div>
+      <div style="background: #F5F5F2; padding: 16px 24px; font-size: 13px; color: #5B5F66">Conteúdo da tela no fundo cinza-claro</div>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #2A2D33">
+        <li>Grupo do menu, título de 28 px em azul-marinho #1B2B5C e uma frase de uma linha. Números nunca no texto. O texto continua em #0E1013 e o âmbar só na ação principal.</li>
+        <li>Ações à direita: no máximo uma em âmbar. As outras, contorno ou dentro de "Mais".</li>
+        <li><b>Faixa branca</b> com fio embaixo separa o cabeçalho do conteúdo, que fica no fundo #F5F5F2. Abas entram na faixa só quando trocam a tela inteira (ex.: tipos na Central de Tarefas).</li>
+      </ul>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600">2. Faixa de indicadores</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px">
+        <button type="button" style="text-align: left; padding: 18px 20px; border: 0; border-right: 1px solid #ECECE6; background: transparent; font-family: Poppins, sans-serif; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: #5B5F66">Para hoje</span>
+          <span style="font-size: 24px; font-weight: 600; color: #0E1013">4</span>
+          <span style="font-size: 12.5px; color: #5B5F66">2 com horário</span>
+        </button>
+        <button type="button" style="text-align: left; padding: 18px 20px; border: 0; border-right: 1px solid #ECECE6; background: #FDE8E6; font-family: Poppins, sans-serif; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: #9A1C12">Vencidos</span>
+          <span style="font-size: 24px; font-weight: 600; color: #9A1C12">3</span>
+          <span style="font-size: 12.5px; color: #9A1C12">o mais antigo há 6 dias</span>
+        </button>
+        <button type="button" style="text-align: left; padding: 18px 20px; border: 0; border-right: 1px solid #ECECE6; background: transparent; font-family: Poppins, sans-serif; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: #5B5F66">Em negociação</span>
+          <span style="font-size: 24px; font-weight: 600; color: #0E1013">R$ 20.000</span>
+          <span style="font-size: 12.5px; color: #5B5F66">5 oportunidades</span>
+        </button>
+        <button type="button" style="text-align: left; padding: 18px 20px; border: 0; background: transparent; font-family: Poppins, sans-serif; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: #5B5F66">Clientes ativos</span>
+          <span style="font-size: 24px; font-weight: 600; color: #0E1013">3</span>
+          <span style="font-size: 12.5px; color: #5B5F66">R$ 2.800/mês</span>
+        </button>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #2A2D33">
+        <li>Uma faixa, células divididas por fio (não quatro cartões soltos). Rótulo normal, número 24 px, apoio 12,5 px.</li>
+        <li>Clicar num número filtra a lista. Risco pinta só a célula que pede ação. No celular, a faixa rola de lado em uma linha.</li>
+      </ul>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600">3. Navegar e filtrar: três controles, três funções</h2>
+      <div style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; gap: 24px; border-bottom: 1px solid #E4E4DE">
+          <span style="padding: 0 0 10px; border-bottom: 2px solid #0E1013; font-size: 14.5px; font-weight: 600">Cobranças</span>
+          <span style="padding: 0 0 10px; font-size: 14.5px; color: #5B5F66">Mensalidades</span>
+          <span style="padding: 0 0 10px; font-size: 14.5px; color: #5B5F66">Despesas</span>
+          <span style="padding: 0 0 10px; font-size: 14.5px; color: #5B5F66">Fluxo de caixa</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+          <div style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border: 1px solid #DADAD3; border-radius: 10px; min-width: 220px; color: #5B5F66; font-size: 14px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            Buscar empresa ou contato
+          </div>
+          <div style="display: flex; gap: 4px; padding: 4px; background: #EDEDE7; border-radius: 10px; font-size: 13.5px">
+            <span style="padding: 6px 12px; background: #FFFFFF; border-radius: 7px; font-weight: 600">Todos 12</span>
+            <span style="padding: 6px 12px; color: #5B5F66">Em negociação 5</span>
+            <span style="padding: 6px 12px; color: #5B5F66">Clientes 3</span>
+          </div>
+          <span style="margin-left: auto; font-size: 13.5px; color: #5B5F66">Ordenar: <b style="color: #0E1013; font-weight: 600">prazo do próximo passo</b></span>
+        </div>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #2A2D33">
+        <li><b>Abas sublinhadas</b> trocam de assunto. <b>Pílulas</b> filtram a mesma lista. <b>Período</b> é controle segmentado no cabeçalho.</li>
+        <li>Nunca dois níveis com o mesmo estilo (hoje o Financeiro tem pílulas dentro de abas).</li>
+      </ul>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600">4. Lista de dados (computador e celular)</h2>
+      <div style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; overflow: hidden">
+        <div style="display: grid; grid-template-columns: 2fr 1.3fr 2fr 1fr; padding: 10px 20px; font-size: 12.5px; color: #5B5F66; border-bottom: 1px solid #E4E4DE">
+          <span>Empresa</span><span>Situação</span><span>Próximo passo</span><span style="text-align: right">Valor</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 2fr 1.3fr 2fr 1fr; align-items: center; padding: 0 20px; height: 60px; border-bottom: 1px solid #F0F0EA">
+          <span style="display: flex; flex-direction: column"><b style="font-size: 14.5px; font-weight: 600">Clínica Bem Cuidar</b><span style="font-size: 12.5px; color: #5B5F66">Marina Alves</span></span>
+          <span><span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #E5EDFF; color: #1E3FA8; font-size: 12.5px; font-weight: 500">Proposta</span></span>
+          <span style="font-size: 14px">Retornar sobre a proposta · <b style="color: #9A1C12; font-weight: 600">venceu ontem</b></span>
+          <span style="text-align: right; font-size: 14.5px; font-weight: 600">R$ 9.540</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 2fr 1.3fr 2fr 1fr; align-items: center; padding: 0 20px; height: 60px">
+          <span style="display: flex; flex-direction: column"><b style="font-size: 14.5px; font-weight: 600">Rede Patas</b><span style="font-size: 12.5px; color: #5B5F66">Sistema Rede Patas · Essencial</span></span>
+          <span><span style="display: inline-flex; padding: 2px 8px; border-radius: 6px; background: #E3F4EA; color: #145A37; font-size: 12.5px; font-weight: 500">Cliente</span></span>
+          <span style="font-size: 14px">Publicar módulo Financeiro · <span style="color: #5B5F66">sex 24/10</span></span>
+          <span style="text-align: right; font-size: 14.5px; font-weight: 600">R$ 400/mês</span>
+        </div>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #2A2D33">
+        <li>Linha de 60 px, prazo na mesma linha do passo, valor alinhado à direita. A lista rola com a página (fim da rolagem dupla).</li>
+        <li>No celular, a mesma linha vira cartão de 3 linhas: nome, próximo passo com prazo, valor.</li>
+      </ul>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600">5. Selos, botões e estado vazio</h2>
+      <div style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 12.5px; font-weight: 500">
+          <span style="padding: 3px 9px; border-radius: 6px; background: #F1F1EC; color: #2A2D33">Contato</span>
+          <span style="padding: 3px 9px; border-radius: 6px; background: #E5EDFF; color: #1E3FA8">Em negociação</span>
+          <span style="padding: 3px 9px; border-radius: 6px; background: #FFF1D6; color: #7A4200">Esperando o cliente</span>
+          <span style="padding: 3px 9px; border-radius: 6px; background: #FDE8E6; color: #9A1C12">Atrasada</span>
+          <span style="padding: 3px 9px; border-radius: 6px; background: #E3F4EA; color: #145A37">No ar</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+          <button type="button" style="height: 44px; padding: 0 18px; border-radius: 12px; border: 0; background: #FFB020; font: 600 14.5px Poppins, sans-serif">Ação principal</button>
+          <button type="button" style="height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #DADAD3; background: #FFFFFF; font: 500 14.5px Poppins, sans-serif">Secundária</button>
+          <button type="button" style="height: 44px; padding: 0 8px; border: 0; background: transparent; font: 500 14.5px Poppins, sans-serif; color: #5B5F66; text-decoration: underline">De texto</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 12px; background: #F7F7F3">
+          <span style="width: 40px; height: 40px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4E4DE; display: flex; align-items: center; justify-content: center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B5F66" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 14.5px; font-weight: 600">Nada vencido</b><span style="font-size: 13.5px; color: #5B5F66">Quando um próximo passo passar do prazo, ele aparece aqui.</span></span>
+        </div>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #2A2D33">
+        <li>A cor do selo diz o estado; neutro só para "sem novidade". Sempre com palavra.</li>
+        <li>Um só estado vazio: ícone, frase e ação opcional.</li>
+      </ul>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 600">6. Escala de texto (Poppins)</h2>
+      <div style="background: #FFFFFF; border: 1px solid #E4E4DE; border-radius: 16px; padding: 20px 24px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 120px; font-size: 12.5px; color: #5B5F66">Página 28</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: #1B2B5C">Projetos</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 120px; font-size: 12.5px; color: #5B5F66">Seção 20</span><span style="font-size: 20px; font-weight: 600">Aguardando o cliente</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 120px; font-size: 12.5px; color: #5B5F66">Bloco 16</span><span style="font-size: 16px; font-weight: 600">Próximas entradas</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 120px; font-size: 12.5px; color: #5B5F66">Corpo 14,5</span><span style="font-size: 14.5px">Publicar módulo Financeiro na sexta</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 120px; font-size: 12.5px; color: #5B5F66">Apoio 13</span><span style="font-size: 13px; color: #5B5F66">Última atividade há 2 dias</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 120px; font-size: 12.5px; color: #5B5F66">Rótulo 12,5</span><span style="font-size: 12.5px; color: #5B5F66">Em negociação</span></div>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #2A2D33">
+        <li>De 6 tamanhos pequenos quase iguais para 3 (14,5 · 13 · 12,5). Rótulo em frase normal: caixa alta só no grupo do menu lateral.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1560}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
