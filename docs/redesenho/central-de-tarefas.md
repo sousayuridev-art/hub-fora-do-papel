@@ -1,5 +1,7 @@
 # Central de Tarefas · análise e proposta
 
+> **Decisões (Yuri, 22/10):** direção aprovada (outra forma de ver as mesmas tarefas, lista primeiro, agenda depois); tipo Hub mantido, com o código do card; visual TA-0 no canvas "Hub · Redesenho dos menus", seção 4.
+>
 > Pedido do Yuri (22/10): acompanhar toda a operação sem entrar projeto por projeto, sem cadastro duplicado e sem perder as telas de projeto que ficaram boas. Este documento é análise; nada foi implementado.
 
 ## 1. Como está hoje (levantado no código)
