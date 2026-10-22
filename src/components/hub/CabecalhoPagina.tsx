@@ -17,6 +17,7 @@ export function CabecalhoPagina({
   acao,
   migalha,
   abas,
+  selo,
   className,
 }: {
   grupo?: string;
@@ -27,6 +28,8 @@ export function CabecalhoPagina({
   migalha?: ReactNode;
   /** Abas sublinhadas presas ao fio de baixo da faixa. */
   abas?: ReactNode;
+  /** Selo de situação ao lado do título (fora do h1, ex.: etapa na ficha do cliente). */
+  selo?: ReactNode;
   className?: string;
 }) {
   return (
@@ -42,9 +45,12 @@ export function CabecalhoPagina({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
           {grupo && <span className="text-[12.5px] text-hub-suave">{grupo}</span>}
-          <h1 className="font-titulo text-[28px] font-bold leading-tight tracking-[-0.02em] text-titulo">
-            {titulo}
-          </h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h1 className="font-titulo text-[28px] font-bold leading-tight tracking-[-0.02em] text-titulo">
+              {titulo}
+            </h1>
+            {selo}
+          </div>
           {resumo && <div className="text-[14.5px] text-hub-suave">{resumo}</div>}
         </div>
         {acao && <div className="flex shrink-0 flex-wrap items-center gap-2">{acao}</div>}

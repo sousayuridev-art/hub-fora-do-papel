@@ -1,17 +1,29 @@
 import { Link } from "@tanstack/react-router";
-import { MessageCircle, Pencil } from "lucide-react";
+import { MessageCircle, MoreHorizontal } from "lucide-react";
 
-import { Selo, Sigla } from "@/components/hub/Selo";
+import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
+import { Selo } from "@/components/hub/Selo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { situacaoDe } from "@/lib/clientes";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { dataLocal, diaMes, linkWhatsapp, sigla } from "@/lib/formatar";
+import { dataLocal, diaMes, linkWhatsapp } from "@/lib/formatar";
 import type { ClienteLinha } from "@/lib/funil";
+import { cn } from "@/lib/utils";
 
-/** Cabeçalho da ficha: trilha, sigla, nome, situação e ações. */
+/**
+ * Cabeçalho da ficha (cards S1 e RD-1): faixa com a migalha "Clientes › Empresa", selo da
+ * etapa e as ações (WhatsApp e "Mais", com Editar ficha e os atalhos do cliente).
+ */
 export function ClienteCabecalho({ c, aoEditar }: { c: ClienteLinha; aoEditar: () => void }) {
   const sit = situacaoDe(c);
   const wpp = linkWhatsapp(c.whatsapp);
   const detalhes = [
+    [c.contact_name, c.contact_role].filter(Boolean).join(" · "),
     c.segment,
     c.city,
     c.client_since
@@ -20,52 +32,57 @@ export function ClienteCabecalho({ c, aoEditar }: { c: ClienteLinha; aoEditar: (
   ].filter(Boolean);
 
   return (
-    <header className="flex flex-col gap-4">
-      <nav aria-label="Trilha" className="text-[14px] text-hub-suave">
-        <Link to="/app/clientes" className="hover:text-hub-tinta hover:underline">
-          Clientes
-        </Link>
-        <span aria-hidden="true"> / </span>
-        <span className="text-hub-tinta">{c.company_name}</span>
-      </nav>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
-          <span className="hidden sm:block">
-            <span className="flex size-14 items-center justify-center rounded-2xl bg-hub-tinta font-titulo text-xl font-bold text-white">
-              {sigla(c.company_name)}
-            </span>
-          </span>
-          <span className="sm:hidden">
-            <Sigla texto={sigla(c.company_name)} escuro />
-          </span>
-          <div className="flex min-w-0 flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <h1 className="font-titulo text-[28px] font-bold leading-tight tracking-tight md:text-[32px]">
-                {c.company_name}
-              </h1>
-              <Selo tom={sit.tom}>{sit.texto}</Selo>
-            </div>
-            <p className="text-[14.5px] text-hub-suave">{detalhes.join(" · ")}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
+    <CabecalhoPagina
+      migalha={
+        <nav aria-label="Trilha">
+          <Link to="/app/clientes" className="hover:text-hub-tinta hover:underline">
+            Clientes
+          </Link>
+          <span aria-hidden="true"> › </span>
+          <span className="text-hub-tinta">{c.company_name}</span>
+        </nav>
+      }
+      titulo={c.company_name}
+      selo={<Selo tom={sit.tom}>{sit.texto}</Selo>}
+      resumo={detalhes.join(" · ")}
+      acao={
+        <>
           {wpp && (
             <a
               href={wpp}
               target="_blank"
               rel="noopener noreferrer"
-              className={classeBotaoSecundario}
+              className={cn(classeBotaoSecundario, "flex-1 sm:flex-none")}
             >
               <MessageCircle className="size-4" aria-hidden="true" />
               Abrir WhatsApp
             </a>
           )}
-          <button type="button" onClick={aoEditar} className={classeBotaoSecundario}>
-            <Pencil className="size-4" aria-hidden="true" />
-            Editar ficha
-          </button>
-        </div>
-      </div>
-    </header>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(classeBotaoSecundario, "w-11 px-0")}
+              aria-label="Mais ações da ficha"
+            >
+              <MoreHorizontal className="size-5" aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-52">
+              <DropdownMenuItem className="min-h-11" onSelect={aoEditar}>
+                Editar ficha
+              </DropdownMenuItem>
+              <DropdownMenuItem className="min-h-11" asChild>
+                <Link to="/app/materiais" search={{ cliente: c.id }}>
+                  Materiais deste cliente
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="min-h-11" asChild>
+                <Link to="/app/pedidos" search={{ cliente: c.id }}>
+                  Pedidos deste cliente
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      }
+    />
   );
 }

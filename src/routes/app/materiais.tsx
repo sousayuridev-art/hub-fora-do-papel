@@ -6,8 +6,8 @@ import { z } from "zod";
 
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
-import { FiltrosChip } from "@/components/hub/FiltrosChip";
 import { MateriaisCategorias, type Pasta } from "@/components/materiais/MateriaisCategorias";
+import { MateriaisFiltros, type OrigemMaterial } from "@/components/materiais/MateriaisFiltros";
 import { MateriaisLista } from "@/components/materiais/MateriaisLista";
 import { MaterialFormPainel, type DadosMaterial } from "@/components/materiais/MaterialFormPainel";
 import { MaterialPainel } from "@/components/materiais/MaterialPainel";
@@ -17,6 +17,7 @@ import {
   categoriasMaterial,
   chavesMateriais,
   listarMateriais,
+  rotuloCategoria,
   type CategoriaMaterial,
   type Material,
 } from "@/lib/materiais";
@@ -25,8 +26,14 @@ const pastas = ["todos", ...categoriasMaterial.map((c) => c.id), "compartilhados
   Pasta,
   ...Pasta[],
 ];
-const origens = ["todas", "nosso", "cliente"] as const;
-type Origem = (typeof origens)[number];
+
+/** Nome da pasta escolhida, para o título da lista. */
+function rotuloPasta(p: Pasta): string {
+  if (p === "todos") return "Todos os materiais";
+  if (p === "compartilhados") return "Compartilhados com clientes";
+  if (p === "lixeira") return "Lixeira";
+  return rotuloCategoria[p];
+}
 
 const busca = z.object({
   pasta: z.enum(pastas).optional().catch(undefined),
@@ -49,7 +56,7 @@ function Materiais() {
   const m = useMutacoesMateriais();
   const [texto, setTexto] = useState("");
   const termo = useDeferredValue(texto);
-  const [origem, setOrigem] = useState<Origem>("todas");
+  const [origem, setOrigem] = useState<OrigemMaterial>("todas");
   const [form, setForm] = useState<{ aberto: boolean; material: Material | null }>({
     aberto: false,
     material: null,
@@ -111,7 +118,7 @@ function Materiais() {
       <CabecalhoPagina
         grupo="Biblioteca"
         titulo="Materiais"
-        resumo="Modelos, guias, textos prontos e os arquivos que os clientes mandam, num lugar só."
+        resumo="Textos, guias e arquivos prontos para usar, e o que os clientes mandam."
         acao={
           <button
             type="button"
@@ -140,7 +147,7 @@ function Materiais() {
           <div className="h-72 animate-pulse rounded-2xl bg-white" />
         </div>
       ) : (
-        <div className="grid gap-5 md:grid-cols-[240px_minmax(0,1fr)] md:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-[240px_minmax(0,1fr)] md:items-start">
           <MateriaisCategorias
             contagem={d.contagem}
             ativa={pasta}
@@ -152,50 +159,37 @@ function Materiais() {
             }
           />
           <div className="flex min-w-0 flex-col gap-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-              <label className="relative flex-1">
+            <div className="flex items-center gap-2">
+              <label className="relative min-w-0 flex-1">
                 <span className="sr-only">Buscar materiais</span>
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-hub-suave"
+                  className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-hub-suave"
                   aria-hidden="true"
                 />
                 <input
                   type="search"
                   value={texto}
                   onChange={(e) => setTexto(e.target.value)}
-                  placeholder="Buscar por nome, cliente ou texto"
-                  className="h-11 w-full rounded-xl border border-[#DADAD3] bg-white pl-9 pr-3 text-base outline-none focus:border-hub-tinta md:text-[15px]"
+                  placeholder="Buscar em todos os materiais"
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  className="h-12 w-full rounded-xl border border-[#DADAD3] bg-white pl-11 pr-3 text-base outline-none focus:border-hub-tinta"
                 />
               </label>
-              <select
-                aria-label="Cliente"
-                value={cliente ?? ""}
-                onChange={(e) =>
-                  void navigate({
-                    search: (s) => ({ ...s, cliente: e.target.value || undefined }),
-                    replace: true,
-                  })
+              <MateriaisFiltros
+                clientes={clientesComMaterial}
+                cliente={cliente}
+                aoCliente={(id) =>
+                  void navigate({ search: (s) => ({ ...s, cliente: id }), replace: true })
                 }
-                className="h-11 rounded-xl border border-[#DADAD3] bg-white px-3 text-base md:text-[15px] lg:w-56"
-              >
-                <option value="">Todos os clientes</option>
-                {clientesComMaterial.map(([id, nome]) => (
-                  <option key={id} value={id}>
-                    {nome}
-                  </option>
-                ))}
-              </select>
+                origem={origem}
+                aoOrigem={setOrigem}
+              />
             </div>
-            <FiltrosChip<Origem>
-              rotulo="Origem"
-              ativo={origem}
-              aoEscolher={setOrigem}
-              opcoes={[
-                { id: "todas", rotulo: "Tudo" },
-                { id: "nosso", rotulo: "Nossos" },
-                { id: "cliente", rotulo: "Do cliente" },
-              ]}
-            />
+            <h2 className="text-[17px] font-semibold">
+              {rotuloPasta(pasta)}
+              <span className="font-normal text-hub-suave"> · {itens.length}</span>
+            </h2>
             {itens.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-6 text-[15px] text-hub-suave">
                 {d.contagem.todos === 0 && pasta !== "lixeira"

@@ -29,6 +29,32 @@ export type ReuniaoAberta = Reuniao & {
 
 export type ListaReunioes = { itens: Reuniao[]; sem_cliente: number; sem_transcricao: number };
 
+/** Resultado da busca no banco (card RD-4): cada reunião com a semana e o trecho achado. */
+export type ReuniaoAchada = Reuniao & {
+  semana: string;
+  semanas_atras: number;
+  trecho: string | null;
+};
+
+export type BuscaReunioes = {
+  itens: ReuniaoAchada[];
+  semanas: { semana: string; semanas_atras: number; total: number }[];
+  todas: number;
+  sem_cliente: number;
+  sem_transcricao: number;
+};
+
+export type SugestaoReuniao = {
+  cliente: { id: string; nome: string };
+  deal_id: string | null;
+  projeto: { id: string; nome: string } | null;
+};
+
+export type ReunioesParaLigar = {
+  total: number;
+  itens: (Reuniao & { sugestao: SugestaoReuniao | null })[];
+};
+
 export type SituacaoGoogle = {
   ligada: boolean;
   email: string | null;
@@ -47,6 +73,8 @@ export const chavesReunioes = {
   tudo: ["reunioes"] as const,
   lista: (filtro: FiltroReunioes, cliente: string | null) =>
     ["reunioes", "lista", filtro, cliente] as const,
+  busca: (filtro: FiltroReunioes, texto: string) => ["reunioes", "busca", filtro, texto] as const,
+  paraLigar: ["reunioes", "para-ligar"] as const,
   uma: (id: string) => ["reunioes", "uma", id] as const,
   google: ["reunioes", "google"] as const,
 };
@@ -59,6 +87,28 @@ async function rpc<T>(nome: string, args?: Record<string, unknown>): Promise<T> 
 
 export function listarReunioes(filtro: FiltroReunioes, cliente: string | null = null) {
   return rpc<ListaReunioes>("reunioes_listar", { p_filtro: filtro, p_cliente: cliente });
+}
+
+/** Busca no banco por título, cliente e trecho da transcrição (card RD-4). */
+export function buscarReunioes(filtro: FiltroReunioes, texto: string) {
+  return rpc<BuscaReunioes>("reunioes_buscar", {
+    p_filtro: filtro,
+    p_texto: texto.trim() || null,
+    p_cliente: null,
+  });
+}
+
+/** Reuniões sem cliente com o cliente sugerido pelo e-mail dos convidados (card RD-4). */
+export function reunioesParaLigar() {
+  return rpc<ReunioesParaLigar>("reunioes_para_ligar", { p_limite: 6 });
+}
+
+/** "Esta semana", "Semana passada", "Semana de 6/10". */
+export function rotuloSemana(semana: string, semanasAtras: number): string {
+  if (semanasAtras <= 0) return "Esta semana";
+  if (semanasAtras === 1) return "Semana passada";
+  const [, mes, dia] = semana.split("-");
+  return `Semana de ${Number(dia)}/${Number(mes)}`;
 }
 
 export function abrirReuniao(id: string) {

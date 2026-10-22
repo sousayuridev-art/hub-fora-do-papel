@@ -4,7 +4,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 
 import { Selo, Sigla } from "@/components/hub/Selo";
 import { moeda, prazoRelativo, sigla } from "@/lib/formatar";
-import { pacoteDe, situacaoDe, ultimaAtividade, valorDe } from "@/lib/clientes";
+import { pacoteDe, passoAberto, situacaoDe, ultimaAtividade, valorDe } from "@/lib/clientes";
 import type { ClienteLinha } from "@/lib/funil";
 import { cn } from "@/lib/utils";
 
@@ -15,11 +15,12 @@ const colunasLg =
   "lg:grid-cols-[minmax(200px,1.4fr)_minmax(130px,0.8fr)_minmax(190px,1.2fr)_minmax(170px,1fr)_110px_minmax(140px,0.8fr)]";
 
 function ProximoPasso({ c }: { c: ClienteLinha }) {
-  if (!c.next_step || c.archived_at || c.situacao === "cliente")
-    return <span className="text-hub-suave">—</span>;
-  const prazo = c.next_step_date ? prazoRelativo(c.next_step_date, c.hoje) : null;
+  if (!passoAberto(c)) return <span className="text-hub-suave">—</span>;
+  const prazo = c.next_step_date
+    ? prazoRelativo(c.next_step_date, c.hoje, c.next_step_has_time ? c.next_step_at : null)
+    : null;
   return (
-    <span className="flex flex-col items-start gap-1">
+    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <span className="leading-snug">{c.next_step}</span>
       {prazo && (
         <Selo tom={prazo.tom} ponto={false}>

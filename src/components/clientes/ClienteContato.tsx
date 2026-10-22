@@ -3,7 +3,7 @@ import { sigla, telefone } from "@/lib/formatar";
 import { rotuloOrigem, type ClienteLinha } from "@/lib/funil";
 
 /** Cartão "Contato principal" da ficha. */
-export function ClienteContato({ c }: { c: ClienteLinha }) {
+export function ClienteContato({ c, aoEditar }: { c: ClienteLinha; aoEditar?: () => void }) {
   const linhas: [string, string | null][] = [
     ["WhatsApp", c.whatsapp ? telefone(c.whatsapp) : null],
     ["E-mail", c.email],
@@ -47,6 +47,15 @@ export function ClienteContato({ c }: { c: ClienteLinha }) {
             </div>
           ))}
       </dl>
+      {aoEditar && (
+        <button
+          type="button"
+          onClick={aoEditar}
+          className="inline-flex min-h-11 items-center border-t border-hub-borda px-5 text-[14.5px] font-medium text-[#1E3FA8] underline underline-offset-4 w-full"
+        >
+          Editar ficha
+        </button>
+      )}
     </section>
   );
 }

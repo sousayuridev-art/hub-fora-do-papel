@@ -15,10 +15,32 @@ export const filtrosClientes: { id: FiltroClientes; rotulo: string }[] = [
   { id: "arquivado", rotulo: "Arquivados" },
 ];
 
+/** Filtros da lista: as pílulas e os números da faixa (Para hoje, Vencidos). */
+export type FiltroLista = FiltroClientes | "hoje" | "vencidos";
+
 export type ResumoClientes = Record<FiltroClientes, number> & {
   em_negociacao_cents: number;
   fechado_cents: number;
+  /** RD-1: passos de oportunidades abertas, no fuso da agência. */
+  para_hoje: number;
+  para_hoje_com_hora: number;
+  vencidos: number;
+  vencido_ha_dias: number;
+  mensalidades_cents: number;
 };
+
+/** Ordem da lista (card RD-1). "atividade" é a ordem que vem do banco. */
+export type OrdemClientes = "atividade" | "prazo" | "valor";
+export const ordensClientes: { id: OrdemClientes; rotulo: string }[] = [
+  { id: "atividade", rotulo: "última atividade" },
+  { id: "prazo", rotulo: "prazo do próximo passo" },
+  { id: "valor", rotulo: "valor" },
+];
+
+/** Oportunidade aberta com próximo passo (mesma regra do banco em clientes_resumo). */
+export function passoAberto(c: Pick<ClienteLinha, "archived_at" | "stage" | "next_step">) {
+  return Boolean(c.next_step) && !c.archived_at && c.stage !== null && c.stage !== "fechado";
+}
 
 export async function resumoClientes(): Promise<ResumoClientes> {
   const { data, error } = await supabase.rpc("clientes_resumo");

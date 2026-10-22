@@ -4,8 +4,10 @@ import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
   chavesReunioes,
   vincularReuniao,
+  type BuscaReunioes,
   type ListaReunioes,
   type Reuniao,
+  type ReunioesParaLigar,
   type ReuniaoAberta,
 } from "@/lib/reunioes";
 
@@ -32,6 +34,8 @@ export function useVincularReuniao() {
     onMutate: async (p) => {
       await qc.cancelQueries({ queryKey: chavesReunioes.tudo });
       const listas = qc.getQueriesData<ListaReunioes>({ queryKey: ["reunioes", "lista"] });
+      const buscas = qc.getQueriesData<BuscaReunioes>({ queryKey: ["reunioes", "busca"] });
+      const paraLigar = qc.getQueryData<ReunioesParaLigar>(chavesReunioes.paraLigar);
       const uma = qc.getQueryData<ReuniaoAberta>(chavesReunioes.uma(p.id));
       const mudar = <T extends Reuniao>(r: T): T =>
         r.id === p.id
@@ -40,13 +44,26 @@ export function useVincularReuniao() {
       qc.setQueriesData<ListaReunioes>({ queryKey: ["reunioes", "lista"] }, (l) =>
         l ? { ...l, itens: l.itens.map(mudar) } : l,
       );
+      qc.setQueriesData<BuscaReunioes>({ queryKey: ["reunioes", "busca"] }, (l) =>
+        l ? { ...l, itens: l.itens.map(mudar) } : l,
+      );
+      // Ligada a um cliente: sai do bloco "Ligue estas reuniões"
+      if (paraLigar && p.cliente) {
+        const sai = paraLigar.itens.some((r) => r.id === p.id);
+        qc.setQueryData<ReunioesParaLigar>(chavesReunioes.paraLigar, {
+          total: sai ? paraLigar.total - 1 : paraLigar.total,
+          itens: paraLigar.itens.filter((r) => r.id !== p.id),
+        });
+      }
       if (uma) qc.setQueryData(chavesReunioes.uma(p.id), mudar(uma));
-      return { listas, uma };
+      return { listas, buscas, paraLigar, uma };
     },
     onSuccess: (_r, p) =>
       ok(p.cliente ? `Reunião ligada a ${p.cliente.nome}.` : "Reunião sem cliente."),
     onError: (e, p, ctx) => {
       ctx?.listas.forEach(([chave, dados]) => qc.setQueryData(chave, dados));
+      ctx?.buscas.forEach(([chave, dados]) => qc.setQueryData(chave, dados));
+      if (ctx?.paraLigar) qc.setQueryData(chavesReunioes.paraLigar, ctx.paraLigar);
       if (ctx?.uma) qc.setQueryData(chavesReunioes.uma(p.id), ctx.uma);
       const codigo =
         e instanceof Error ? e.message : String((e as { message?: unknown }).message ?? "");
