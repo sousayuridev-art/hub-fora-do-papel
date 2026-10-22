@@ -1,36 +1,63 @@
-import { Link } from "@tanstack/react-router";
-import { ChevronRight, Library, MessageCircle, Pencil } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  ChevronRight,
+  Library,
+  MessageCircle,
+  MoreHorizontal,
+  Pencil,
+  XCircle,
+} from "lucide-react";
 
+import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { Selo } from "@/components/hub/Selo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { dataLocal, diaMes, linkWhatsapp, moeda } from "@/lib/formatar";
 import { faseAtual, rotuloProjeto, type DetalheProjeto } from "@/lib/projetos";
 
-/** Caminho, selos, nome do projeto e atalhos para o cliente. */
-export function ProjetoCabecalho({ d, aoEditar }: { d: DetalheProjeto; aoEditar: () => void }) {
+/**
+ * Cabeçalho do projeto (RD-2): faixa branca com a migalha "Projetos › Nome", selos, linha de
+ * contexto e ações. Só o WhatsApp fica à vista; Editar, Materiais e Cancelar ficam em "Mais".
+ */
+export function ProjetoCabecalho({
+  d,
+  aoEditar,
+  aoCancelar,
+}: {
+  d: DetalheProjeto;
+  aoEditar: () => void;
+  aoCancelar: () => void;
+}) {
   const p = d.projeto;
   const atual = faseAtual(d.fases);
   const wpp = linkWhatsapp(d.cliente.whatsapp);
+  const irPara = useNavigate();
+  const podeCancelar = !p.canceled_at && p.status !== "concluido";
   return (
-    <header className="flex flex-col gap-4">
-      <nav
-        aria-label="Caminho"
-        className="flex min-w-0 items-center gap-1 text-[14px] text-hub-suave"
-      >
-        <Link to="/app/projetos" className="inline-flex min-h-11 items-center hover:text-hub-tinta">
-          Projetos
-        </Link>
-        <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
-        <Link
-          to="/app/clientes/$id"
-          params={{ id: d.cliente.id }}
-          className="inline-flex min-h-11 min-w-0 items-center truncate hover:text-hub-tinta"
-        >
-          {d.cliente.empresa}
-        </Link>
-      </nav>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex min-w-0 flex-col gap-2">
+    <CabecalhoPagina
+      migalha={
+        <nav aria-label="Caminho" className="flex min-w-0 items-center gap-1">
+          <Link
+            to="/app/projetos"
+            className="-my-3 inline-flex min-h-11 items-center text-[#1E3FA8] underline underline-offset-2 hover:text-hub-tinta"
+          >
+            Projetos
+          </Link>
+          <ChevronRight className="size-3.5 shrink-0" aria-hidden="true" />
+          <span className="truncate" aria-current="page">
+            {p.name}
+          </span>
+        </nav>
+      }
+      titulo={p.name}
+      resumo={
+        <div className="flex flex-col gap-2 pt-1">
           <div className="flex flex-wrap gap-2">
             {p.canceled_at ? (
               <Selo tom="risco">Cancelado em {diaMes(p.canceled_at)}</Selo>
@@ -38,6 +65,8 @@ export function ProjetoCabecalho({ d, aoEditar }: { d: DetalheProjeto; aoEditar:
               <Selo tom="info">
                 {atual.fase.name} · fase {atual.numero} de {atual.total}
               </Selo>
+            ) : p.kind === "sob_medida" && p.status === "andamento" ? (
+              <Selo tom="info">Por módulos</Selo>
             ) : (
               <Selo tom="ok">{rotuloProjeto[p.status]}</Selo>
             )}
@@ -48,47 +77,72 @@ export function ProjetoCabecalho({ d, aoEditar }: { d: DetalheProjeto; aoEditar:
               </Selo>
             )}
           </div>
-          <h1 className="font-titulo text-[28px] font-bold leading-tight tracking-tight md:text-[32px]">
-            {p.name}
-          </h1>
-          <p className="text-[15px] text-hub-suave">
+          <p>
+            <Link
+              to="/app/clientes/$id"
+              params={{ id: d.cliente.id }}
+              className="text-hub-tinta underline-offset-2 hover:underline"
+            >
+              {d.cliente.empresa}
+            </Link>
             {[
-              d.cliente.empresa,
               d.cliente.contato,
-              d.proposta?.aceita_em ? `Proposta aceita em ${diaMes(d.proposta.aceita_em)}` : null,
-              p.launched_at ? `Lançado em ${diaMes(p.launched_at)}` : null,
+              d.proposta?.aceita_em ? `proposta aceita em ${diaMes(d.proposta.aceita_em)}` : null,
+              p.launched_at ? `lançado em ${diaMes(p.launched_at)}` : null,
               !p.launched_at && p.launch_date
-                ? `Lançamento ${diaMes(dataLocal(p.launch_date))}`
+                ? `lançamento ${diaMes(dataLocal(p.launch_date))}`
                 : null,
             ]
               .filter(Boolean)
-              .join(" · ")}
+              .map((x) => ` · ${x}`)
+              .join("")}
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <button type="button" className={classeBotaoSecundario} onClick={aoEditar}>
-            <Pencil className="size-4" aria-hidden="true" /> Editar
-          </button>
-          <Link
-            to="/app/materiais"
-            search={{ cliente: d.cliente.id }}
-            className={classeBotaoSecundario}
-          >
-            <Library className="size-4" aria-hidden="true" /> Materiais
-          </Link>
+      }
+      acao={
+        <>
           {wpp && (
             <a
               href={wpp}
               target="_blank"
               rel="noopener noreferrer"
-              className={classeBotaoSecundario}
+              className={`${classeBotaoSecundario} max-sm:flex-1`}
             >
               <MessageCircle className="size-4" aria-hidden="true" /> WhatsApp de{" "}
               {d.cliente.contato?.split(" ")[0] ?? "contato"}
             </a>
           )}
-        </div>
-      </div>
-    </header>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={`${classeBotaoSecundario} w-11 px-0`}
+              aria-label="Mais ações: editar, materiais, cancelar"
+            >
+              <MoreHorizontal className="size-4" aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem className="min-h-11" onSelect={aoEditar}>
+                <Pencil className="size-4" aria-hidden="true" /> Editar projeto
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="min-h-11"
+                onSelect={() =>
+                  void irPara({ to: "/app/materiais", search: { cliente: d.cliente.id } })
+                }
+              >
+                <Library className="size-4" aria-hidden="true" /> Materiais do cliente
+              </DropdownMenuItem>
+              {podeCancelar && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="min-h-11 text-sit-risco-t" onSelect={aoCancelar}>
+                    <XCircle className="size-4" aria-hidden="true" /> Cancelar projeto
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      }
+    />
   );
 }

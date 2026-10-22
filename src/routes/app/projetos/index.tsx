@@ -4,15 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock, Plus } from "lucide-react";
 import { z } from "zod";
 
+import { Abas } from "@/components/hub/Abas";
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
-import { FiltrosChip } from "@/components/hub/FiltrosChip";
 import { HorasSemana } from "@/components/projetos/HorasSemana";
 import { LancarHorasPainel, type HorasNovas } from "@/components/projetos/LancarHorasPainel";
 import { NovoProjetoPainel, type ProjetoNovo } from "@/components/projetos/NovoProjetoPainel";
-import { ProjetoCartao } from "@/components/projetos/ProjetoCartao";
+import { ProjetosNumeros } from "@/components/projetos/ProjetosNumeros";
+import { ProjetosTabela } from "@/components/projetos/ProjetosTabela";
 import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
-import { dataLocal, diaMes, moeda } from "@/lib/formatar";
+import { moeda } from "@/lib/formatar";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
   chavesProjetos,
@@ -48,7 +49,8 @@ function Projetos() {
   const andamento = useQuery({
     queryKey: chavesProjetos.lista("andamento"),
     queryFn: () => listarProjetos("andamento"),
-    enabled: horasAberto && aba !== "andamento",
+    // A faixa de números fala sempre dos projetos em andamento (mesma chave de cache).
+    enabled: aba !== "andamento",
   });
   const falhou = (e: unknown) => mensagemDoProjeto(e) ?? mensagemDeErro(e);
 
@@ -69,18 +71,13 @@ function Projetos() {
   });
 
   const d = lista.data;
-  const ativos = (aba === "andamento" ? d : andamento.data)?.projetos ?? [];
+  const listaAndamento = aba === "andamento" ? d : andamento.data;
+  const ativos = listaAndamento?.projetos ?? [];
   const resumo = d
-    ? [
-        `${d.contagem.andamento} em andamento`,
-        `${moeda(d.contagem.contratado_cents)} contratados`,
-        d.proximo_lancamento
-          ? `próximo lançamento: ${d.proximo_lancamento.nome} em ${diaMes(dataLocal(d.proximo_lancamento.data))}`
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" · ")
+    ? `${moeda(d.contagem.contratado_cents)} contratados em projetos em andamento`
     : " ";
+  const mudarAba = (id: SituacaoProjeto) =>
+    void navigate({ search: { aba: id === "andamento" ? undefined : id }, replace: true });
 
   return (
     <div className="flex flex-col gap-6">
@@ -108,12 +105,13 @@ function Projetos() {
         }
       />
 
-      <FiltrosChip<SituacaoProjeto>
+      <ProjetosNumeros andamento={listaAndamento} aoVerAndamento={() => mudarAba("andamento")} />
+
+      <Abas<SituacaoProjeto>
         rotulo="Situação dos projetos"
-        ativo={aba}
-        aoEscolher={(id) =>
-          void navigate({ search: { aba: id === "andamento" ? undefined : id }, replace: true })
-        }
+        ativa={aba}
+        aoEscolher={mudarAba}
+        className="border-b border-hub-borda"
         opcoes={(["andamento", "mensalidade", "concluido"] as const).map((id) => ({
           id,
           rotulo: rotuloSituacaoProjeto[id],
@@ -129,7 +127,7 @@ function Projetos() {
       ) : !d ? (
         <div className="h-72 animate-pulse rounded-2xl bg-white" aria-busy="true" />
       ) : (
-        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="flex flex-col gap-6">
           <div className="flex min-w-0 flex-col gap-5">
             {d.projetos.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-6 text-[15px] text-hub-suave">
@@ -140,10 +138,12 @@ function Projetos() {
                     : "Nenhum projeto concluído ainda."}
               </p>
             ) : (
-              d.projetos.map((p) => <ProjetoCartao key={p.id} p={p} />)
+              <ProjetosTabela projetos={d.projetos} />
             )}
           </div>
-          <HorasSemana semana={d.semana} />
+          <div className="lg:max-w-xl">
+            <HorasSemana semana={d.semana} />
+          </div>
         </div>
       )}
 

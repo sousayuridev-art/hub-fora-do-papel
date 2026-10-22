@@ -10,6 +10,7 @@ import {
   KanbanSquare,
   LayoutDashboard,
   Library,
+  ListChecks,
   Megaphone,
   MessageSquarePlus,
   Settings,
@@ -26,6 +27,8 @@ export type ItemMenu = {
   exato?: boolean;
   /** Tela ainda não construída: o menu mostra "Em breve". */
   emBreve?: boolean;
+  /** Número ao lado do nome (contas do banco). */
+  contador?: "tarefas_atrasadas";
 };
 export type GrupoMenu = { titulo: string | null; itens: ItemMenu[] };
 
@@ -33,7 +36,11 @@ export type GrupoMenu = { titulo: string | null; itens: ItemMenu[] };
 export const menuOperador: GrupoMenu[] = [
   {
     titulo: null,
-    itens: [{ rotulo: "Painel", para: "/app", icone: LayoutDashboard, exato: true }],
+    itens: [
+      { rotulo: "Painel", para: "/app", icone: LayoutDashboard, exato: true },
+      // Central de Tarefas (TA-3): logo abaixo do Painel, fora de "Entregar" (há tarefas internas).
+      { rotulo: "Tarefas", para: "/app/tarefas", icone: ListChecks, contador: "tarefas_atrasadas" },
+    ],
   },
   {
     titulo: "Vender",

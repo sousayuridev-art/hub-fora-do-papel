@@ -19,6 +19,7 @@ import { PainelEntregas } from "@/components/painel/PainelEntregas";
 import { PainelCapacidade } from "@/components/painel/PainelCapacidade";
 import { PainelFila } from "@/components/painel/PainelFila";
 import { PainelNovidades } from "@/components/painel/PainelNovidades";
+import { PainelTarefas } from "@/components/painel/PainelTarefas";
 import { linkWhatsapp, moeda, prazoRelativo } from "@/lib/formatar";
 import { capacidadeDoMes, chavesPainel, filaDoPainel, novidadesDoPainel } from "@/lib/painel";
 import { chavesFunil, painelHoje, rotuloEtapa } from "@/lib/funil";
@@ -160,6 +161,8 @@ function Painel() {
               <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
             </Link>
           )}
+
+          <PainelTarefas />
 
           <section aria-labelledby="titulo-hoje" className="flex flex-col gap-3">
             <div className="flex items-center justify-between">

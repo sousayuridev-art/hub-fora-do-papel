@@ -1,29 +1,42 @@
+import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
-import { ColunaTarefas } from "@/components/projetos/ColunaTarefas";
+import { Selo } from "@/components/hub/Selo";
+import { QuadroTarefas } from "@/components/tarefas/QuadroTarefas";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { colunasTarefa, type SituacaoTarefa, type Tarefa } from "@/lib/projetos";
+import type { SituacaoTarefa, Tarefa } from "@/lib/projetos";
+import { estaAtrasada } from "@/lib/tarefas";
 import { cn } from "@/lib/utils";
 
-/** Quadro de tarefas do ciclo escolhido: A fazer, Fazendo, Para aprovar, Pronto. */
+/** Quadro de tarefas do ciclo escolhido (TA-2): mesmas colunas e cartões do Kanban da Central. */
 export function QuadroCiclo({
+  projetoId,
   tarefas,
+  hoje,
+  codigoPedido,
   ciclo,
   aoTrocarCiclo,
   aoNovaTarefa,
+  aoAbrir,
   aoMover,
   aoRemover,
 }: {
+  projetoId: string;
   tarefas: Tarefa[];
+  hoje: string;
+  /** Código do pedido de origem (PA-014), quando houver. */
+  codigoPedido: (t: Tarefa) => string | null;
   ciclo: number;
   aoTrocarCiclo: (c: number) => void;
   aoNovaTarefa: () => void;
+  aoAbrir: (t: Tarefa) => void;
   aoMover: (t: Tarefa, s: SituacaoTarefa) => void;
   aoRemover: (t: Tarefa) => void;
 }) {
   const ciclos = [...new Set([1, ciclo, ...tarefas.map((t) => t.cycle)])].sort((a, b) => a - b);
-  const doCiclo = tarefas.filter((t) => t.cycle === ciclo);
+  const doCiclo = tarefas.filter((t) => t.cycle === ciclo).sort((a, b) => b.position - a.position);
   const maior = ciclos[ciclos.length - 1] ?? 1;
+  const atrasadas = doCiclo.filter((t) => estaAtrasada(t, hoje)).length;
 
   return (
     <section aria-labelledby="quadro-t" className="flex flex-col gap-4">
@@ -59,25 +72,35 @@ export function QuadroCiclo({
               </button>
             )}
           </div>
+          {atrasadas > 0 && (
+            <Selo tom="risco">
+              {atrasadas} {atrasadas === 1 ? "atrasada" : "atrasadas"}
+            </Selo>
+          )}
         </div>
-        <button type="button" className={classeBotaoSecundario} onClick={aoNovaTarefa}>
-          <Plus className="size-4" aria-hidden="true" /> Nova tarefa
-        </button>
+        <div className="flex flex-wrap items-center gap-2 max-sm:justify-between">
+          <Link
+            to="/app/tarefas"
+            search={{ projeto: projetoId }}
+            className="inline-flex min-h-11 items-center px-2 text-[14.5px] font-medium text-[#1E3FA8] underline-offset-2 hover:underline"
+          >
+            Ver na Central
+          </Link>
+          <button type="button" className={classeBotaoSecundario} onClick={aoNovaTarefa}>
+            <Plus className="size-4" aria-hidden="true" /> Nova tarefa
+          </button>
+        </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {colunasTarefa.map((c) => (
-          <ColunaTarefas
-            key={c.id}
-            rotulo={c.rotulo}
-            cor={c.cor}
-            tarefas={doCiclo
-              .filter((t) => t.status === c.id)
-              .sort((a, b) => b.position - a.position)}
-            aoMover={aoMover}
-            aoRemover={aoRemover}
-          />
-        ))}
-      </div>
+      <QuadroTarefas
+        tarefas={doCiclo}
+        hoje={hoje}
+        descricaoPronto="Concluídas neste ciclo"
+        topo={(t) => t.area ?? "Geral"}
+        extra={codigoPedido}
+        aoAbrir={aoAbrir}
+        aoMover={aoMover}
+        aoRemover={aoRemover}
+      />
     </section>
   );
 }

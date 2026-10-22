@@ -1,16 +1,30 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 
 import { itemConfiguracoes, menuOperador, type ItemMenu } from "@/components/layout/navegacao";
 import { ContaUsuario } from "@/components/layout/ContaUsuario";
 import { Simbolo } from "@/components/layout/Marca";
+import { chavesTarefas, resumoTarefas } from "@/lib/tarefas";
+
+/** Tarefas atrasadas (do banco; o mesmo número do atalho "Atrasadas" da Central sem filtros). */
+function useContador(tipo: ItemMenu["contador"]): number | null {
+  const q = useQuery({
+    queryKey: chavesTarefas.resumo(),
+    queryFn: () => resumoTarefas(),
+    enabled: tipo === "tarefas_atrasadas",
+    staleTime: 60_000,
+  });
+  return tipo === "tarefas_atrasadas" ? (q.data?.atrasadas ?? null) : null;
+}
 
 const classeItem =
   "group flex min-h-11 items-center gap-3 rounded-xl px-3 text-[14.5px] font-medium text-menu-texto transition-colors hover:bg-menu-hover hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB020]";
 
 function LinkMenu({ item, aoNavegar }: { item: ItemMenu; aoNavegar?: (() => void) | undefined }) {
   const Icone = item.icone;
+  const contador = useContador(item.contador);
   return (
     <Link
       to={item.para}
@@ -31,6 +45,18 @@ function LinkMenu({ item, aoNavegar }: { item: ItemMenu; aoNavegar?: (() => void
             aria-hidden="true"
           />
           <span className="flex-1 truncate">{item.rotulo}</span>
+          {contador ? (
+            <span
+              className={
+                isActive
+                  ? "flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-hub-tinta px-1.5 text-[12.5px] font-semibold tabular-nums text-white"
+                  : "flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#FFB020]/15 px-1.5 text-[12.5px] font-semibold tabular-nums text-[#FFB020]"
+              }
+              aria-label={`${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`}
+            >
+              {contador}
+            </span>
+          ) : null}
           {item.emBreve && (
             <span
               className={

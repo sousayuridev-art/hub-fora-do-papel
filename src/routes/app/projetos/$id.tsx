@@ -30,13 +30,20 @@ import { ProjetoNumeros } from "@/components/projetos/ProjetoNumeros";
 import { ProjetoPedidos } from "@/components/projetos/ProjetoPedidos";
 import { QuadroCiclo } from "@/components/projetos/QuadroCiclo";
 import { useMutacoesProjeto } from "@/components/projetos/useMutacoesProjeto";
+import { TarefaPainel } from "@/components/tarefas/TarefaPainel";
+import { naoRemovida } from "@/components/tarefas/useMutacoesTarefa";
 import { chavesProjetos, detalheProjeto, faseAtual } from "@/lib/projetos";
+import { daTarefaDoProjeto } from "@/lib/tarefas";
 import { diaMes } from "@/lib/formatar";
 import { cn } from "@/lib/utils";
 
 const abas = ["andamento", "pedidos", "horas", "encerramento", "linha"] as const;
 type Aba = (typeof abas)[number];
-const busca = z.object({ aba: z.enum(abas).optional().catch(undefined) });
+const busca = z.object({
+  aba: z.enum(abas).optional().catch(undefined),
+  /** Tarefa aberta no painel (vinda da Central: abre o ciclo certo). */
+  tarefa: z.string().uuid().optional().catch(undefined),
+});
 
 export const Route = createFileRoute("/app/projetos/$id")({
   validateSearch: busca,
@@ -46,7 +53,7 @@ export const Route = createFileRoute("/app/projetos/$id")({
 
 function Projeto() {
   const { id } = Route.useParams();
-  const { aba = "andamento" } = Route.useSearch();
+  const { aba = "andamento", tarefa: tarefaAberta } = Route.useSearch();
   const navigate = Route.useNavigate();
   const q = useQuery({ queryKey: chavesProjetos.detalhe(id), queryFn: () => detalheProjeto(id) });
   const m = useMutacoesProjeto(id);
@@ -93,7 +100,11 @@ function Projeto() {
   }
 
   const d = q.data;
-  const cicloAtual = ciclo ?? Math.max(1, ...d.tarefas.map((t) => t.cycle));
+  const tarefas = d.tarefas.filter(naoRemovida);
+  const aberta = tarefaAberta ? tarefas.find((t) => t.id === tarefaAberta) : undefined;
+  const cicloAtual = ciclo ?? aberta?.cycle ?? Math.max(1, ...tarefas.map((t) => t.cycle));
+  const abrirTarefa = (tid: string | undefined) =>
+    void navigate({ search: (s) => ({ ...s, tarefa: tid }), replace: true });
   const atual = faseAtual(d.fases);
   const aguardando =
     d.aprovacoes.filter((a) => a.status === "aguardando").length +
@@ -112,7 +123,12 @@ function Projeto() {
 
   return (
     <div className="flex flex-col gap-5">
-      <ProjetoCabecalho d={d} aoEditar={() => setEditar(true)} />
+      <ProjetoCabecalho
+        d={d}
+        aoEditar={() => setEditar(true)}
+        aoCancelar={() => setCancelar(true)}
+      />
+      <ProjetoNumeros d={d} />
       <SaudeEntrega saude={d.saude} />
       {d.projeto.kind === "sob_medida" ? (
         <ProjetoModulos
@@ -137,7 +153,6 @@ function Projeto() {
           }}
         />
       )}
-      <ProjetoNumeros d={d} />
 
       <div
         role="tablist"
@@ -151,7 +166,10 @@ function Projeto() {
             type="button"
             aria-selected={aba === a}
             onClick={() =>
-              void navigate({ search: { aba: a === "andamento" ? undefined : a }, replace: true })
+              void navigate({
+                search: (s) => ({ ...s, aba: a === "andamento" ? undefined : a }),
+                replace: true,
+              })
             }
             className={cn(
               "-mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-[15px]",
@@ -191,12 +209,18 @@ function Projeto() {
             }}
           />
           <QuadroCiclo
-            tarefas={d.tarefas}
+            projetoId={id}
+            tarefas={tarefas}
+            hoje={d.hoje}
+            codigoPedido={(t) =>
+              t.request_id ? (d.pedidos.find((p) => p.id === t.request_id)?.code ?? null) : null
+            }
             ciclo={cicloAtual}
             aoTrocarCiclo={setCiclo}
             aoNovaTarefa={() => setPainel("tarefa")}
+            aoAbrir={(t) => abrirTarefa(t.id)}
             aoMover={(t, s) => m.mover.mutate({ id: t.id, situacao: s })}
-            aoRemover={(t) => m.removerTar.mutate(t)}
+            aoRemover={(t) => m.removerTar(t)}
           />
         </div>
       )}
@@ -292,6 +316,12 @@ function Projeto() {
         }}
       />
       <CancelarProjetoPainel projetoId={id} aberto={cancelar} aoMudar={setCancelar} />
+      <TarefaPainel
+        tarefa={aberta ? daTarefaDoProjeto(aberta, d) : null}
+        hoje={d.hoje}
+        noProjeto
+        aoFechar={() => abrirTarefa(undefined)}
+      />
       <LancarHorasPainel
         aberto={painel === "horas"}
         aoMudar={(v) => !v && setPainel(null)}
