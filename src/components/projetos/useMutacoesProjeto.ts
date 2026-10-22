@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { useMutacoesTarefa } from "@/components/tarefas/useMutacoesTarefa";
 import { chavesPedidos } from "@/lib/pedidos";
+import { chavesTarefas } from "@/lib/tarefas";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
   atualizarProjeto,
@@ -22,16 +24,13 @@ import {
   marcarEncerramento,
   marcarPendencia,
   mensagemDoProjeto,
-  moverTarefa,
   pedirAprovacao,
   removerHoras,
   removerPendencia,
-  removerTarefa,
   type DetalheProjeto,
   type Modulo,
   type SituacaoModulo,
   type TipoProjeto,
-  type SituacaoTarefa,
   type Tarefa,
 } from "@/lib/projetos";
 
@@ -71,6 +70,8 @@ export function useMutacoesProjeto(projetoId: string) {
         void qc.invalidateQueries({ queryKey: chavesProjetos.tudo });
         void qc.invalidateQueries({ queryKey: chavesPedidos.tudo });
         void qc.invalidateQueries({ queryKey: ["painel"] });
+        // Mesma tabela da Central de Tarefas: o que muda aqui muda lá.
+        void qc.invalidateQueries({ queryKey: chavesTarefas.tudo });
       },
     });
     return m;
@@ -104,6 +105,7 @@ export function useMutacoesProjeto(projetoId: string) {
 
   const tarefa = useAcao(criarTarefa, {
     otimista: (d, v) => {
+      const agora = new Date().toISOString();
       const nova: Tarefa = {
         id: `temp-${Date.now()}`,
         project_id: v.projetoId,
@@ -114,25 +116,21 @@ export function useMutacoesProjeto(projetoId: string) {
         description: v.descricao || null,
         status: "a_fazer",
         position: Date.now() / 1000,
+        kind: "cliente",
+        priority: "normal",
+        due_date: null,
+        assignee_id: null,
+        done_at: null,
+        card_ref: null,
+        created_at: agora,
+        updated_at: agora,
       };
       return { ...d, tarefas: [nova, ...d.tarefas] };
     },
     sucesso: "Tarefa criada.",
   });
-  const mover = useAcao(
-    (v: { id: string; situacao: SituacaoTarefa }) => moverTarefa(v.id, v.situacao),
-    {
-      otimista: (d, v) => ({
-        ...d,
-        tarefas: d.tarefas.map((t) =>
-          t.id === v.id ? { ...t, status: v.situacao, position: Date.now() / 1000 } : t,
-        ),
-      }),
-    },
-  );
-  const removerTar = useAcao((t: Tarefa) => removerTarefa(t.id), {
-    otimista: (d, t) => ({ ...d, tarefas: d.tarefas.filter((x) => x.id !== t.id) }),
-  });
+  // Mover, editar e remover tarefa: as mesmas ações da Central (atualizam o projeto e a Central juntos).
+  const tarefas = useMutacoesTarefa();
 
   const horas = useAcao(lancarHoras, {
     otimista: (d, v) =>
@@ -289,8 +287,9 @@ export function useMutacoesProjeto(projetoId: string) {
     marcar,
     removerPend,
     tarefa,
-    mover,
-    removerTar,
+    mover: tarefas.mover,
+    editarTarefa: tarefas.editar,
+    removerTar: tarefas.remover,
     horas,
     removerH,
     encerramento,

@@ -149,9 +149,14 @@ export type PendenciaCliente = {
   done_at: string | null;
 };
 
+/** Tipo da tarefa (TA-1): de cliente (tem projeto), interna ou do próprio Hub. */
+export type TipoTarefa = "cliente" | "interna" | "hub";
+export type PrioridadeTarefa = "alta" | "normal" | "baixa";
+
+/** Uma tarefa: o mesmo registro aparece no projeto e na Central de Tarefas. */
 export type Tarefa = {
   id: string;
-  project_id: string;
+  project_id: string | null;
   request_id: string | null;
   cycle: number;
   area: string | null;
@@ -159,6 +164,15 @@ export type Tarefa = {
   description: string | null;
   status: SituacaoTarefa;
   position: number;
+  kind: TipoTarefa;
+  priority: PrioridadeTarefa;
+  /** Prazo (AAAA-MM-DD), sem hora. */
+  due_date: string | null;
+  assignee_id: string | null;
+  done_at: string | null;
+  card_ref: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type LancamentoHoras = {
