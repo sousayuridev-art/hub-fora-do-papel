@@ -3,7 +3,7 @@ import { moeda } from "@/lib/formatar";
 import { mesCurto, valorCurto, type MesGrafico } from "@/lib/financeiro";
 import { cn } from "@/lib/utils";
 
-import { moedaComSinal } from "./FinanceiroNumeros";
+import { moedaComSinal } from "@/lib/formatar";
 
 const entradas = { nome: "Entradas", cor: "var(--color-serie-1)" };
 const saidas = { nome: "Saídas", cor: "var(--color-serie-2)" };

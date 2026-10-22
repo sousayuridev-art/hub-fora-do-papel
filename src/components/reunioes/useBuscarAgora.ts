@@ -22,7 +22,7 @@ export function useBuscarAgora() {
       else
         ok(
           r.reunioes
-            ? `${r.reunioes} reunião(ões) atualizada(s).`
+            ? `${r.reunioes} ${r.reunioes === 1 ? "reunião atualizada" : "reuniões atualizadas"}.`
             : "Busca feita. Nenhuma reunião nova.",
         );
     },

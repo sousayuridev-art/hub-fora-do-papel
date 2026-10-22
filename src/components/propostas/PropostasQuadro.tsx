@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
-import { ColunaQuadro, Quadro, corColuna } from "@/components/hub/Quadro";
+import { ColunaQuadro, Quadro } from "@/components/hub/Quadro";
+import { corColuna } from "@/lib/estilos";
 import { PropostaCartao } from "@/components/propostas/PropostaCartao";
 import type { CartaoProposta, ResumoPropostas, SituacaoProposta } from "@/lib/propostas";
 

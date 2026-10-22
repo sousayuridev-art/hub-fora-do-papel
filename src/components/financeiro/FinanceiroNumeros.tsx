@@ -1,10 +1,6 @@
 import { FaixaNumeros, type ItemNumero } from "@/components/hub/FaixaNumeros";
-import { dataLocal, moeda } from "@/lib/formatar";
+import { dataLocal, moeda, moedaComSinal } from "@/lib/formatar";
 import type { GraficosFinanceiro, PainelFinanceiro } from "@/lib/financeiro";
-
-/** Resultado com sinal: "+ R$ 6.420" ou "− R$ 300". */
-export const moedaComSinal = (cents: number) =>
-  cents > 0 ? `+ ${moeda(cents)}` : cents < 0 ? `− ${moeda(-cents)}` : moeda(0);
 
 /**
  * Os 4 números do topo (card RD-3), todos calculados no banco. "Em atraso" pinta só a própria

@@ -174,19 +174,26 @@ export function useMutacoesTarefa() {
     onSettled: () => recarregar(qc),
   });
 
-  /** Some na hora; o banco só apaga depois de 5 s sem "Desfazer". */
+  /** Some na hora; o banco só apaga quando o aviso fecha sem "Desfazer". */
   function remover(t: Pick<Tarefa, "id" | "title">) {
     if (t.id.startsWith("temp-")) return;
     void pararLeituras(qc);
     const foto = fotografar(qc);
     mudarEmTodaParte(qc, t.id, () => null);
-    const relogio = setTimeout(() => {
+    // Apaga quando o aviso fecha sem "Desfazer" (o aviso pausa com o mouse em cima ou a aba em
+    // segundo plano, então o relógio é o dele). A trava de 60 s cobre um aviso que nunca fecha.
+    const efetivar = () => {
+      const r = remocoesPendentes.get(t.id);
+      if (r === undefined) return;
+      clearTimeout(r);
       remocoesPendentes.delete(t.id);
       apagar.mutate(t.id);
-    }, 5000);
-    remocoesPendentes.set(t.id, relogio);
+    };
+    remocoesPendentes.set(t.id, setTimeout(efetivar, 60_000));
     toast.success(`Tarefa removida: ${t.title}`, {
       duration: 5000,
+      onAutoClose: efetivar,
+      onDismiss: efetivar,
       action: {
         label: "Desfazer",
         onClick: () => {

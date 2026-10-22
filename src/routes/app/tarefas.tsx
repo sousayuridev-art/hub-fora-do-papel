@@ -32,6 +32,7 @@ import {
   type NovaTarefa,
   type ProjetoOpcao,
   type TarefaVista,
+  buscarTarefa,
 } from "@/lib/tarefas";
 
 export const Route = createFileRoute("/app/tarefas")({
@@ -75,7 +76,15 @@ function Tarefas() {
   const hoje = lista.data?.hoje ?? resumo.data?.hoje ?? "";
   const itens = useMemo(() => (lista.data?.itens ?? []).filter(naoRemovida), [lista.data]);
   const opcoes = useMemo(() => opcoesDosFiltros(projetos, itens, busca), [projetos, itens, busca]);
-  const aberta = busca.tarefa ? (itens.find((t) => t.id === busca.tarefa) ?? null) : null;
+  const naLista = busca.tarefa ? (itens.find((t) => t.id === busca.tarefa) ?? null) : null;
+  // Tarefa aberta que saiu do filtro (ex.: mudou o prazo com "Atrasadas" ativo) ou que a lista
+  // não traz (pronta antiga, projeto encerrado): o painel continua aberto, lendo pelo id.
+  const sozinha = useQuery({
+    queryKey: chavesTarefas.uma(busca.tarefa ?? ""),
+    queryFn: () => buscarTarefa(busca.tarefa ?? ""),
+    enabled: !!busca.tarefa && !naLista && lista.isSuccess,
+  });
+  const aberta = naLista ?? (busca.tarefa ? (sozinha.data ?? null) : null);
   const abrir = (t: TarefaVista) => mudar({ tarefa: t.id });
 
   function criar(v: NovaTarefa, p: ProjetoOpcao | null) {

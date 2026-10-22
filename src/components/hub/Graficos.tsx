@@ -1,5 +1,6 @@
 import { useId, useState, type ReactNode } from "react";
 
+import { listrado } from "@/lib/estilos";
 import { cn } from "@/lib/utils";
 
 /**
@@ -35,10 +36,6 @@ export function Legenda({ series }: { series: Pick<Serie, "nome" | "cor">[] }) {
     </div>
   );
 }
-
-/** Fundo listrado para valores previstos (não realizados). */
-export const listrado = (cor: string) =>
-  `repeating-linear-gradient(45deg, ${cor} 0 2px, color-mix(in srgb, ${cor} 18%, white) 2px 5px)`;
 
 export function GraficoBarras({
   rotulo,

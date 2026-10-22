@@ -53,6 +53,8 @@ export type FiltrosTarefas = {
   prioridade?: PrioridadeTarefa;
   situacao?: SituacaoTarefa;
   prazo?: PrazoFiltro;
+  /** Uma tarefa só (ignora os cortes de pronta antiga e projeto encerrado). */
+  id?: string;
 };
 
 /** Filtros aceitos por `tarefas_resumo` (contagens das abas e dos atalhos). */
@@ -353,6 +355,8 @@ export function daTarefaDoProjeto(t: Tarefa, d: DetalheProjeto): TarefaVista {
 
 export const chavesTarefas = {
   tudo: ["tarefas"] as const,
+  /** Uma tarefa pelo id (painel aberto mesmo fora do filtro da lista). */
+  uma: (id: string) => ["tarefas", "uma", id] as const,
   listas: ["tarefas", "lista"] as const,
   lista: (f: FiltrosTarefas) => ["tarefas", "lista", f] as const,
   resumos: ["tarefas", "resumo"] as const,
@@ -370,6 +374,12 @@ async function rpc<T>(nome: string, args?: Record<string, unknown>): Promise<T> 
 
 export const listarTarefas = (f: FiltrosTarefas, limite = 500) =>
   rpc<ListaTarefas>("tarefas_listar", { p_filtros: f, p_limite: limite });
+
+/** Busca uma tarefa pelo id, sem os cortes da lista (pronta antiga, projeto encerrado). */
+export async function buscarTarefa(id: string): Promise<TarefaVista | null> {
+  const r = await rpc<ListaTarefas>("tarefas_listar", { p_filtros: { id }, p_limite: 1 });
+  return r.itens[0] ?? null;
+}
 
 export const resumoTarefas = (f: FiltrosResumo = {}) =>
   rpc<ResumoTarefas>("tarefas_resumo", { p_filtros: f });
@@ -467,7 +477,8 @@ export const criarTarefaCentral = (v: NovaTarefa) =>
     p_projeto: v.projetoId ?? null,
     p_area: v.area || null,
     p_descricao: v.descricao || null,
-    p_ciclo: v.ciclo ?? 1,
+    // Sem ciclo informado, o banco usa o ciclo atual do projeto (o maior).
+    p_ciclo: v.ciclo,
     p_tipo: v.projetoId ? null : (v.tipo ?? null),
     p_prazo: v.prazo || null,
     p_prioridade: v.prioridade ?? "normal",

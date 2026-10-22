@@ -69,12 +69,3 @@ export function ColunaQuadro({
     </section>
   );
 }
-
-/** Cores das barras de situação usadas nos quadros. */
-export const corColuna = {
-  neutro: "#B9B9B2",
-  info: "#1E3FA8",
-  atencao: "#D48A00",
-  ok: "#145A37",
-  risco: "#9A1C12",
-} as const;

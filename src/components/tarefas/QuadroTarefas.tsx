@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 
-import { ColunaQuadro, Quadro, corColuna } from "@/components/hub/Quadro";
+import { ColunaQuadro, Quadro } from "@/components/hub/Quadro";
+import { corColuna } from "@/lib/estilos";
 import { TarefaCartao } from "@/components/projetos/TarefaCartao";
 import type { SituacaoTarefa, Tarefa } from "@/lib/projetos";
 import { rotuloSituacao } from "@/lib/tarefas";

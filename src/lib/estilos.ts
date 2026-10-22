@@ -14,3 +14,16 @@ export const gradeListaTarefas = "md:grid-cols-[44px_minmax(0,1fr)_130px_90px_11
 /** Colunas da tabela de projetos no computador (RD-2). */
 export const gradeProjetos =
   "lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.6fr)_120px_140px_130px_110px]";
+
+/** Cores das barras de situação usadas nos quadros. */
+export const corColuna = {
+  neutro: "#B9B9B2",
+  info: "#1E3FA8",
+  atencao: "#D48A00",
+  ok: "#145A37",
+  risco: "#9A1C12",
+} as const;
+
+/** Fundo listrado para valores previstos (não realizados). */
+export const listrado = (cor: string) =>
+  `repeating-linear-gradient(45deg, ${cor} 0 2px, color-mix(in srgb, ${cor} 18%, white) 2px 5px)`;

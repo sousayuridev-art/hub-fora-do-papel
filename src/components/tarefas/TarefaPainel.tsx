@@ -229,7 +229,12 @@ export function TarefaPainel({
                   value={t.due_date ?? ""}
                   onChange={(e) => {
                     const v = e.target.value;
-                    if (v === "" || /^\d{4}-\d{2}-\d{2}$/.test(v)) salvar({ prazo: v || null });
+                    // Digitando o ano, o campo passa por 0002, 0020, 0202… : só grava data completa.
+                    if (
+                      v === "" ||
+                      (/^\d{4}-\d{2}-\d{2}$/.test(v) && Number(v.slice(0, 4)) >= 2000)
+                    )
+                      salvar({ prazo: v || null });
                   }}
                   aria-describedby={aviso ? `${idPrazo}-aviso` : undefined}
                   className={cn(

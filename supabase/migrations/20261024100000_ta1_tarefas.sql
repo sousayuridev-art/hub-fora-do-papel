@@ -71,14 +71,14 @@ create or replace function public.tarefa_criar(
   p_projeto uuid default null,
   p_area text default null,
   p_descricao text default null,
-  p_ciclo smallint default 1,
+  p_ciclo smallint default null,
   p_pedido uuid default null,
   p_tipo text default null,
   p_prazo date default null,
   p_prioridade text default 'normal',
   p_card text default null
 ) returns jsonb language plpgsql volatile security definer set search_path = public as $$
-declare p public.projects; t public.project_tasks; v_tenant uuid; v_tipo text;
+declare p public.projects; t public.project_tasks; v_tenant uuid; v_tipo text; v_ciclo smallint;
 begin
   if length(trim(coalesce(p_titulo, ''))) < 2 then raise exception 'titulo_obrigatorio' using errcode = '22023'; end if;
   if coalesce(p_prioridade, 'normal') not in ('alta', 'normal', 'baixa') then
@@ -92,6 +92,8 @@ begin
     if p_pedido is not null and not exists (select 1 from public.requests where id = p_pedido and project_id = p.id) then
       raise exception 'pedido_inexistente' using errcode = 'P0002';
     end if;
+    -- Sem ciclo informado (ex.: criada na Central), entra no ciclo atual do projeto (o maior).
+    v_ciclo := coalesce(p_ciclo, (select max(cycle) from public.project_tasks where project_id = p.id), 1);
   else
     v_tenant := public._tenant_do_dono();
     v_tipo := coalesce(p_tipo, 'interna');
@@ -101,7 +103,7 @@ begin
 
   insert into public.project_tasks (tenant_id, project_id, request_id, cycle, area, title, description, position,
                                     kind, priority, due_date, card_ref)
-  values (v_tenant, p_projeto, p_pedido, greatest(1, least(50, coalesce(p_ciclo, 1))),
+  values (v_tenant, p_projeto, p_pedido, greatest(1, least(50, coalesce(v_ciclo, 1))),
           nullif(left(trim(coalesce(p_area, '')), 40), ''), left(trim(p_titulo), 120),
           nullif(left(trim(coalesce(p_descricao, '')), 600), ''), extract(epoch from now()),
           v_tipo, coalesce(p_prioridade, 'normal'), p_prazo, nullif(left(trim(coalesce(p_card, '')), 20), ''))
@@ -189,7 +191,7 @@ $$;
 
 -- ---------------------------------------------------------------------
 -- Central: lista com filtros e resumo (contagens no banco)
--- p_filtros: tipo (cliente|interna|hub), cliente (uuid), projeto (uuid), prioridade, situacao,
+-- p_filtros: id (uma tarefa, sem os cortes padrão), tipo (cliente|interna|hub), cliente (uuid), projeto (uuid), prioridade, situacao,
 --            prazo (atrasadas|hoje|semana), busca (texto), incluir_encerrados (bool), pronto_dias (int, padrão 7)
 -- ---------------------------------------------------------------------
 create or replace function public.tarefas_listar(p_filtros jsonb default '{}'::jsonb, p_limite integer default 500)
@@ -198,8 +200,9 @@ declare
   v_tenant uuid := public._tenant_do_dono();
   v_hoje date := public._hoje(v_tenant);
   f jsonb := coalesce(p_filtros, '{}'::jsonb);
-  v_dias int := greatest(0, least(90, coalesce((f ->> 'pronto_dias')::int, 7)));
-  v_busca text := nullif(trim(coalesce(f ->> 'busca', '')), '');
+  v_dias int := greatest(0, least(90, coalesce((f ->> 'pronto_dias')::numeric, 7)))::int;
+  -- Busca literal: \ % _ digitados não viram curinga.
+  v_busca text := replace(replace(replace(nullif(left(trim(coalesce(f ->> 'busca', '')), 100), ''), '\', '\\'), '%', '\%'), '_', '\_');
   v_itens jsonb;
 begin
   select coalesce(jsonb_agg(public._tarefa_json(t, v_hoje)
@@ -211,24 +214,25 @@ begin
         from public.project_tasks t
         left join public.projects p on p.id = t.project_id
        where t.tenant_id = v_tenant
-         and (coalesce((f ->> 'incluir_encerrados')::boolean, false) or p.id is null or p.status <> 'concluido')
+         and (f ->> 'id' is null or t.id = (f ->> 'id')::uuid)
+         and (f ->> 'id' is not null or f ->> 'projeto' is not null or coalesce((f ->> 'incluir_encerrados')::boolean, false) or p.id is null or p.status <> 'concluido')
          and (f ->> 'tipo' is null or t.kind = f ->> 'tipo')
          and (f ->> 'projeto' is null or t.project_id = (f ->> 'projeto')::uuid)
          and (f ->> 'cliente' is null or p.client_id = (f ->> 'cliente')::uuid)
          and (f ->> 'prioridade' is null or t.priority = f ->> 'prioridade')
          and (f ->> 'situacao' is null or t.status::text = f ->> 'situacao')
-         and (t.status <> 'pronto' or t.done_at >= now() - make_interval(days => v_dias))
+         and (f ->> 'id' is not null or t.status <> 'pronto' or t.done_at >= now() - make_interval(days => v_dias))
          and (f ->> 'prazo' is null
               or (f ->> 'prazo' = 'atrasadas' and t.due_date < v_hoje and t.status <> 'pronto')
-              or (f ->> 'prazo' = 'hoje' and t.due_date = v_hoje)
-              or (f ->> 'prazo' = 'semana' and t.due_date between v_hoje and v_hoje + 6))
+              or (f ->> 'prazo' = 'hoje' and t.due_date = v_hoje and t.status <> 'pronto')
+              or (f ->> 'prazo' = 'semana' and t.due_date between v_hoje and v_hoje + 6 and t.status <> 'pronto'))
          and (v_busca is null or t.title ilike '%' || v_busca || '%' or coalesce(t.description, '') ilike '%' || v_busca || '%')
        order by (t.status = 'pronto'), t.due_date nulls last, t.position desc
        limit greatest(1, least(2000, coalesce(p_limite, 500)))
     ) t;
   return jsonb_build_object('hoje', v_hoje, 'itens', v_itens);
 exception
-  when invalid_text_representation or invalid_datetime_format then
+  when invalid_text_representation or invalid_datetime_format or numeric_value_out_of_range then
     raise exception 'filtros_invalidos' using errcode = '22023';
 end;
 $$;

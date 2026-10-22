@@ -116,3 +116,7 @@ export function telefone(numero: string | null | undefined): string {
   if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return numero ?? "";
 }
+
+/** Resultado com sinal: "+ R$ 6.420" ou "− R$ 300". */
+export const moedaComSinal = (cents: number) =>
+  cents > 0 ? `+ ${moeda(cents)}` : cents < 0 ? `− ${moeda(-cents)}` : moeda(0);

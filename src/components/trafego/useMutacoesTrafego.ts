@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { chavesFinanceiro } from "@/lib/financeiro";
+import { chavesRelatorios } from "@/lib/relatorios";
 
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
@@ -38,7 +40,12 @@ export function useMutacoesTrafego(periodo: Periodo) {
   const mexerLancamentos = (
     f: (pg: PaginaLancamentos, chave: readonly unknown[]) => PaginaLancamentos,
   ) => fotoLancamentos().forEach(([k, v]) => v && qc.setQueryData(k, f(v, k)));
-  const recarregar = () => void qc.invalidateQueries({ queryKey: chavesTrafego.tudo });
+  // Investimento em anúncio também é despesa: Financeiro e Relatórios recarregam junto.
+  const recarregar = () => {
+    void qc.invalidateQueries({ queryKey: chavesTrafego.tudo });
+    void qc.invalidateQueries({ queryKey: chavesFinanceiro.tudo });
+    void qc.invalidateQueries({ queryKey: chavesRelatorios.tudo });
+  };
 
   const registrar = useMutation({
     mutationFn: registrarInvestimento,

@@ -1,4 +1,5 @@
-import { GraficoBarras, Legenda, listrado } from "@/components/hub/Graficos";
+import { GraficoBarras, Legenda } from "@/components/hub/Graficos";
+import { listrado } from "@/lib/estilos";
 import { BlocoRelatorio } from "@/components/relatorios/BlocoRelatorio";
 import { mesCurto, valorCurto } from "@/lib/financeiro";
 import { dataLocal, diaMes, moeda } from "@/lib/formatar";

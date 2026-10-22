@@ -1,7 +1,7 @@
 -- TA-1: Central de Tarefas. Mesma tabela do projeto; tarefa interna sem projeto; filtros, atrasadas e resumo no banco.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(37);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -56,6 +56,11 @@ select is((public.tarefas_listar('{"prazo":"atrasadas"}')) -> 'itens' -> 0 -> 'c
 select is(((public.tarefas_listar('{"prazo":"atrasadas"}')) -> 'itens' -> 0 ->> 'atrasada')::boolean, true, 'Item marca atrasada');
 select throws_ok($$ select public.tarefas_listar('{"projeto":"nao-e-uuid"}') $$, '22023', 'filtros_invalidos', 'Filtro inválido é recusado');
 
+select is(jsonb_array_length((public.tarefas_listar('{"busca":"%"}')) -> 'itens'), 0, 'Busca com % é literal');
+select is(jsonb_array_length((public.tarefas_listar('{"projeto":"50000000-0000-0000-0000-000000000002"}')) -> 'itens'), 1, 'Filtro por projeto encerrado mostra as tarefas dele');
+select is((public.tarefas_listar(jsonb_build_object('id', (select id from public.project_tasks where title = 'Tarefa de projeto encerrado')))) -> 'itens' -> 0 ->> 'title',
+  'Tarefa de projeto encerrado', 'Busca por id ignora os cortes');
+
 -- Resumo
 select is((public.tarefas_resumo()) ->> 'atrasadas', '1', 'Resumo: 1 atrasada');
 select is((public.tarefas_resumo()) ->> 'abertas', '3', 'Resumo: 3 abertas (sem projeto encerrado)');
@@ -70,6 +75,9 @@ select throws_ok($$ select public.tarefa_editar((select id from public.project_t
   '22023', 'responsavel_invalido', 'Cliente do portal não vira responsável');
 select ok((public.tarefa_mover((select id from public.project_tasks where title = 'Emitir nota da parcela'), 'pronto')) ->> 'done_at' is not null, 'Pronto grava a conclusão');
 select ok((public.tarefa_mover((select id from public.project_tasks where title = 'Emitir nota da parcela'), 'fazendo')) ->> 'done_at' is null, 'Voltar apaga a conclusão');
+
+select lives_ok($$ select public.tarefa_criar('No ciclo 3', '50000000-0000-0000-0000-000000000001', p_ciclo => 3::smallint) $$, 'Cria no ciclo 3');
+select is((public.tarefa_criar('Sem ciclo', '50000000-0000-0000-0000-000000000001')) ->> 'cycle', '3', 'Sem ciclo entra no ciclo atual do projeto');
 
 -- Isolamento e segurança
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated","aal":"aal2"}', true);

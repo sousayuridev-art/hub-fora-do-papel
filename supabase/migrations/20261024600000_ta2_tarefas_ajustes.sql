@@ -32,7 +32,7 @@ begin
     from public.project_tasks t
     left join public.projects p on p.id = t.project_id
    where t.tenant_id = v_tenant
-     and (coalesce((f ->> 'incluir_encerrados')::boolean, false) or p.id is null or p.status <> 'concluido')
+     and (f ->> 'projeto' is not null or coalesce((f ->> 'incluir_encerrados')::boolean, false) or p.id is null or p.status <> 'concluido')
      and (f ->> 'tipo' is null or t.kind = f ->> 'tipo')
      and (f ->> 'projeto' is null or t.project_id = (f ->> 'projeto')::uuid)
      and (f ->> 'cliente' is null or p.client_id = (f ->> 'cliente')::uuid)
