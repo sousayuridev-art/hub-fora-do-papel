@@ -80,6 +80,9 @@ export type Calculo = {
 
 export type Conferencias = { escopo: boolean; prazo: boolean; contato: boolean };
 
+/** O que fica com o cliente (card S10): tudo, ou o código licenciado enquanto houver mensalidade. */
+export type Propriedade = "cliente" | "licenca";
+
 export type Proposta = {
   id: string;
   client_id: string;
@@ -101,6 +104,8 @@ export type Proposta = {
   discount_reason: string | null;
   plan_id: string | null;
   infra_cents: number | null;
+  ownership_model: Propriedade | null;
+  code_buyout_cents: number | null;
   checks: Partial<Conferencias>;
   total_cents: number | null;
   token: string | null;
@@ -159,6 +164,9 @@ export type DocProposta = Partial<{
   desconto_motivo: string;
   plano_id: string | null;
   infra_cents: number | null;
+  propriedade: Propriedade | null;
+  /** Vazio (null) = orçamento sob pedido. */
+  compra_codigo_cents: number | null;
   conferencias: Conferencias;
 }>;
 
@@ -340,6 +348,10 @@ export type DocumentoPublico = {
     reajuste: string;
     /** Garantia depois da entrega; presente nas propostas feitas com a política de 19/10 (S9). */
     garantia_dias?: number;
+    /** O que fica com o cliente (S10). Ausente nas propostas antigas: vale o texto antigo. */
+    propriedade?: Propriedade | null;
+    /** Compra do código, em centavos; null = orçamento sob pedido (S10). */
+    compra_codigo_cents?: number | null;
   };
   enviada_em: string;
   vence_em: string;
@@ -459,6 +471,8 @@ export function mensagemDaProposta(e: unknown): string | null {
     ja_existe_proposta_aberta: "Já existe outra proposta em andamento para este cliente.",
     proposta_nao_enviada: "Só uma proposta enviada pode ser marcada como recusada.",
     itens_demais: "Lista longa demais. Junte itens parecidos.",
+    propriedade_invalida: "Escolha o que fica com o cliente entre as duas opções.",
+    compra_codigo_invalida: "O valor da compra do código não pode ser negativo.",
     uma_forma_de_pagamento: "Deixe pelo menos uma forma de pagamento marcada.",
     pricing_piso_abaixo_da_hora: "O piso não pode ser maior que a hora de referência.",
     proposta_vencida: "O prazo desta proposta acabou. Fale com o responsável para renovar.",

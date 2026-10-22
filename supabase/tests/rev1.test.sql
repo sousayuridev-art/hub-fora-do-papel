@@ -38,7 +38,7 @@ select throws_ok($$ update public.clients set legal_name = 'x' $$, '42501', null
 insert into t values ('p', public.proposta_criar('30000000-0000-0000-0000-000000000001'));
 insert into t select 'c1', public.proposta_salvar((select (valor->>'id')::uuid from t where chave = 'p'), null,
   jsonb_build_object('tipo', 'Site', 'titulo', 'Site novo', 'itens', '[{"nome":"Site","horas":10}]'::jsonb,
-    'fora', '[{"item":"Fotos"}]'::jsonb, 'plano_id', (select id from public.pricing_plans where name = 'Essencial'),
+    'fora', '[{"item":"Fotos"}]'::jsonb, 'propriedade', 'cliente', 'plano_id', (select id from public.pricing_plans where name = 'Essencial'),
     'conferencias', '{"escopo":true,"prazo":true,"contato":true}'::jsonb));
 select ok(exists (select 1 from t, jsonb_array_elements(valor->'calculo'->'pendencias') x
   where chave = 'c1' and x->>'chave' = 'precos'), 'Preços nunca conferidos travam o envio');

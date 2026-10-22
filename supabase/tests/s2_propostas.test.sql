@@ -73,6 +73,7 @@ select ok(exists (select 1 from t, jsonb_array_elements(valor->'calculo'->'pende
 select public.precos_salvar('{}'::jsonb, null);
 insert into t select 'otica_ok', public.proposta_salvar((select (valor->>'id')::uuid from t where chave = 'otica'), null,
   jsonb_build_object('tipo', 'Site com catálogo', 'titulo', 'Um site que mostra as armações', 'desconto_cents', 0,
+    'propriedade', 'cliente',
     'fora', '[{"item":"Sessão de fotos","motivo":"As fotos vêm da ótica"}]'::jsonb,
     'plano_id', (select id from public.pricing_plans where name = 'Evolução'),
     'conferencias', '{"escopo":true,"prazo":true,"contato":true}'::jsonb));

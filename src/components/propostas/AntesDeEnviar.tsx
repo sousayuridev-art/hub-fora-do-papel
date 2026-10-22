@@ -12,9 +12,12 @@ const automaticas: { chave: string; texto: string }[] = [
   { chave: "fora", texto: "O que não está incluído preenchido" },
   { chave: "valor_hora", texto: "Valor por hora acima do piso ou com motivo" },
   { chave: "plano", texto: "Mensalidade escolhida" },
+  { chave: "propriedade", texto: "O que fica com o cliente escolhido" },
+  // Só aparece com "Código licenciado" (card S10)
+  { chave: "licenca", texto: "A licença depende da mensalidade" },
 ];
 
-/** "Antes de enviar": 5 conferências automáticas (do banco) + 3 do Yuri, e o botão de envio. */
+/** "Antes de enviar": conferências automáticas (do banco) + 3 do Yuri, e o botão de envio. */
 export function AntesDeEnviar({
   c,
   d,
@@ -46,7 +49,11 @@ export function AntesDeEnviar({
     },
     { chave: "contato", texto: `Dados de ${contato} conferidos`, nota: "Nome, e-mail e WhatsApp" },
   ];
-  const feitos = automaticas.length + manuais.length - c.pendencias.length;
+  const visiveis = automaticas.filter(
+    (a) => a.chave !== "licenca" || d.propriedade === "licenca" || pendentes.has("licenca"),
+  );
+  const total = visiveis.length + manuais.length;
+  const feitos = Math.max(0, total - c.pendencias.length);
   const primeira = c.pendencias[0];
 
   return (
@@ -59,11 +66,11 @@ export function AntesDeEnviar({
           Antes de enviar
         </h2>
         <span className="text-[13px] font-semibold text-hub-suave tabular-nums">
-          {feitos} de {automaticas.length + manuais.length}
+          {feitos} de {total}
         </span>
       </div>
       <ul className="flex flex-col gap-1">
-        {automaticas.map((a) => {
+        {visiveis.map((a) => {
           const okk = !pendentes.has(a.chave);
           return (
             <li key={a.chave} className="flex min-h-9 items-center gap-3 text-[14.5px]">

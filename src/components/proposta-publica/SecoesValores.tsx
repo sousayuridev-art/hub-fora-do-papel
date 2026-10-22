@@ -104,20 +104,24 @@ export function SecaoInvestimento({ doc }: { doc: DocumentoPublico }) {
 export function SecaoDepois({ doc }: { doc: DocumentoPublico }) {
   const m = doc.mensalidade;
   const garantia = doc.condicoes.garantia_dias;
-  if (!m && garantia === undefined) return null;
+  const propriedade = doc.condicoes.propriedade;
+  // "O que é seu" aparece nas propostas com a política de 19/10 (S9) ou com o modelo escolhido (S10)
+  const comOQueESeu = garantia !== undefined || propriedade != null;
+  if (!m && !comOQueESeu) return null;
   return (
     <section id="depois" aria-labelledby="depois-t" className="flex flex-col gap-5">
       <TituloSecao numero={6} id="depois">
         Depois do lançamento
       </TituloSecao>
       {m && <BlocoMensalidade doc={doc} m={m} />}
-      {garantia !== undefined && <BlocoGarantia dias={garantia} />}
+      {comOQueESeu && <BlocoGarantia doc={doc} />}
     </section>
   );
 }
 
-/** Garantia e o que é seu (política de 19/10, card S9). */
-function BlocoGarantia({ dias }: { dias: number }) {
+/** Garantia (S9) e o que é seu: texto antigo, ou o da licença do código (card S10). */
+function BlocoGarantia({ doc }: { doc: DocumentoPublico }) {
+  const dias = doc.condicoes.garantia_dias ?? 0;
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {dias > 0 && (
@@ -132,12 +136,30 @@ function BlocoGarantia({ dias }: { dias: number }) {
       <div className="flex flex-col gap-2 rounded-2xl border border-hub-borda bg-white p-5">
         <h3 className="font-titulo text-[18px] font-bold">O que é seu</h3>
         <p className="text-[15px] leading-relaxed text-hub-suave">
-          O domínio, o banco de dados, o código e as contas das ferramentas ficam em nome da sua
-          empresa desde o início. Nós administramos enquanto trabalharmos juntos; se a parceria
-          acabar, você leva tudo, com os acessos documentados.
+          {doc.condicoes.propriedade === "licenca" ? (
+            textoLicenca(doc.agencia, doc.condicoes.compra_codigo_cents ?? null)
+          ) : (
+            <>
+              O domínio, o banco de dados, o código e as contas das ferramentas ficam em nome da sua
+              empresa desde o início. Nós administramos enquanto trabalharmos juntos; se a parceria
+              acabar, você leva tudo, com os acessos documentados.
+            </>
+          )}
         </p>
       </div>
     </div>
+  );
+}
+
+/** Texto aprovado pelo Yuri em 22/10 (card S10). Compra vazia = orçamento sob pedido. */
+function textoLicenca(agencia: string, compraCents: number | null): string {
+  const compra = compraCents == null ? "tem orçamento sob pedido" : `custa ${moeda(compraCents)}`;
+  return (
+    "Os dados do sistema são da sua empresa, e você pode exportá-los quando quiser. " +
+    "O domínio e as contas das ferramentas ficam em nome da sua empresa. " +
+    `O código é da ${agencia} e você usa o sistema com uma licença enquanto a mensalidade estiver ativa. ` +
+    `Se preferir ficar com o código, a compra ${compra}. ` +
+    "Se a parceria acabar, entregamos os seus dados e, se você quiser, ajudamos na mudança como serviço adicional."
   );
 }
 

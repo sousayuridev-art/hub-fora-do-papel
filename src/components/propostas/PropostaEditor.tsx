@@ -211,7 +211,14 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
         <BlocoFora d={d} alterar={alterar} bloqueado={bloqueado} />
         <BlocoMensalidade d={d} alterar={alterar} bloqueado={bloqueado} planos={detalhe.planos} />
         <BlocoFases d={d} alterar={alterar} bloqueado={bloqueado} />
-        <BlocoPagamento c={c} validadeDias={detalhe.validade_dias} venceEm={p.expires_at} />
+        <BlocoPagamento
+          c={c}
+          validadeDias={detalhe.validade_dias}
+          venceEm={p.expires_at}
+          d={d}
+          alterar={alterar}
+          bloqueado={bloqueado}
+        />
       </div>
 
       <aside

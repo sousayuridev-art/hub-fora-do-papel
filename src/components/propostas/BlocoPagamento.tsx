@@ -1,13 +1,18 @@
 import { BlocoEditor } from "@/components/propostas/BlocoEditor";
+import { CampoPropriedade } from "@/components/propostas/CampoPropriedade";
+import type { PropsBloco } from "@/components/propostas/tipos";
 import { diaMes, moeda } from "@/lib/formatar";
 import type { Calculo } from "@/lib/propostas";
 
-/** Pagamento e validade: só leitura, vem da conta do banco e de Configurações. */
+/** Pagamento e validade (só leitura: conta do banco e Configurações) e o que fica com o cliente. */
 export function BlocoPagamento({
   c,
   validadeDias,
   venceEm,
-}: {
+  d,
+  alterar,
+  bloqueado,
+}: PropsBloco & {
   c: Calculo;
   validadeDias: number;
   venceEm: string | null;
@@ -34,6 +39,7 @@ export function BlocoPagamento({
         Validade de {validadeDias} dias: {venceEm ? "vale" : "se enviada hoje, vale"} até{" "}
         {diaMes(fim)}.
       </p>
+      <CampoPropriedade d={d} alterar={alterar} bloqueado={bloqueado} />
     </BlocoEditor>
   );
 }

@@ -4,6 +4,7 @@ import type {
   Fase,
   ItemEntrega,
   ItemFora,
+  Propriedade,
   Proposta,
 } from "@/lib/propostas";
 
@@ -24,6 +25,8 @@ export type Rascunho = {
   desconto_motivo: string;
   plano_id: string | null;
   infra_cents: number | null;
+  propriedade: Propriedade | null;
+  compra_codigo_cents: number | null;
   conferencias: Conferencias;
 };
 
@@ -46,6 +49,8 @@ export function rascunhoDe(p: Proposta): Rascunho {
     desconto_motivo: p.discount_reason ?? "",
     plano_id: p.plan_id,
     infra_cents: p.infra_cents,
+    propriedade: p.ownership_model,
+    compra_codigo_cents: p.code_buyout_cents,
     conferencias: {
       escopo: p.checks.escopo ?? false,
       prazo: p.checks.prazo ?? false,
