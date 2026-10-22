@@ -5,9 +5,9 @@ import { EstadoErro } from "@/components/hub/EstadoErro";
 import { Selo } from "@/components/hub/Selo";
 import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
 import { diaComHora } from "@/lib/formatar";
-import { erro, mensagemDeErro, ok } from "@/lib/notify";
+import { erro, ok } from "@/lib/notify";
+import { textoDoErroGoogle, useBuscarAgora } from "@/components/reunioes/useBuscarAgora";
 import {
-  buscarAgora,
   chavesReunioes,
   desligarGoogle,
   ligarGoogle,
@@ -22,22 +22,9 @@ export function SecaoGoogle() {
 
   const ligar = useMutation({
     mutationFn: ligarGoogle,
-    onError: (e) => erro(textoDoErro(e), { tentarDeNovo: () => ligar.mutate() }),
+    onError: (e) => erro(textoDoErroGoogle(e), { tentarDeNovo: () => ligar.mutate() }),
   });
-  const buscar = useMutation({
-    mutationFn: buscarAgora,
-    onSuccess: (r) => {
-      if (r.aguarde) ok("Uma busca acabou de rodar. Espere um minuto para buscar de novo.");
-      else
-        ok(
-          r.reunioes
-            ? `${r.reunioes} reunião(ões) atualizada(s).`
-            : "Busca feita. Nenhuma reunião nova.",
-        );
-    },
-    onError: (e) => erro(textoDoErro(e)),
-    onSettled: () => void qc.invalidateQueries({ queryKey: chavesReunioes.tudo }),
-  });
+  const buscar = useBuscarAgora();
   const desligar = useMutation({
     mutationFn: desligarGoogle,
     onMutate: async () => {
@@ -51,7 +38,7 @@ export function SecaoGoogle() {
     onSuccess: () => ok("Google desligado. As reuniões já guardadas continuam no Hub."),
     onError: (e, _v, ctx) => {
       qc.setQueryData(chavesReunioes.google, ctx?.antes);
-      erro(textoDoErro(e), { tentarDeNovo: () => desligar.mutate() });
+      erro(textoDoErroGoogle(e), { tentarDeNovo: () => desligar.mutate() });
     },
     onSettled: () => void qc.invalidateQueries({ queryKey: chavesReunioes.google }),
   });
@@ -143,12 +130,4 @@ export function SecaoGoogle() {
       )}
     </section>
   );
-}
-
-function textoDoErro(e: unknown): string {
-  const m = e instanceof Error ? e.message : "";
-  if (/sem_permissao|sem_login/.test(m))
-    return "Só o dono da agência pode mudar a ligação com o Google.";
-  if (/Google|permissão|Ligue/.test(m)) return m;
-  return mensagemDeErro(e);
 }

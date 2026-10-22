@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
+import { Abas } from "@/components/hub/Abas";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { ClienteCabecalho } from "@/components/clientes/ClienteCabecalho";
 import {
@@ -10,6 +11,7 @@ import {
   type AcaoOportunidade,
 } from "@/components/clientes/ClienteOportunidade";
 import { ClienteContato } from "@/components/clientes/ClienteContato";
+import { ClienteNumeros } from "@/components/clientes/ClienteNumeros";
 import { ClientePropostas } from "@/components/clientes/ClientePropostas";
 import { ClienteProjetos } from "@/components/clientes/ClienteProjetos";
 import { ClienteAcessoPortal } from "@/components/clientes/ClienteAcessoPortal";
@@ -30,7 +32,7 @@ import {
   linhaDoTempo,
   type Oportunidade,
 } from "@/lib/funil";
-import { cn } from "@/lib/utils";
+import { chavesReunioes, listarReunioes } from "@/lib/reunioes";
 
 const busca = z.object({ aba: z.enum(["visao", "linha", "reunioes"]).optional().catch(undefined) });
 
@@ -59,6 +61,11 @@ function Ficha() {
     enabled: Boolean(dealId),
   });
   const linha = useQuery({ queryKey: chavesClientes.linha(id), queryFn: () => linhaDoTempo(id) });
+  // Mesma consulta da aba Reuniões (fica em cache): mostra quantas há no rótulo da aba
+  const reunioes = useQuery({
+    queryKey: chavesReunioes.lista("todas", id),
+    queryFn: () => listarReunioes("todas", id),
+  });
 
   if (cliente.isPending) {
     return (
@@ -98,43 +105,24 @@ function Ficha() {
   const abas = [
     { id: "visao" as const, rotulo: "Visão geral" },
     { id: "linha" as const, rotulo: "Linha do tempo", contagem: linha.data?.length },
-    { id: "reunioes" as const, rotulo: "Reuniões" },
+    { id: "reunioes" as const, rotulo: "Reuniões", contagem: reunioes.data?.itens.length },
   ];
 
   return (
     <div className="flex flex-col gap-5">
       <ClienteCabecalho c={c} aoEditar={() => setEditar(true)} />
 
-      <div
-        role="tablist"
-        aria-label="Seções da ficha"
-        className="-mx-4 flex gap-1 overflow-x-auto border-b border-hub-borda px-4 sm:mx-0 sm:px-0"
-      >
-        {abas.map((a) => (
-          <button
-            key={a.id}
-            role="tab"
-            type="button"
-            aria-selected={aba === a.id}
-            onClick={() =>
-              void navigate({ search: { aba: a.id === "visao" ? undefined : a.id }, replace: true })
-            }
-            className={cn(
-              "-mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-[15px]",
-              aba === a.id
-                ? "border-hub-tinta font-semibold"
-                : "border-transparent text-hub-suave hover:text-hub-tinta",
-            )}
-          >
-            {a.rotulo}
-            {a.contagem !== undefined && (
-              <span className="rounded-md bg-sit-neutro px-1.5 text-[12.5px] tabular-nums">
-                {a.contagem}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <ClienteNumeros c={c} o={o} />
+
+      <Abas
+        rotulo="Seções da ficha"
+        opcoes={abas}
+        ativa={aba}
+        aoEscolher={(id) =>
+          void navigate({ search: { aba: id === "visao" ? undefined : id }, replace: true })
+        }
+        className="border-b border-hub-borda"
+      />
 
       {aba === "reunioes" ? (
         <ClienteReunioes clienteId={c.id} />
@@ -172,7 +160,7 @@ function Ficha() {
             <ClientePropostas clienteId={c.id} />
           </div>
           <div className="flex flex-col gap-4">
-            <ClienteContato c={c} />
+            <ClienteContato c={c} aoEditar={() => setEditar(true)} />
             <ClienteFinanceiro clienteId={c.id} />
             <Link
               to="/app/materiais"
