@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import { TelaCarregando } from "@/components/feedback/TelaCarregando";
+import { FonteCliente, linkGeist } from "@/components/layout/FonteCliente";
 import { PaginaProposta } from "@/components/proposta-publica/PaginaProposta";
 import { exigirPapel } from "@/lib/acesso";
 import { mensagemDeErro } from "@/lib/notify";
@@ -12,9 +13,18 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/previa/proposta/$id")({
   ssr: false,
   beforeLoad: ({ context, location }) => exigirPapel(context.queryClient, "owner", location.href),
-  head: () => ({ meta: [{ title: "Prévia da proposta · Hub Fora do Papel" }] }),
-  pendingComponent: () => <TelaCarregando />,
-  component: Previa,
+  head: () => ({ meta: [{ title: "Prévia da proposta · Hub Fora do Papel" }], links: [linkGeist] }),
+  pendingComponent: () => (
+    <FonteCliente>
+      <TelaCarregando />
+    </FonteCliente>
+  ),
+  // Mesma página que o cliente vê, com as fontes dele (RD-10).
+  component: () => (
+    <FonteCliente>
+      <Previa />
+    </FonteCliente>
+  ),
 });
 
 function Previa() {

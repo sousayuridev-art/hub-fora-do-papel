@@ -42,7 +42,8 @@ Lidas pelo Claude Code em todo pedido. Cards em `docs/cards/`; cite o card no pe
 
 ## Visual do Hub (sistema interno)
 - Fundo #F5F5F2, texto #0E1013, destaque #FFB020 só na ação principal.
-- Hub e portal: Poppins em títulos, texto e rótulos; Bricolage Grotesque no nome "Fora do Papel" e nos títulos principais das páginas do cliente (proposta, serviço adicional e saudação do portal; cards CX-3 e CX-5). Menu lateral escuro #0E1013, item ativo em âmbar #FFB020 com texto escuro, grupos em caixa alta, conta em cartão no rodapé (cards HUB-VIS-1 e HUB-VIS-2). Tons claros de âmbar podem marcar ícones e números no conteúdo.
+- Hub interno (`/app/*` e entrada do gestor): Poppins em títulos, texto e rótulos.
+- Páginas do cliente (portal `/portal/*`, proposta pública e prévia, serviço adicional, entrada do cliente `/entrar`): Geist em texto, rótulos, botões e números (`tabular-nums`); Bricolage Grotesque no nome "Fora do Papel" e nos títulos principais (proposta, serviço adicional e saudação do portal; cards CX-3, CX-5 e RD-10). Geist carregada só nessas rotas (`linkGeist` no `head` + `<FonteCliente>`), com `display=swap`. Menu lateral escuro #0E1013, item ativo em âmbar #FFB020 com texto escuro, grupos em caixa alta, conta em cartão no rodapé (cards HUB-VIS-1 e HUB-VIS-2). Tons claros de âmbar podem marcar ícones e números no conteúdo.
 - Situações: neutro #F1F1EC/#2A2D33, informação #E5EDFF/#1E3FA8, atenção #FFF1D6/#7A4200, risco #FDE8E6/#9A1C12, concluído #E3F4EA/#145A37.
 
 ## Páginas do cliente (cards CX-3 a CX-6)

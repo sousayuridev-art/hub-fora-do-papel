@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { TelaCarregando } from "@/components/feedback/TelaCarregando";
+import { FonteCliente, linkGeist } from "@/components/layout/FonteCliente";
 import { EstadoProposta } from "@/components/proposta-publica/EstadoProposta";
 import { PaginaProposta } from "@/components/proposta-publica/PaginaProposta";
 import { previaDoLink } from "@/lib/enderecoPublico";
@@ -32,9 +33,18 @@ export const Route = createFileRoute("/proposta/$token")({
         "proposta",
       ),
     ],
+    links: [linkGeist],
   }),
-  pendingComponent: () => <TelaCarregando />,
-  component: PropostaDoCliente,
+  pendingComponent: () => (
+    <FonteCliente>
+      <TelaCarregando />
+    </FonteCliente>
+  ),
+  component: () => (
+    <FonteCliente>
+      <PropostaDoCliente />
+    </FonteCliente>
+  ),
 });
 
 function PropostaDoCliente() {

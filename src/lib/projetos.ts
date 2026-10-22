@@ -238,6 +238,7 @@ export const chavesProjetos = {
   tudo: ["projetos"] as const,
   lista: (s: SituacaoProjeto) => ["projetos", "lista", s] as const,
   detalhe: (id: string) => ["projetos", "detalhe", id] as const,
+  destrava: (id: string) => ["projetos", "destrava", id] as const,
   doCliente: (clienteId: string) => ["projetos", "do-cliente", clienteId] as const,
 };
 
@@ -250,6 +251,26 @@ async function rpc<T>(nome: string, args?: Record<string, unknown>): Promise<T> 
 export const listarProjetos = (s: SituacaoProjeto) =>
   rpc<ListaProjetos>("projetos_lista", { p_situacao: s });
 export const detalheProjeto = (id: string) => rpc<DetalheProjeto>("projeto_detalhe", { p_id: id });
+
+/** RD-10: o que destrava o projeto (calculado no banco, em ordem de prioridade). */
+export type TipoDestrava =
+  | "publicar_modulo"
+  | "pedir_aprovacao_modulo"
+  | "pedir_aprovacao_fase"
+  | "classificar_pedido"
+  | "iniciar_adicional"
+  | "tarefa_atrasada"
+  | "proxima_tarefa";
+export type Destrava = {
+  acao: { tipo: TipoDestrava; titulo: string; apoio: string; alvo: string | null; botao: string };
+  responsavel: string;
+  com_cliente: {
+    tipo: "aprovacao" | "pagamento" | "pendencia" | "adicional";
+    id: string;
+    texto: string;
+  }[];
+};
+export const destravaProjeto = (id: string) => rpc<Destrava>("projeto_destrava", { p_projeto: id });
 
 export async function projetosDoCliente(clienteId: string) {
   const { data, error } = await supabase

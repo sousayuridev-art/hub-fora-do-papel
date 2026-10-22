@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 
 import { LinhaFases } from "@/components/projetos/LinhaFases";
-import { classeAcaoPrincipal } from "@/lib/estilos";
+import { classeBotaoSecundario } from "@/lib/estilos";
 import { dataLocal, diaMes } from "@/lib/formatar";
 import { faseAtual, type DetalheProjeto } from "@/lib/projetos";
 
@@ -41,7 +41,8 @@ export function ProjetoFases({
           </p>
         </div>
         {atual && !esperando && d.projeto.status === "andamento" && (
-          <button type="button" className={classeAcaoPrincipal} onClick={aoConcluir}>
+          // RD-10: o âmbar fica no bloco "O que destrava o projeto" (ação principal única da tela).
+          <button type="button" className={classeBotaoSecundario} onClick={aoConcluir}>
             <Check className="size-4" aria-hidden="true" /> Concluir fase e pedir aprovação
           </button>
         )}

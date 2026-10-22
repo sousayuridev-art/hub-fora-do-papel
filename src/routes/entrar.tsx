@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Simbolo } from "@/components/layout/Marca";
 import { TelaCarregando } from "@/components/feedback/TelaCarregando";
+import { FonteCliente, linkGeist } from "@/components/layout/FonteCliente";
 import { carregarAcesso, inicioDoPapel } from "@/lib/acesso";
 import { supabase } from "@/lib/supabase";
 import { erro, mensagemDeErro } from "@/lib/notify";
@@ -35,7 +36,11 @@ export const Route = createFileRoute("/entrar")({
     if (acesso.papel && search.volta) throw redirect({ href: search.volta });
     throw redirect({ to: acesso.papel ? inicioDoPapel[acesso.papel] : "/sem-acesso" });
   },
-  pendingComponent: () => <TelaCarregando />,
+  pendingComponent: () => (
+    <FonteCliente>
+      <TelaCarregando />
+    </FonteCliente>
+  ),
   head: () => ({
     meta: [
       { title: "Entrar · Fora do Papel" },
@@ -45,8 +50,14 @@ export const Route = createFileRoute("/entrar")({
         "portal",
       ),
     ],
+    // Entrada do cliente: mesmas fontes do portal (RD-10). A do gestor (/gestor) segue no Hub.
+    links: [linkGeist],
   }),
-  component: Entrar,
+  component: () => (
+    <FonteCliente>
+      <Entrar />
+    </FonteCliente>
+  ),
 });
 
 const emailValido = z.string().trim().email();

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { AguardandoCliente } from "@/components/projetos/AguardandoCliente";
 import { CancelarProjetoPainel } from "@/components/projetos/CancelarProjetoPainel";
+import { ProjetoDestrava, type AcaoDestrava } from "@/components/projetos/ProjetoDestrava";
 import { EditarProjetoPainel } from "@/components/projetos/EditarProjetoPainel";
 import { SaudeEntrega } from "@/components/projetos/SaudeEntrega";
 import { useSession } from "@/hooks/useSession";
@@ -106,6 +107,37 @@ function Projeto() {
   const abrirTarefa = (tid: string | undefined) =>
     void navigate({ search: (s) => ({ ...s, tarefa: tid }), replace: true });
   const atual = faseAtual(d.fases);
+  /** RD-10: o botão do bloco abre o painel ou a tela da ação. */
+  const agirDestrava = (a: AcaoDestrava) => {
+    switch (a.tipo) {
+      case "publicar_modulo":
+      case "pedir_aprovacao_modulo": {
+        const mod = d.modulos.find((x) => x.id === a.alvo);
+        if (mod)
+          setPainelModulo({
+            modo: a.tipo === "publicar_modulo" ? "publicar" : "aprovacao",
+            m: mod,
+          });
+        return;
+      }
+      case "pedir_aprovacao_fase":
+        setFaseDoPedido(a.alvo);
+        setTituloDoPedido(null);
+        setPainel("aprovacao");
+        return;
+      case "classificar_pedido":
+      case "iniciar_adicional":
+        if (a.alvo) void navigate({ to: "/app/pedidos", search: { pedido: a.alvo } });
+        return;
+      case "tarefa_atrasada":
+      case "proxima_tarefa":
+        if (a.alvo) {
+          setCiclo(null);
+          abrirTarefa(a.alvo);
+        } else setPainel("tarefa");
+        return;
+    }
+  };
   const aguardando =
     d.aprovacoes.filter((a) => a.status === "aguardando").length +
     d.pendencias.filter((p) => p.status === "aberta").length +
@@ -129,6 +161,7 @@ function Projeto() {
         aoCancelar={() => setCancelar(true)}
       />
       <ProjetoNumeros d={d} />
+      {!d.projeto.canceled_at && <ProjetoDestrava projetoId={id} aoAgir={agirDestrava} />}
       <SaudeEntrega saude={d.saude} />
       {d.projeto.kind === "sob_medida" ? (
         <ProjetoModulos
