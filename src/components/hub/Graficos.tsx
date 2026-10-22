@@ -169,29 +169,32 @@ export function GraficoBarras({
           </span>
         ))}
       </div>
-      <table id={tabelaId} className="sr-only">
-        <caption>{rotulo}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Período</th>
-            {series.map((s) => (
-              <th key={s.nome} scope="col">
-                {s.nome}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {categorias.map((c, i) => (
-            <tr key={c}>
-              <th scope="row">{c}</th>
+      {/* A tabela não respeita a largura de 1px do sr-only: a caixa em volta é que esconde (sem rolagem lateral) */}
+      <div className="sr-only">
+        <table id={tabelaId}>
+          <caption>{rotulo}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Período</th>
               {series.map((s) => (
-                <td key={s.nome}>{formatar(s.valores[i] ?? 0)}</td>
+                <th key={s.nome} scope="col">
+                  {s.nome}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {categorias.map((c, i) => (
+              <tr key={c}>
+                <th scope="row">{c}</th>
+                {series.map((s) => (
+                  <td key={s.nome}>{formatar(s.valores[i] ?? 0)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }
@@ -298,17 +301,20 @@ export function GraficoLinha({
           {p.rotulo}: <b className="font-semibold tabular-nums">{formatar(p.valor)}</b>
         </p>
       )}
-      <table id={tabelaId} className="sr-only">
-        <caption>{rotulo}</caption>
-        <tbody>
-          {pontos.map((pt) => (
-            <tr key={pt.rotulo}>
-              <th scope="row">{pt.rotulo}</th>
-              <td>{formatar(pt.valor)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* A tabela não respeita a largura de 1px do sr-only: a caixa em volta é que esconde (sem rolagem lateral) */}
+      <div className="sr-only">
+        <table id={tabelaId}>
+          <caption>{rotulo}</caption>
+          <tbody>
+            {pontos.map((pt) => (
+              <tr key={pt.rotulo}>
+                <th scope="row">{pt.rotulo}</th>
+                <td>{formatar(pt.valor)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

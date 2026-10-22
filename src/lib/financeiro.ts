@@ -1,3 +1,4 @@
+import { dataLocal, moeda } from "@/lib/formatar";
 import { supabase } from "@/lib/supabase";
 
 /** Financeiro (card S4): tipos, chaves e chamadas. Todas as contas vêm do banco. */
@@ -131,6 +132,23 @@ export type MesFluxo = {
   saldo_cents: number;
 };
 
+/** Gráficos do financeiro (card RD-3): 6 meses até o atual, contas do banco. */
+export type MesGrafico = {
+  mes: string;
+  atual: boolean;
+  entradas_cents: number;
+  saidas_cents: number;
+  resultado_cents: number;
+  mensalidades_cents: number;
+};
+
+export type GraficosFinanceiro = {
+  hoje: string;
+  resultado_mes: { recebido_cents: number; despesas_cents: number; resultado_cents: number };
+  meses: MesGrafico[];
+  planos: { plano: string; quantidade: number }[];
+};
+
 export type ConfigRecebimento = {
   pix_chave: string | null;
   pix_nome: string | null;
@@ -154,6 +172,7 @@ export const chavesFinanceiro = {
   tudo: ["financeiro"] as const,
   painel: ["financeiro", "painel"] as const,
   fluxo: ["financeiro", "fluxo"] as const,
+  graficos: ["financeiro", "graficos"] as const,
   config: ["financeiro", "config"] as const,
   cliente: (id: string) => ["financeiro", "cliente", id] as const,
   projeto: (id: string) => ["financeiro", "projeto", id] as const,
@@ -168,6 +187,7 @@ async function rpc<T>(nome: string, args?: Record<string, unknown>): Promise<T> 
 
 export const painelFinanceiro = () => rpc<PainelFinanceiro>("financeiro_painel");
 export const fluxoDeCaixa = () => rpc<{ hoje: string; meses: MesFluxo[] }>("financeiro_fluxo");
+export const graficosFinanceiro = () => rpc<GraficosFinanceiro>("financeiro_graficos");
 export const lerRecebimento = () => rpc<ConfigRecebimento>("financeiro_config_ler");
 export const salvarRecebimento = (v: {
   chave: string;
@@ -269,6 +289,37 @@ export const salvarDespesa = (v: {
     p_nota: v.nota || null,
   });
 export const removerDespesa = (id: string) => rpc("despesa_remover", { p_id: id });
+
+/** "2026-07-01" → "jul 26" (sem o "de" que o navegador põe entre mês e ano). */
+export function mesCurto(iso: string, comAno = true): string {
+  const d = dataLocal(iso);
+  const mes = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+  return comAno ? `${mes} ${String(d.getFullYear()).slice(2)}` : mes;
+}
+
+/** Valor curto para eixos e rótulos de gráfico: "R$ 950", "4,1 mil", "12 mil". */
+export function valorCurto(cents: number): string {
+  const reais = cents / 100;
+  if (Math.abs(reais) < 1000) return moeda(Math.round(reais) * 100);
+  return `${(reais / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
+}
+
+/** Grupo de urgência da cobrança em aberto (card RD-3). */
+export type GrupoCobranca = "atrasadas" | "semana" | "trinta" | "depois" | "sem_data";
+
+export function grupoDaCobranca(c: Pick<Cobranca, "vencimento">, hoje: string): GrupoCobranca {
+  if (!c.vencimento) return "sem_data";
+  const dias = diasEntre(hoje, c.vencimento);
+  if (dias < 0) return "atrasadas";
+  if (dias <= 6) return "semana";
+  if (dias <= 30) return "trinta";
+  return "depois";
+}
+
+/** Dias de `de` até `ate` (datas "AAAA-MM-DD"). */
+export function diasEntre(de: string, ate: string): number {
+  return Math.round((dataLocal(ate).getTime() - dataLocal(de).getTime()) / 86_400_000);
+}
 
 /** Selo da cobrança, com as regras do card (vence hoje, atrasada, trabalho pode ser pausado no 10º dia). */
 export function situacaoDaCobranca(

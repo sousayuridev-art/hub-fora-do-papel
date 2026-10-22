@@ -42,12 +42,15 @@ export function CobrancaPainel({
   hoje,
   remetente,
   aoFechar,
+  pagarAoAbrir = false,
   ...a
 }: {
   c: CobrancaLinha | null;
   hoje: string;
   remetente: string;
   aoFechar: () => void;
+  /** Botão "Recebi" da lista: abre direto no registro do pagamento (card RD-3). */
+  pagarAoAbrir?: boolean;
 } & AcoesCobranca) {
   const [modo, setModo] = useState<Modo>("ver");
   const [data, setData] = useState(hoje);
@@ -59,7 +62,7 @@ export function CobrancaPainel({
   const [motivo, setMotivo] = useState("");
 
   useEffect(() => {
-    setModo("ver");
+    setModo(pagarAoAbrir && c?.situacao === "aberta" ? "pagar" : "ver");
     setData(hoje);
     setValor(c?.valor_cents ?? null);
     setForma("pix");
@@ -67,7 +70,7 @@ export function CobrancaPainel({
     setRestante(true);
     setVencimento(c?.vencimento ?? "");
     setMotivo("");
-  }, [c, hoje]);
+  }, [c, hoje, pagarAoAbrir]);
 
   if (!c)
     return (

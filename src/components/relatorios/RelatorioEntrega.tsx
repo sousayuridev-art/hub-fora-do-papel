@@ -3,26 +3,25 @@ import { Link } from "@tanstack/react-router";
 import { Selo } from "@/components/hub/Selo";
 import { BlocoRelatorio } from "@/components/relatorios/BlocoRelatorio";
 import { moeda } from "@/lib/formatar";
-import type { Relatorio } from "@/lib/relatorios";
+import { plural, type Relatorio } from "@/lib/relatorios";
 
 /** Entrega: tempo de aprovação do cliente, pedidos, serviços adicionais e horas da mensalidade. */
 export function RelatorioEntrega({ e }: { e: Relatorio["entrega"] }) {
   return (
     <BlocoRelatorio
       id="entrega"
-      rotulo="Entrega"
-      titulo="Quanto o cliente leva para aprovar"
+      titulo="Entrega"
       resumo={
         e.aprovacao_media_dias === null
-          ? "Nenhuma aprovação respondida no período."
-          : `Os clientes responderam ${e.aprovacoes_decididas} ${e.aprovacoes_decididas === 1 ? "aprovação" : "aprovações"} em ${e.aprovacao_media_dias.toLocaleString("pt-BR")} dias, em média.${
+          ? `Nenhuma aprovação respondida no período. ${plural(e.aprovacoes_abertas.length, "aprovação aberta", "aprovações abertas")}.`
+          : `Os clientes responderam ${plural(e.aprovacoes_decididas, "aprovação", "aprovações")} em ${e.aprovacao_media_dias.toLocaleString("pt-BR")} dias, em média.${
               e.ajustes_pct !== null ? ` ${e.ajustes_pct}% pediram ajuste.` : ""
             }`
       }
     >
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-1">
         <div className="flex flex-col gap-2">
-          <h3 className="font-semibold">Aprovações abertas</h3>
+          <h3 className="text-[15px] font-semibold">Aprovações abertas</h3>
           {e.aprovacoes_abertas.length === 0 ? (
             <p className="text-[14px] text-hub-suave">Nada esperando o cliente.</p>
           ) : (
@@ -49,8 +48,8 @@ export function RelatorioEntrega({ e }: { e: Relatorio["entrega"] }) {
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <h3 className="font-semibold">Pedidos no período: {e.pedidos.total}</h3>
-            <dl className="grid grid-cols-2 gap-2 text-[14px] sm:grid-cols-4">
+            <h3 className="text-[15px] font-semibold">Pedidos no período: {e.pedidos.total}</h3>
+            <dl className="grid grid-cols-2 gap-2 text-[14px] sm:grid-cols-4 xl:grid-cols-2">
               {(
                 [
                   ["Dentro do combinado", e.pedidos.escopo],
@@ -61,7 +60,7 @@ export function RelatorioEntrega({ e }: { e: Relatorio["entrega"] }) {
               ).map(([r, n]) => (
                 <div key={r} className="rounded-xl bg-hub-fundo p-3">
                   <dt className="text-[13px] text-hub-suave">{r}</dt>
-                  <dd className="font-titulo text-xl font-bold tabular-nums">{n}</dd>
+                  <dd className="text-xl font-semibold tabular-nums">{n}</dd>
                 </div>
               ))}
             </dl>
@@ -71,7 +70,7 @@ export function RelatorioEntrega({ e }: { e: Relatorio["entrega"] }) {
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <h3 className="font-semibold">Horas da mensalidade neste mês</h3>
+            <h3 className="text-[15px] font-semibold">Horas da mensalidade neste mês</h3>
             {e.mensalidade_horas.length === 0 ? (
               <p className="text-[14px] text-hub-suave">Nenhuma mensalidade ativa.</p>
             ) : (
