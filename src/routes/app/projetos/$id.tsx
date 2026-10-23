@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
+import { Abas } from "@/components/hub/Abas";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { AguardandoCliente } from "@/components/projetos/AguardandoCliente";
 import { CancelarProjetoPainel } from "@/components/projetos/CancelarProjetoPainel";
@@ -37,7 +38,6 @@ import { naoRemovida } from "@/components/tarefas/useMutacoesTarefa";
 import { chavesProjetos, detalheProjeto, faseAtual } from "@/lib/projetos";
 import { daTarefaDoProjeto } from "@/lib/tarefas";
 import { diaMes } from "@/lib/formatar";
-import { cn } from "@/lib/utils";
 
 const abas = ["andamento", "pedidos", "horas", "encerramento", "linha"] as const;
 type Aba = (typeof abas)[number];
@@ -162,6 +162,24 @@ function Projeto() {
         d={d}
         aoEditar={() => setEditar(true)}
         aoCancelar={() => setCancelar(true)}
+        abas={
+          <Abas<Aba>
+            rotulo="Seções do projeto"
+            ativa={aba}
+            aoEscolher={(a) =>
+              void navigate({
+                search: (s) => ({ ...s, aba: a === "andamento" ? undefined : a }),
+                replace: true,
+              })
+            }
+            opcoes={abas.map((a) => ({
+              id: a,
+              rotulo: rotulos[a].rotulo,
+              contagem: rotulos[a].contagem || undefined,
+            }))}
+            className="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          />
+        }
       />
       <ProjetoNumeros d={d} />
       {!d.projeto.canceled_at && <ProjetoDestrava projetoId={id} aoAgir={agirDestrava} />}
@@ -189,40 +207,6 @@ function Projeto() {
           }}
         />
       )}
-
-      <div
-        role="tablist"
-        aria-label="Seções do projeto"
-        className="-mx-4 flex gap-1 overflow-x-auto border-b border-hub-borda px-4 sm:mx-0 sm:px-0"
-      >
-        {abas.map((a) => (
-          <button
-            key={a}
-            role="tab"
-            type="button"
-            aria-selected={aba === a}
-            onClick={() =>
-              void navigate({
-                search: (s) => ({ ...s, aba: a === "andamento" ? undefined : a }),
-                replace: true,
-              })
-            }
-            className={cn(
-              "-mb-px flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-[15px]",
-              aba === a
-                ? "border-hub-tinta font-semibold"
-                : "border-transparent text-hub-suave hover:text-hub-tinta",
-            )}
-          >
-            {rotulos[a].rotulo}
-            {rotulos[a].contagem ? (
-              <span className="rounded-md bg-sit-neutro px-1.5 text-[12.5px] tabular-nums">
-                {rotulos[a].contagem}
-              </span>
-            ) : null}
-          </button>
-        ))}
-      </div>
 
       {aba === "andamento" && (
         <div className="flex flex-col gap-6">

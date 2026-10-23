@@ -66,9 +66,10 @@ export function EntregaCartao({
           </span>
           <ul className="flex flex-col gap-2">
             {e.itens.map((i) => (
-              <li key={i} className="flex gap-2.5 text-[15px]">
+              <li key={i} className="flex min-w-0 gap-2.5 text-[15px]">
                 <Check className="mt-0.5 size-4 shrink-0 text-sit-ok-t" aria-hidden="true" />
-                {i}
+                {/* RD-11: texto longo quebra linha em 360 px */}
+                <span className="min-w-0 [overflow-wrap:anywhere]">{i}</span>
               </li>
             ))}
           </ul>

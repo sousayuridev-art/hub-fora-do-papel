@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronRight,
@@ -24,15 +25,18 @@ import { faseAtual, rotuloProjeto, type DetalheProjeto } from "@/lib/projetos";
 /**
  * Cabeçalho do projeto (RD-2): faixa branca com a migalha "Projetos › Nome", selos, linha de
  * contexto e ações. Só o WhatsApp fica à vista; Editar, Materiais e Cancelar ficam em "Mais".
+ * As abas da página entram no pé da faixa (RD-11).
  */
 export function ProjetoCabecalho({
   d,
   aoEditar,
   aoCancelar,
+  abas,
 }: {
   d: DetalheProjeto;
   aoEditar: () => void;
   aoCancelar: () => void;
+  abas?: ReactNode;
 }) {
   const p = d.projeto;
   const atual = faseAtual(d.fases);
@@ -42,6 +46,7 @@ export function ProjetoCabecalho({
   return (
     <CabecalhoPagina
       voltarPara="/app/projetos"
+      abas={abas}
       migalha={
         <nav aria-label="Caminho" className="flex min-w-0 items-center gap-1">
           <Link

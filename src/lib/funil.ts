@@ -11,7 +11,7 @@ export type Frente = "sistemas" | "ia" | "sites" | "automacoes";
 export const frentes: { id: Frente; rotulo: string }[] = [
   { id: "sistemas", rotulo: "Sistemas sob medida e portais" },
   { id: "ia", rotulo: "Inteligência artificial aplicada" },
-  { id: "sites", rotulo: "Sites e lojas virtuais" },
+  { id: "sites", rotulo: "Sites" },
   { id: "automacoes", rotulo: "Automações e integrações" },
 ];
 export const rotuloFrente = Object.fromEntries(frentes.map((f) => [f.id, f.rotulo])) as Record<

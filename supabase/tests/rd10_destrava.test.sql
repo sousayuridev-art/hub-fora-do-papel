@@ -1,7 +1,7 @@
 -- RD-10: "O que destrava o projeto" (projeto_destrava): os 6 casos em ordem, o que está com o cliente e o isolamento.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(24);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -57,7 +57,9 @@ insert into public.charges (tenant_id, client_id, project_id, kind, description,
   ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001',
    'parcela', '3ª parcela', 800000, public._hoje('10000000-0000-0000-0000-000000000001') + 20, 3, 3);
 insert into public.client_tasks (tenant_id, client_id, project_id, title) values
-  ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001', 'Enviar a lista de lojas');
+  ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001', 'Enviar a lista de lojas'),
+  -- RD-11: sigla no início fica como está
+  ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000008', 'NF de outubro');
 insert into public.requests (tenant_id, client_id, project_id, code, title, status, classification, value_cents) values
   ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001',
    'RP-01', 'Relatório por vendedor', 'aguardando_cliente', 'adicional', 120000);
@@ -124,8 +126,9 @@ select ok(public.projeto_destrava('50000000-0000-0000-0000-000000000008') #> '{a
 -- O que está com o cliente
 select is(public.projeto_destrava('50000000-0000-0000-0000-000000000001') ->> 'responsavel', 'Marina', 'Responsável pelo primeiro nome');
 select is((select jsonb_agg(x ->> 'texto') from jsonb_array_elements(public.projeto_destrava('50000000-0000-0000-0000-000000000001') -> 'com_cliente') x),
-  '["aprovação do módulo Estoque", "pagamento da parcela 2 de 3", "Enviar a lista de lojas", "decisão do serviço adicional \"Relatório por vendedor\""]'::jsonb,
-  'Com o cliente: aprovação, parcela que vence em 5 dias, conteúdo e adicional');
+  '["aprovação do módulo Estoque", "pagamento da parcela 2 de 3", "enviar a lista de lojas", "decisão do serviço adicional \"Relatório por vendedor\""]'::jsonb,
+  'Com o cliente: aprovação, parcela que vence em 5 dias, conteúdo (em minúscula no meio da frase, RD-11) e adicional');
+select is(public.projeto_destrava('50000000-0000-0000-0000-000000000008') #>> '{com_cliente,0,texto}', 'NF de outubro', 'RD-11: sigla no início fica como está');
 select is(jsonb_array_length(public.projeto_destrava('50000000-0000-0000-0000-000000000007') -> 'com_cliente'), 0, 'Nada com o cliente');
 
 -- Só leitura: nada muda
@@ -140,6 +143,8 @@ select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000
 select throws_ok($$ select public.projeto_destrava('50000000-0000-0000-0000-000000000001') $$, 'P0002', 'projeto_inexistente', 'Dono sem o código do app é recusado');
 reset role;
 select ok(not has_function_privilege('anon', 'public.projeto_destrava(uuid)', 'execute'), 'Visitante sem acesso');
+select is(array[public._minuscula_inicial('Último envio'), public._minuscula_inicial('A'), public._minuscula_inicial('PDF final'), public._minuscula_inicial('3 fotos')],
+  array['último envio', 'A', 'PDF final', '3 fotos'], 'RD-11: acento baixa; letra só, sigla e número ficam');
 
 select * from finish();
 rollback;

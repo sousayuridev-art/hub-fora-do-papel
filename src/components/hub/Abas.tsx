@@ -1,8 +1,11 @@
+import { useEffect, useRef } from "react";
+
 import { cn } from "@/lib/utils";
 
 /**
  * Abas sublinhadas (card RD-0): trocam de assunto. Pílulas (FiltrosChip) filtram a mesma lista;
- * nunca dois níveis com o mesmo estilo. Rolam de lado no celular.
+ * nunca dois níveis com o mesmo estilo. Rolam de lado no celular; a ativa fica à vista ao abrir
+ * (RD-11), sem mexer na rolagem da página.
  */
 export function Abas<T extends string>({
   rotulo,
@@ -17,8 +20,20 @@ export function Abas<T extends string>({
   aoEscolher: (id: T) => void;
   className?: string;
 }) {
+  const lista = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = lista.current;
+    const sel = el?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!el || !sel) return;
+    const inicio =
+      sel.getBoundingClientRect().left - el.getBoundingClientRect().left + el.scrollLeft;
+    const fim = inicio + sel.offsetWidth;
+    if (inicio < el.scrollLeft) el.scrollLeft = inicio - 16;
+    else if (fim > el.scrollLeft + el.clientWidth) el.scrollLeft = fim - el.clientWidth + 16;
+  }, [ativa]);
   return (
     <div
+      ref={lista}
       role="tablist"
       aria-label={rotulo}
       className={cn("-mx-4 flex gap-6 overflow-x-auto px-4 md:mx-0 md:gap-7 md:px-0", className)}

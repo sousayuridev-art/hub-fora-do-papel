@@ -94,16 +94,23 @@ export function PedirAprovacaoPainel({
           maxLength={1000}
           linhas={2}
         />
-        <fieldset className="flex flex-col gap-2">
+        {/* RD-11: fieldset tem largura mínima do conteúdo por padrão; min-w-0 evita estourar em 360 px */}
+        <fieldset className="flex w-full min-w-0 flex-col gap-2">
           <legend className="mb-1.5 text-[14px] font-medium">O que fizemos</legend>
           {itens.map((it, i) => (
-            <div key={i} className="flex gap-2">
-              <input
+            <div key={i} className="flex w-full min-w-0 items-start gap-2">
+              {/* Uma linha que cresce: texto longo quebra em vez de rolar de lado */}
+              <textarea
                 aria-label={`Item ${i + 1}`}
                 value={it}
+                rows={1}
                 maxLength={200}
-                onChange={(e) => setItens(itens.map((x, k) => (k === i ? e.target.value : x)))}
-                className="h-11 min-w-0 flex-1 rounded-xl border border-[#DADAD3] bg-white px-3 text-base outline-none focus:border-hub-tinta md:text-[15px]"
+                onChange={(e) =>
+                  setItens(
+                    itens.map((x, k) => (k === i ? e.target.value.replace(/\s*\n\s*/g, " ") : x)),
+                  )
+                }
+                className="min-h-11 w-full min-w-0 flex-1 resize-none break-words rounded-xl border border-[#DADAD3] bg-white px-3 py-2.5 text-base leading-snug outline-none [field-sizing:content] focus:border-hub-tinta md:text-[15px]"
               />
               {itens.length > 1 && (
                 <button
