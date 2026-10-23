@@ -1,3 +1,4 @@
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { SecaoPreco } from "@/components/precos/SecaoPreco";
 import type { PropsSecao } from "@/components/precos/tipos";
@@ -17,12 +18,9 @@ export function SecaoPagamento({ p, mudar }: PropsSecao) {
       usadoEm={["Propostas", "Cobranças"]}
     >
       <div className="flex flex-col gap-2">
-        <CampoNumero
+        <CampoDinheiro
           className="sm:max-w-[260px]"
           rotulo="Divide em 3 partes acima de"
-          prefixo="R$"
-          escala={100}
-          casas={0}
           valor={p.split_threshold_cents}
           aoMudar={(n) => mudar("split_threshold_cents", Math.max(100, n ?? 1000000))}
         />

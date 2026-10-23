@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { BadgeCheck, CircleMinus, SlidersHorizontal } from "lucide-react";
 
-import { CampoNumero } from "@/components/hub/CampoNumero";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { BlocoEditor } from "@/components/propostas/BlocoEditor";
 import { CampoTexto } from "@/components/propostas/CampoTexto";
 import { Opcoes } from "@/components/propostas/Opcoes";
@@ -75,13 +75,10 @@ export function BlocoValor({ d, alterar, bloqueado, c }: PropsBloco & { c: Calcu
             Diagnóstico pago no prazo de Configurações sai do total sozinho.
           </p>
         </div>
-        <CampoNumero
+        <CampoDinheiro
           bloqueado={bloqueado}
           rotulo="Desconto comercial"
-          prefixo="R$"
-          escala={100}
-          casas={0}
-          placeholder="0"
+          placeholder="0,00"
           valor={d.desconto_cents || null}
           aoMudar={(n) => alterar({ desconto_cents: Math.max(0, n ?? 0) })}
           ajuda={`Abaixo de ${moeda(c.piso_cents)} por hora, o envio pede um motivo.`}

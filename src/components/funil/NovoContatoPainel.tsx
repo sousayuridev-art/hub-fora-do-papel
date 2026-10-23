@@ -6,10 +6,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { CamposProximoPasso } from "@/components/funil/CamposProximoPasso";
 import { mensagemAmigavel } from "@/components/funil/useMutacoesFunil";
-import { centavosDoTexto, isoDoDia } from "@/lib/formatar";
+import { isoDoDia } from "@/lib/formatar";
 import {
   chavesClientes,
   chavesFunil,
@@ -64,7 +65,6 @@ export function NovoContatoPainel({
   aoMudar: (v: boolean) => void;
 }) {
   const [f, setF] = useState<NovoContato>(vazio);
-  const [valorTexto, setValorTexto] = useState("");
   const [tentou, setTentou] = useState(false);
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -76,7 +76,6 @@ export function NovoContatoPainel({
       void qc.invalidateQueries({ queryKey: chavesClientes.tudo });
       aoMudar(false);
       setF(vazio());
-      setValorTexto("");
       setTentou(false);
       if (r.reaproveitado) {
         ok("Esse contato já estava no funil. Abrimos a ficha dele.");
@@ -96,7 +95,7 @@ export function NovoContatoPainel({
     e.preventDefault();
     setTentou(true);
     if (faltaContato || faltaCanal || faltaPasso) return;
-    criar.mutate({ ...f, valorCents: centavosDoTexto(valorTexto) });
+    criar.mutate(f);
   }
 
   const set = <K extends keyof NovoContato>(k: K, v: NovoContato[K]) =>
@@ -242,16 +241,11 @@ export function NovoContatoPainel({
             />
           </Campo>
         </div>
-        <Campo id="nc-valor" rotulo="Valor estimado (opcional)">
-          <Input
-            id="nc-valor"
-            inputMode="decimal"
-            value={valorTexto}
-            onChange={(e) => setValorTexto(e.target.value)}
-            placeholder="R$"
-            className="h-11"
-          />
-        </Campo>
+        <CampoDinheiro
+          rotulo="Valor estimado (opcional)"
+          valor={f.valorCents}
+          aoMudar={(c) => set("valorCents", c)}
+        />
         <div className="border-t border-hub-borda pt-4">
           <CamposProximoPasso
             valor={passo}

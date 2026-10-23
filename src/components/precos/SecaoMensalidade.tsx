@@ -1,4 +1,5 @@
 import { CampoArea } from "@/components/hub/Campo";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { SecaoPreco } from "@/components/precos/SecaoPreco";
 import { Switch } from "@/components/ui/switch";
@@ -45,11 +46,8 @@ export function SecaoMensalidade({
               valor={pl.hours_month}
               aoMudar={(n) => mudarPlano(pl.id, { hours_month: n ?? 0 })}
             />
-            <CampoNumero
+            <CampoDinheiro
               rotulo="Preço por mês"
-              prefixo="R$"
-              escala={100}
-              casas={0}
               valor={pl.price_cents}
               aoMudar={(n) => mudarPlano(pl.id, { price_cents: n ?? 0 })}
             />

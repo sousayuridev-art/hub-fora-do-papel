@@ -113,10 +113,10 @@ export function PainelValor({ c }: { c: Calculo }) {
         </div>
         <div className="relative h-4 text-[12.5px] text-hub-suave" aria-hidden="true">
           <span className="absolute -translate-x-full pr-1" style={{ left: pos(c.piso_cents) }}>
-            piso {c.piso_cents / 100}
+            piso {moeda(c.piso_cents)}
           </span>
           <span className="absolute pl-1" style={{ left: pos(c.alvo_cents) }}>
-            alvo {c.alvo_cents / 100}
+            alvo {moeda(c.alvo_cents)}
           </span>
         </div>
         <p className={cn("rounded-xl px-3 py-2.5 text-[14px]", tom.caixa)}>{tom.msg}</p>

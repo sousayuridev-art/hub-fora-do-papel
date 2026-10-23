@@ -1,3 +1,4 @@
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { SecaoPreco } from "@/components/precos/SecaoPreco";
 import type { PropsSecao } from "@/components/precos/tipos";
@@ -26,11 +27,8 @@ export function SecaoDiagnostico({ p, mudar }: PropsSecao) {
           <span className="pb-2.5 text-[15px] font-semibold" aria-hidden="true">
             {nome}
           </span>
-          <CampoNumero
+          <CampoDinheiro
             rotulo={`Preço do ${nome.toLowerCase()}`}
-            prefixo="R$"
-            escala={100}
-            casas={0}
             valor={p[preco]}
             aoMudar={(n) => mudar(preco, n ?? 0)}
           />

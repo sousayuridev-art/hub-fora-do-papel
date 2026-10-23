@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { CampoTexto } from "@/components/propostas/CampoTexto";
@@ -134,14 +135,7 @@ export function RegistrarInvestimentoPainel({
                 className="h-11 rounded-xl border border-[#DADAD3] bg-white px-3 text-base md:text-[15px]"
               />
             </div>
-            <CampoNumero
-              rotulo="Valor"
-              prefixo="R$"
-              escala={100}
-              casas={2}
-              valor={valor}
-              aoMudar={setValor}
-            />
+            <CampoDinheiro rotulo="Valor" valor={valor} aoMudar={setValor} />
           </div>
           <CampoNumero
             rotulo="Cliques (opcional)"
@@ -291,21 +285,15 @@ export function OrcamentoPainel({
       }
     >
       <div className="flex flex-col gap-4">
-        <CampoNumero
+        <CampoDinheiro
           rotulo={rotuloPlataforma.google}
-          prefixo="R$"
           sufixo="/mês"
-          escala={100}
-          casas={0}
           valor={google}
           aoMudar={setGoogle}
         />
-        <CampoNumero
+        <CampoDinheiro
           rotulo={rotuloPlataforma.meta}
-          prefixo="R$"
           sufixo="/mês"
-          escala={100}
-          casas={0}
           valor={meta}
           aoMudar={setMeta}
         />

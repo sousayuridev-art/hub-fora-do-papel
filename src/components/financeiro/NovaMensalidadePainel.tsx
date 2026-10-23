@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { BotoesPainel } from "@/components/hub/BotoesPainel";
 import { CampoEscolha, CampoTexto } from "@/components/hub/Campo";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { isoDoDia } from "@/lib/formatar";
@@ -105,14 +106,7 @@ export function NovaMensalidadePainel({
         )}
         <CampoTexto rotulo="Nome do plano" valor={plano} aoMudar={setPlano} maxLength={80} />
         <div className="grid grid-cols-2 gap-3">
-          <CampoNumero
-            rotulo="Valor por mês"
-            prefixo="R$"
-            valor={valor}
-            aoMudar={setValor}
-            escala={100}
-            casas={2}
-          />
+          <CampoDinheiro rotulo="Valor por mês" valor={valor} aoMudar={setValor} />
           <CampoTexto rotulo="Começa no mês de" tipo="date" valor={inicio} aoMudar={setInicio} />
         </div>
         <div className="grid grid-cols-2 gap-3">

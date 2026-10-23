@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { BotoesPainel } from "@/components/hub/BotoesPainel";
 import { CampoEscolha, CampoTexto } from "@/components/hub/Campo";
-import { CampoNumero } from "@/components/hub/CampoNumero";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { chavesClientes, listarClientes } from "@/lib/funil";
 
@@ -95,14 +95,7 @@ export function NovaCobrancaPainel({
           placeholder="Ex.: Renovação do domínio"
         />
         <div className="grid grid-cols-2 gap-3">
-          <CampoNumero
-            rotulo="Valor"
-            prefixo="R$"
-            valor={valor}
-            aoMudar={setValor}
-            escala={100}
-            casas={2}
-          />
+          <CampoDinheiro rotulo="Valor" valor={valor} aoMudar={setValor} />
           <CampoTexto rotulo="Vencimento" tipo="date" valor={vencimento} aoMudar={setVencimento} />
         </div>
       </div>

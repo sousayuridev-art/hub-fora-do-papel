@@ -33,10 +33,109 @@ export function numeroBR(texto: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** "R$ 12.500" ou "12500" → 1250000. Vazio → null. */
-export function centavosDoTexto(texto: string): number | null {
-  const n = numeroBR(texto);
-  return n == null ? null : Math.round(n * 100);
+/** Maior parte inteira aceita num campo de dinheiro (dígitos). Acima disso o texto é recusado. */
+export const DIGITOS_MAX_DINHEIRO = 12;
+
+export type OpcoesDinheiro = {
+  /** Aceita "-" no começo. */
+  permitirNegativo?: boolean;
+  /**
+   * A pessoa está apagando: ponto no fim é só o milhar que sobrou ("9.00" depois de apagar
+   * um zero de "9.000"), não decimal.
+   */
+  apagando?: boolean;
+};
+
+const agruparMilhar = (digitos: string) => digitos.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+/**
+ * Texto do campo de dinheiro enquanto a pessoa digita ou cola, sem o "R$":
+ * "9000" → "9.000"; "9000,5" → "9.000,5"; ",5" → "0,5"; "R$ 9.000,50" → "9.000,50";
+ * "9000.50" → "9.000,50" (ponto com 1 ou 2 dígitos no fim é decimal; com 3, milhar).
+ * Vírgula vale uma vez, com até 2 casas; letras são ignoradas. Vazio → "".
+ * Parte inteira com mais de 12 dígitos → null (o campo recusa e mantém o texto anterior).
+ */
+export function textoDinheiroDigitando(texto: string, opcoes: OpcoesDinheiro = {}): string | null {
+  let limpo = texto.replace(/[^\d,.-]/g, "");
+  const negativo = !!opcoes.permitirNegativo && limpo.startsWith("-");
+  limpo = limpo.replace(/-/g, "");
+
+  let separador = limpo.indexOf(",");
+  if (separador < 0 && !opcoes.apagando) {
+    const m = /\.\d{0,2}$/.exec(limpo);
+    if (m) separador = m.index;
+  }
+  const inteiroCru = (separador < 0 ? limpo : limpo.slice(0, separador)).replace(/\D/g, "");
+  const decimais =
+    separador < 0
+      ? ""
+      : limpo
+          .slice(separador + 1)
+          .replace(/\D/g, "")
+          .slice(0, 2);
+
+  let inteiro = inteiroCru.replace(/^0+(?=\d)/, "");
+  if (inteiro.length > DIGITOS_MAX_DINHEIRO) return null;
+  if (!inteiro && separador >= 0) inteiro = "0";
+  const sinal = negativo ? "-" : "";
+  if (!inteiro) return sinal;
+  return `${sinal}${agruparMilhar(inteiro)}${separador >= 0 ? `,${decimais}` : ""}`;
+}
+
+/** Ao sair do campo: completa as 2 casas ("9.000" → "9.000,00"; "0,5" → "0,50"). Vazio fica vazio. */
+export function textoDinheiroCompleto(texto: string, opcoes: OpcoesDinheiro = {}): string {
+  const t = textoDinheiroDigitando(texto, opcoes) ?? "";
+  if (!t || t === "-") return "";
+  const [inteiro, decimais = ""] = t.split(",");
+  return `${inteiro},${decimais.padEnd(2, "0")}`;
+}
+
+/** Centavos vindos do banco → texto do campo: 900050 → "9.000,50"; null → "". */
+export function textoDinheiroDeCentavos(cents: number | null | undefined): string {
+  if (cents == null) return "";
+  const abs = Math.abs(Math.round(cents));
+  const reais = agruparMilhar(String(Math.floor(abs / 100)));
+  return `${cents < 0 ? "-" : ""}${reais},${String(abs % 100).padStart(2, "0")}`;
+}
+
+/**
+ * "R$ 9.000,50", "9000.50" → 900050; "9.000", "9000" → 900000; "" → null.
+ * Mesmas regras do campo (ponto com 3 dígitos é milhar; com 1 ou 2 no fim é decimal).
+ * Número negativo só com `permitirNegativo`; parte inteira acima de 12 dígitos → null.
+ */
+export function centavosDoTexto(texto: string, opcoes: OpcoesDinheiro = {}): number | null {
+  const t = textoDinheiroDigitando(texto, { permitirNegativo: !!opcoes.permitirNegativo });
+  if (!t || t === "-") return null;
+  const negativo = t.startsWith("-");
+  const [inteiro = "0", decimais = ""] = t.replace("-", "").replace(/\./g, "").split(",");
+  const cents = Number(inteiro) * 100 + Number(decimais.padEnd(2, "0"));
+  return negativo ? -cents : cents;
+}
+
+/**
+ * Onde o cursor fica depois de formatar: conta os dígitos antes dele no texto digitado e
+ * para depois do mesmo número de dígitos no texto formatado (o ponto de milhar não empurra
+ * o cursor para o fim). Se a vírgula estava antes do cursor, ele fica depois dela.
+ */
+export function posicaoCursorDinheiro(
+  cru: string,
+  cursor: number,
+  formatado: string,
+  opcoes: OpcoesDinheiro = {},
+): number {
+  const antes = textoDinheiroDigitando(cru.slice(0, cursor), opcoes) ?? "";
+  const alvo = antes.replace(/\D/g, "").length;
+  const passouVirgula = antes.includes(",") && formatado.includes(",");
+  let pos = 0;
+  let digitos = 0;
+  while (pos < formatado.length && digitos < alvo) {
+    if (/\d/.test(formatado[pos] ?? "")) digitos++;
+    pos++;
+  }
+  if (alvo === 0 && antes.startsWith("-") && formatado.startsWith("-")) pos = 1;
+  const virgula = formatado.indexOf(",");
+  if (passouVirgula && virgula >= 0 && pos <= virgula) pos = virgula + 1;
+  return pos;
 }
 
 const diaMesFmt = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "2-digit" });

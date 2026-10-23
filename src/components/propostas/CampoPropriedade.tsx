@@ -1,4 +1,4 @@
-import { CampoNumero } from "@/components/hub/CampoNumero";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { Opcoes } from "@/components/propostas/Opcoes";
 import type { PropsBloco } from "@/components/propostas/tipos";
 import type { Propriedade } from "@/lib/propostas";
@@ -26,14 +26,11 @@ export function CampoPropriedade({ d, alterar, bloqueado }: PropsBloco) {
         </p>
       )}
       {d.propriedade === "licenca" && (
-        <CampoNumero
+        <CampoDinheiro
           className="sm:max-w-[280px]"
           rotulo="Valor da compra do código"
-          prefixo="R$"
-          escala={100}
-          casas={2}
           bloqueado={bloqueado}
-          placeholder="Ex.: 15.000"
+          placeholder="Ex.: 15.000,00"
           valor={d.compra_codigo_cents}
           aoMudar={(n) => alterar({ compra_codigo_cents: n })}
           ajuda="Em branco, a proposta diz que a compra tem orçamento sob pedido. A licença vale enquanto a mensalidade estiver ativa."

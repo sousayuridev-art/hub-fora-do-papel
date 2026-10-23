@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { PainelLateral } from "@/components/hub/PainelLateral";
-import { centavosDoTexto } from "@/lib/formatar";
 import { CampoEscolha } from "@/components/hub/Campo";
 import {
   frentes,
@@ -31,13 +29,13 @@ export function ValorDiagnosticoPainel({
   aoFechar: () => void;
   aoSalvar: (o: Oportunidade, campos: CamposOportunidade) => void;
 }) {
-  const [valor, setValor] = useState("");
+  const [valor, setValor] = useState<number | null>(null);
   const [tipo, setTipo] = useState<Diagnostico | null>(null);
   const [pago, setPago] = useState(false);
   const [frente, setFrente] = useState<Frente | "">("");
   useEffect(() => {
     setFrente(o?.frente ?? "");
-    setValor(o?.value_cents != null ? String(o.value_cents / 100) : "");
+    setValor(o?.value_cents ?? null);
     setTipo(o?.diagnostic_tier ?? null);
     setPago(o?.diagnostic_paid ?? false);
   }, [o]);
@@ -58,7 +56,7 @@ export function ValorDiagnosticoPainel({
             onClick={() => {
               if (!o) return;
               aoSalvar(o, {
-                valor_cents: centavosDoTexto(valor),
+                valor_cents: valor,
                 diagnostico: tipo,
                 diagnostico_pago: tipo ? pago : false,
                 frente,
@@ -79,20 +77,13 @@ export function ValorDiagnosticoPainel({
           opcoes={[{ id: "", rotulo: "Ainda não definida" }, ...frentes]}
           ajuda="Vem do assunto escolhido no site. Serve para os relatórios por frente."
         />
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="vd-valor">Valor (R$)</Label>
-          <Input
-            id="vd-valor"
-            inputMode="decimal"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-            placeholder="Ex.: 4500"
-            className="h-11"
-          />
-          <p className="text-[13px] text-hub-suave">
-            Diagnóstico: o valor dele. Proposta: o valor do projeto.
-          </p>
-        </div>
+        <CampoDinheiro
+          rotulo="Valor"
+          valor={valor}
+          aoMudar={setValor}
+          placeholder="Ex.: 4.500,00"
+          ajuda="Diagnóstico: o valor dele. Proposta: o valor do projeto."
+        />
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-[14px] font-medium">Diagnóstico</legend>
           {opcoes.map((op) => (

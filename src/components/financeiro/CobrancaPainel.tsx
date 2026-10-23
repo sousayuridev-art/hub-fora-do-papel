@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { FileText, MessageCircle } from "lucide-react";
 
 import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
-import { CampoNumero } from "@/components/hub/CampoNumero";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { Selo } from "@/components/hub/Selo";
 import { Button } from "@/components/ui/button";
@@ -255,14 +255,7 @@ export function CobrancaPainel({
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
               <CampoTexto rotulo="Pago em" tipo="date" valor={data} aoMudar={setData} max={hoje} />
-              <CampoNumero
-                rotulo="Valor pago"
-                prefixo="R$"
-                valor={valor}
-                aoMudar={setValor}
-                escala={100}
-                casas={2}
-              />
+              <CampoDinheiro rotulo="Valor pago" valor={valor} aoMudar={setValor} />
             </div>
             <CampoEscolha<Forma>
               rotulo="Forma"

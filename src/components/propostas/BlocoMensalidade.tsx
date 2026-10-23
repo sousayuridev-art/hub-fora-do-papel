@@ -1,4 +1,4 @@
-import { CampoNumero } from "@/components/hub/CampoNumero";
+import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { BlocoEditor } from "@/components/propostas/BlocoEditor";
 import type { PropsBloco } from "@/components/propostas/tipos";
 import { moeda } from "@/lib/formatar";
@@ -63,14 +63,11 @@ export function BlocoMensalidade({
           );
         })}
       </div>
-      <CampoNumero
+      <CampoDinheiro
         className="sm:max-w-[280px]"
         rotulo="Infraestrutura por mês (custo)"
-        prefixo="R$"
-        escala={100}
-        casas={2}
         bloqueado={bloqueado}
-        placeholder="Ex.: 45"
+        placeholder="Ex.: 45,00"
         valor={d.infra_cents}
         aoMudar={(n) => alterar({ infra_cents: n })}
         ajuda="Hospedagem e serviços do site. Deixe em branco se ainda não souber."
