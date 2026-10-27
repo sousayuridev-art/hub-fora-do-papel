@@ -14,7 +14,7 @@ Lidas pelo Claude Code em todo pedido. Cards em `docs/cards/`; cite o card no pe
 - Áreas logadas com `ssr: false` e proteção no `beforeLoad` (`exigirPapel` em `src/lib/acesso.ts`). Nunca use `<Navigate>` no render para proteger rota.
 - `routeTree.gen.ts` é gerado sozinho; não edite.
 - Dados: Supabase (Postgres, Auth, Storage) + TanStack Query.
-- Conteúdo de sites: Sanity.io.
+- Conteúdo de sites: banco do Hub (Supabase), nas tabelas do CMS-1 e do PC-0; os sites leem pelas funções públicas `site_publico_*`. Não usamos Sanity.
 - Integrações: eventos gravados em `event_outbox` e consumidos pelo n8n (Pipedrive, ChatGuru/WhatsApp).
 
 ## Segurança e dados
