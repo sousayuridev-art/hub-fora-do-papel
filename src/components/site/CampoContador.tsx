@@ -17,6 +17,7 @@ export function CampoContador({
   ajuda,
   placeholder,
   desabilitado = false,
+  semDestaque = false,
   className,
 }: {
   rotulo: string;
@@ -28,10 +29,12 @@ export function CampoContador({
   ajuda?: ReactNode;
   placeholder?: string;
   desabilitado?: boolean;
+  /** Títulos das páginas (CMS-4): os `**` do destaque não contam no limite. */
+  semDestaque?: boolean;
   className?: string;
 }) {
   const id = useId();
-  const c = contagem(valor, limite);
+  const c = contagem(semDestaque ? valor.replaceAll("**", "") : valor, limite);
   const comum = {
     id,
     value: valor,

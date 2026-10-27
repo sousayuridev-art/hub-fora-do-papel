@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { ConteudoArtigo } from "@/lib/editorArtigo";
+import type { ChaveBloco } from "@/lib/paginasSite";
 
 /**
  * Conteúdo do site (cards CMS-1 e CMS-2). Leitura pela RLS (só o dono do tenant);
@@ -51,6 +52,17 @@ export type DadosArtigo = {
   corpo: ConteudoArtigo;
 };
 
+/** Bloco de página (card CMS-4): uma linha de site_blocos. */
+export type BlocoSalvo = {
+  id: string;
+  site_id: string;
+  chave: string;
+  valor: unknown;
+  situacao: SituacaoSite;
+  publicado_em: string | null;
+  atualizado_em: string;
+};
+
 export type ImagemSite = {
   caminho: string;
   nome: string;
@@ -65,6 +77,7 @@ export const chavesSite = {
   artigos: (siteId: string) => ["site", "artigos", siteId] as const,
   artigo: (id: string) => ["site", "artigo", id] as const,
   midia: (siteId: string) => ["site", "midia", siteId] as const,
+  blocos: (siteId: string) => ["site", "blocos", siteId] as const,
 };
 
 export const rotuloSituacao: Record<SituacaoSite, string> = {
@@ -133,6 +146,24 @@ export const publicarArtigo = (id: string) =>
   rpc<ArtigoCompleto>("site_artigo_publicar", { p_id: id });
 export const arquivarArtigo = (id: string) =>
   rpc<ArtigoCompleto>("site_artigo_arquivar", { p_id: id });
+
+// ---------------------------------------------------------------------------
+// Páginas (site_blocos, card CMS-4). Leitura pela RLS; gravação pelas RPCs site_bloco_*.
+// ---------------------------------------------------------------------------
+
+export async function listarBlocos(siteId: string): Promise<BlocoSalvo[]> {
+  const { data, error } = await supabase
+    .from("site_blocos")
+    .select("id, site_id, chave, valor, situacao, publicado_em, atualizado_em")
+    .eq("site_id", siteId);
+  if (error) throw error;
+  return (data ?? []) as BlocoSalvo[];
+}
+
+export const salvarBloco = (siteId: string, chave: ChaveBloco, valor: unknown) =>
+  rpc<BlocoSalvo>("site_bloco_salvar", { p_site: siteId, p_chave: chave, p_valor: valor });
+export const publicarBloco = (siteId: string, chave: ChaveBloco) =>
+  rpc<BlocoSalvo>("site_bloco_publicar", { p_site: siteId, p_chave: chave });
 
 // ---------------------------------------------------------------------------
 // Mídia (bucket site-midia)
@@ -248,6 +279,9 @@ const mensagens: Record<string, string> = {
   marcador_pendente: "Há marcador pendente, como [PREÇO]. Troque pelo texto final antes.",
   artigo_inexistente: "Esse artigo não existe mais. Recarregue a página.",
   site_inexistente: "Esse site não está mais disponível. Recarregue a página.",
+  chave_invalida: "Essa parte da página não é editável. Recarregue a página.",
+  bloco_inexistente: "Salve o texto antes de publicar.",
+  valor_grande: "O texto ficou grande demais para esta parte da página.",
   imagem_nao_apagada: "Não foi possível apagar a imagem. Recarregue a página e tente de novo.",
   "The resource already exists": "Já existe uma imagem com esse nome. Tente de novo.",
   "Payload too large": "A imagem passa de 2 MB.",
@@ -259,6 +293,11 @@ const mensagens: Record<string, string> = {
 export function mensagemDoSite(e: unknown): string | null {
   const o = (e ?? {}) as { message?: unknown; details?: unknown };
   const texto = e instanceof Error ? e.message : String(o.message ?? "");
+  // bloco_invalido traz o campo e o limite (ex.: "título: obrigatório, até 90 caracteres")
+  if (texto.includes("bloco_invalido"))
+    return `O banco recusou: ${
+      typeof o.details === "string" && o.details ? o.details : "formato não aceito"
+    }.`;
   // corpo_invalido traz o detalhe (ex.: "parágrafo vazio ou longo demais na seção x")
   if (texto.includes("corpo_invalido"))
     return `O corpo do artigo tem um problema: ${

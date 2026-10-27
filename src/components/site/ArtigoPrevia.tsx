@@ -1,8 +1,8 @@
-import { Fragment, useEffect } from "react";
+import { Fragment } from "react";
 
-import { linkGeist } from "@/components/layout/FonteCliente";
 import { BlocoPrevia } from "@/components/site/BlocoPrevia";
 import { CapaPrevia } from "@/components/site/CapaPrevia";
+import { useFonteDoSite } from "@/components/site/useFonteDoSite";
 import type { DadosArtigo } from "@/lib/site";
 
 const dataFmt = new Intl.DateTimeFormat("pt-BR", {
@@ -16,17 +16,6 @@ const gradienteSecao =
   "bg-[linear-gradient(92deg,#1e3a9e_0%,#3b5bff_100%)] bg-clip-text pb-[0.12em] text-transparent";
 const etiqueta =
   "inline-block rounded-[4px] border border-[#d6d6cf] px-2.5 py-1 font-mono text-[12px] uppercase leading-normal";
-
-/** A Geist (fonte do site) só é pedida quando a prévia abre. */
-function useFonteDoSite() {
-  useEffect(() => {
-    if (document.querySelector(`link[href="${linkGeist.href}"]`)) return;
-    const l = document.createElement("link");
-    l.rel = linkGeist.rel;
-    l.href = linkGeist.href;
-    document.head.appendChild(l);
-  }, []);
-}
 
 /**
  * Prévia do artigo como fica no site (tema claro dos artigos): topo, capa, sumário e corpo

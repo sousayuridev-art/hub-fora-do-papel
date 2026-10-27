@@ -12,19 +12,23 @@ import { ArtigosFiltros } from "@/components/site/ArtigosFiltros";
 import { ArtigosLista } from "@/components/site/ArtigosLista";
 import { MidiaEnviar } from "@/components/site/MidiaEnviar";
 import { MidiaGaleria } from "@/components/site/MidiaGaleria";
+import { PaginaEditor } from "@/components/site/PaginaEditor";
+import { PaginasLista } from "@/components/site/PaginasLista";
 import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
 import { classeAcaoPrincipal } from "@/lib/estilos";
+import { chavesBlocos, type ChaveBloco } from "@/lib/paginasSite";
 import {
   categoriasDoSite,
   chavesSite,
   listarArtigos,
+  listarBlocos,
   listarSites,
   rotuloSituacao,
   type SituacaoSite,
 } from "@/lib/site";
 
 const busca = z.object({
-  aba: z.enum(["artigos", "midia"]).optional().catch(undefined),
+  aba: z.enum(["artigos", "paginas", "midia"]).optional().catch(undefined),
   site: z.string().uuid().optional().catch(undefined),
   situacao: z.enum(["publicado", "rascunho", "arquivado"]).optional().catch(undefined),
   categoria: z.string().max(60).optional().catch(undefined),
@@ -32,10 +36,16 @@ const busca = z.object({
     .union([z.literal("novo"), z.string().uuid()])
     .optional()
     .catch(undefined),
+  /** Parte da página aberta no editor (aba Páginas, card CMS-4). */
+  pagina: z
+    .enum(chavesBlocos as [ChaveBloco, ...ChaveBloco[]])
+    .optional()
+    .catch(undefined),
 });
 
 /**
  * Conteúdo do site (card CMS-2): artigos (lista, editor por blocos e prévia) e mídia.
+ * Páginas (card CMS-4): topo, frentes, perguntas, projetos reais e quem somos por campos fixos.
  * Só o dono entra: a área /app já exige o papel no beforeLoad e roda só no navegador.
  */
 export const Route = createFileRoute("/app/site")({
@@ -47,7 +57,7 @@ export const Route = createFileRoute("/app/site")({
 const semAcento = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function ConteudoDoSite() {
-  const { aba = "artigos", site, situacao, categoria, artigo } = Route.useSearch();
+  const { aba = "artigos", site, situacao, categoria, artigo, pagina } = Route.useSearch();
   const navigate = Route.useNavigate();
   const qSites = useQuery({ queryKey: chavesSite.sites, queryFn: listarSites });
   const atual = qSites.data?.find((s) => s.id === site) ?? qSites.data?.[0] ?? null;
@@ -56,11 +66,23 @@ function ConteudoDoSite() {
     queryFn: () => listarArtigos(atual?.id ?? ""),
     enabled: atual !== null,
   });
+  const qBlocos = useQuery({
+    queryKey: chavesSite.blocos(atual?.id ?? ""),
+    queryFn: () => listarBlocos(atual?.id ?? ""),
+    enabled: atual !== null && (aba === "paginas" || pagina !== undefined),
+  });
   const [texto, setTexto] = useState("");
   const termo = useDeferredValue(texto);
 
   const painel = usePainelNaUrl(
     (id, o) => void navigate({ search: (s) => ({ ...s, artigo: id }), ...o }),
+  );
+  const painelPagina = usePainelNaUrl(
+    (chave, o) =>
+      void navigate({
+        search: (s) => ({ ...s, pagina: chavesBlocos.find((c) => c === chave) }),
+        ...o,
+      }),
   );
 
   const lista = qArtigos.data;
@@ -126,7 +148,7 @@ function ConteudoDoSite() {
           atual &&
           (aba === "midia" ? (
             <MidiaEnviar siteId={atual.id} />
-          ) : (
+          ) : aba === "paginas" ? undefined : (
             <button
               type="button"
               className={classeAcaoPrincipal}
@@ -141,6 +163,7 @@ function ConteudoDoSite() {
             rotulo="Conteúdo do site"
             opcoes={[
               { id: "artigos", rotulo: "Artigos", contagem: lista?.length },
+              { id: "paginas", rotulo: "Páginas" },
               { id: "midia", rotulo: "Mídia" },
             ]}
             ativa={aba}
@@ -167,6 +190,23 @@ function ConteudoDoSite() {
         </p>
       ) : aba === "midia" ? (
         <MidiaGaleria siteId={atual.id} />
+      ) : aba === "paginas" ? (
+        <div className="flex min-w-0 flex-col gap-4">
+          <p className="text-[14.5px] text-hub-suave">
+            Textos da página inicial e da página de perguntas. Botões e destinos dos links ficam
+            fixos. O que não estiver publicado aparece com o texto do código.
+          </p>
+          {qBlocos.isError ? (
+            <EstadoErro
+              titulo="Não foi possível carregar as páginas"
+              aoTentarDeNovo={() => void qBlocos.refetch()}
+            />
+          ) : !qBlocos.data ? (
+            <div className="h-72 animate-pulse rounded-2xl bg-white" aria-busy="true" />
+          ) : (
+            <PaginasLista blocos={qBlocos.data} aoAbrir={(c) => painelPagina.abrir(c)} />
+          )}
+        </div>
       ) : (
         <div className="flex min-w-0 flex-col gap-4">
           <ArtigosFiltros
@@ -203,6 +243,17 @@ function ConteudoDoSite() {
             </>
           )}
         </div>
+      )}
+
+      {atual && pagina && qBlocos.data && (
+        <PaginaEditor
+          key={pagina}
+          siteId={atual.id}
+          dominio={atual.dominio}
+          chave={pagina}
+          bloco={qBlocos.data.find((b) => b.chave === pagina)}
+          aoFechar={painelPagina.fechar}
+        />
       )}
 
       {atual && (

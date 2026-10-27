@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "importar:site": "bun scripts/importar-site.ts"
+    "importar:site": "bun scripts/importar-site.ts",
+    "importar:paginas": "bun scripts/importar-paginas.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"

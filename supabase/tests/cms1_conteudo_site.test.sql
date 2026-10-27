@@ -146,7 +146,8 @@ select is((public.site_bloco_salvar('70000000-0000-0000-0000-000000000001', 'que
   '{"titulo": "Quem somos", "texto": "Equipe pequena."}')) ->> 'situacao', 'rascunho', 'Bloco novo nasce rascunho');
 select throws_ok($$ select public.site_bloco_salvar('70000000-0000-0000-0000-000000000001', 'Chave Ruim!', '{}') $$,
   '22023', 'chave_invalida', 'Chave do bloco fora do padrão');
-select lives_ok($$ select public.site_bloco_salvar('70000000-0000-0000-0000-000000000001', 'inicio.topo', '{"titulo": "[TÍTULO]"}') $$,
+select lives_ok($$ select public.site_bloco_salvar('70000000-0000-0000-0000-000000000001', 'inicio.topo',
+  '{"linha": "Linha", "titulo": "[TÍTULO]", "apoio": "Apoio.", "link_sites": "Sites"}') $$,
   'Bloco em rascunho aceita marcador');
 select throws_ok($$ select public.site_bloco_publicar('70000000-0000-0000-0000-000000000001', 'inicio.topo') $$,
   '22023', 'marcador_pendente', 'Bloco com marcador não é publicado');
