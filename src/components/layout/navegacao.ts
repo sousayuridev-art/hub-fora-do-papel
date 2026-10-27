@@ -1,5 +1,17 @@
 import {
   BarChart3,
+  Briefcase,
+  Clock,
+  ImagePlus,
+  PackagePlus,
+  PenLine,
+  Image,
+  LineChart,
+  MessagesSquare,
+  Newspaper,
+  Package,
+  ShoppingBag,
+  Ticket,
   CheckSquare,
   CreditCard,
   FileText,
@@ -20,6 +32,8 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
+
+import type { ModuloSite } from "@/lib/sitesCliente";
 
 export type ItemMenu = {
   rotulo: string;
@@ -112,4 +126,132 @@ export const menuPortal: SecaoPortal[] = [
 /** Abas que este perfil vê. Sem perfil ainda (carregando), Pagamentos fica de fora. */
 export function secoesDoPortal(perfil: "responsavel" | "equipe" | null): SecaoPortal[] {
   return menuPortal.filter((s) => !s.soResponsavel || perfil === "responsavel");
+}
+
+export type GrupoPortal = { titulo: string | null; itens: SecaoPortal[] };
+
+const foraDoPapel: SecaoPortal[] = [
+  { rotulo: "Aprovações", para: "/portal/aprovacoes", icone: CheckSquare, selo: "aprovacoes" },
+  { rotulo: "Pedidos de ajuste", para: "/portal/pedidos", icone: MessageSquarePlus },
+  {
+    rotulo: "Pagamentos",
+    para: "/portal/pagamentos",
+    icone: CreditCard,
+    selo: "pagamentos",
+    soResponsavel: true,
+  },
+  { rotulo: "Arquivos", para: "/portal/arquivos", icone: Folder, selo: "arquivos" },
+];
+
+/**
+ * Menu do painel do cliente (card PC-1): um menu por tarefa, montado pelos módulos do site.
+ * Sem site ligado (ou se a leitura falhar): só Início, Fora do Papel e Ajustes.
+ * Telas dos cards PC-3 a PC-6 aparecem com "Em breve" até existirem.
+ */
+export function gruposDoPortal(
+  perfil: "responsavel" | "equipe" | null,
+  modulos: ModuloSite[] | null,
+): GrupoPortal[] {
+  const tem = (m: ModuloSite) => modulos?.includes(m) ?? false;
+  const grupos: GrupoPortal[] = [
+    {
+      titulo: null,
+      itens: [{ rotulo: "Início", para: "/portal", icone: Home, exato: true, selo: "inicio" }],
+    },
+  ];
+  if (modulos) {
+    const site: SecaoPortal[] = [];
+    if (tem("paginas"))
+      site.push({
+        rotulo: "Páginas",
+        para: "/portal/site/paginas",
+        icone: FileText,
+        emBreve: true,
+      });
+    if (tem("artigos"))
+      site.push({
+        rotulo: "Artigos",
+        para: "/portal/site/artigos",
+        icone: Newspaper,
+        emBreve: true,
+      });
+    if (tem("portfolio"))
+      site.push({
+        rotulo: "Portfólio",
+        para: "/portal/site/portfolio",
+        icone: Briefcase,
+        emBreve: true,
+      });
+    site.push({
+      rotulo: "Fotos e arquivos",
+      para: "/portal/site/fotos",
+      icone: Image,
+      emBreve: true,
+    });
+    grupos.push({ titulo: "Meu site", itens: site });
+    if (tem("loja"))
+      grupos.push({
+        titulo: "Loja",
+        itens: [
+          { rotulo: "Produtos", para: "/portal/loja/produtos", icone: Package, emBreve: true },
+          { rotulo: "Vendas", para: "/portal/loja/vendas", icone: ShoppingBag, emBreve: true },
+          { rotulo: "Cupons", para: "/portal/loja/cupons", icone: Ticket, emBreve: true },
+        ],
+      });
+    const clientes: SecaoPortal[] = [];
+    if (tem("contatos"))
+      clientes.push({
+        rotulo: "Contatos",
+        para: "/portal/contatos",
+        icone: MessagesSquare,
+        emBreve: true,
+      });
+    clientes.push({
+      rotulo: "Desempenho",
+      para: "/portal/desempenho",
+      icone: LineChart,
+      emBreve: true,
+    });
+    grupos.push({ titulo: "Clientes", itens: clientes });
+  }
+  grupos.push({
+    titulo: "Fora do Papel",
+    itens: foraDoPapel.filter((s) => !s.soResponsavel || perfil === "responsavel"),
+  });
+  grupos.push({
+    titulo: null,
+    itens: [{ rotulo: "Ajustes", para: "/portal/ajustes", icone: Settings, emBreve: true }],
+  });
+  return grupos;
+}
+
+export type AcaoRapida = {
+  id: "capa" | "produto" | "artigo" | "horario" | "pedido";
+  rotulo: string;
+  icone: LucideIcon;
+  emBreve?: true;
+};
+
+/**
+ * Ações rápidas do Início e do botão "Criar" (card PC-1), pelos módulos do site.
+ * "Pedir um ajuste" vem primeiro: é a única que já funciona; as outras chegam com PC-3 a PC-6.
+ */
+export function acoesRapidas(modulos: ModuloSite[] | null): AcaoRapida[] {
+  const acoes: AcaoRapida[] = [
+    { id: "pedido", rotulo: "Pedir um ajuste", icone: MessageSquarePlus },
+  ];
+  if (modulos?.includes("paginas"))
+    acoes.push({ id: "capa", rotulo: "Trocar foto da capa", icone: ImagePlus, emBreve: true });
+  if (modulos?.includes("loja"))
+    acoes.push({ id: "produto", rotulo: "Novo produto", icone: PackagePlus, emBreve: true });
+  if (modulos?.includes("artigos"))
+    acoes.push({ id: "artigo", rotulo: "Escrever artigo", icone: PenLine, emBreve: true });
+  if (modulos)
+    acoes.push({
+      id: "horario",
+      rotulo: "Mudar horário de atendimento",
+      icone: Clock,
+      emBreve: true,
+    });
+  return acoes;
 }

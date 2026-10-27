@@ -242,6 +242,14 @@
 
 /* Capa escura das páginas do cliente (direção A, cards CX-3 e CX-5):
    brilho azul-marinho no canto, um calor âmbar discreto embaixo e grade fina. */
+/* Botão principal do painel do cliente (PC-0/PC-1, escolha do Yuri em 27/10): degradê da marca. */
+.botao-degrade {
+  background-image: linear-gradient(135deg, #ffcf52 0%, #ffb020 48%, #ff7a0a 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 8px 20px -8px rgb(255 122 10 / 0.6);
+}
+
 /* Menu lateral do Hub (22/10): fundo no degradê da marca — azul-marinho no topo, âmbar suave no pé. */
 .menu-marca {
   background-color: #0e1013;

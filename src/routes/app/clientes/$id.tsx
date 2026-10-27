@@ -15,6 +15,7 @@ import { ClienteNumeros } from "@/components/clientes/ClienteNumeros";
 import { ClientePropostas } from "@/components/clientes/ClientePropostas";
 import { ClienteProjetos } from "@/components/clientes/ClienteProjetos";
 import { ClienteAcessoPortal } from "@/components/clientes/ClienteAcessoPortal";
+import { ClienteSite } from "@/components/clientes/ClienteSite";
 import { ClienteFinanceiro } from "@/components/clientes/ClienteFinanceiro";
 import { ClienteAnotacoes } from "@/components/clientes/ClienteAnotacoes";
 import { ClienteLinhaDoTempo } from "@/components/clientes/ClienteLinhaDoTempo";
@@ -186,6 +187,7 @@ function Ficha() {
               contato={c.contact_name}
               empresa={c.company_name}
             />
+            <ClienteSite clienteId={c.id} />
             <ClienteAnotacoes clienteId={c.id} linha={linha.data} />
           </div>
         </div>

@@ -48,6 +48,7 @@ export function FazerPedidoPainel({
   const limpar = useRef(true);
   const seletor = useRef<HTMLInputElement>(null);
   const idLista = useId();
+  const paginaInicial = origem?.contexto?.pagina ?? "";
 
   // Começa limpo depois de um pedido enviado; depois de uma falha, mantém o que foi digitado
   useEffect(() => {
@@ -58,9 +59,9 @@ export function FazerPedidoPainel({
       setArquivos([]);
       limpar.current = false;
     }
-    setPagina(origem?.contexto?.pagina ?? "");
+    setPagina(paginaInicial);
     setAviso(null);
-  }, [aberto, origem]);
+  }, [aberto, paginaInicial]);
 
   function anexar(lista: FileList | null) {
     const novos = Array.from(lista ?? []);

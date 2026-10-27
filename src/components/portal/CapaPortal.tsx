@@ -2,13 +2,14 @@ import type { ReactNode } from "react";
 
 /**
  * Capa escura do Início do portal (direção A, card CX-5), de ponta a ponta da tela.
- * Sobe por baixo do cabeçalho (que fica transparente no topo), para o brilho começar no alto,
+ * No celular sobe por baixo do cabeçalho (transparente no topo); no computador ocupa a área ao lado
+ * do menu lateral (--menu-portal, PC-1), para o brilho começar no alto,
  * e traz o símbolo da marca grande à direita no computador. O conteúdo ocupa a coluna da esquerda.
  */
 export function CapaPortal({ children }: { children: ReactNode }) {
   return (
-    <section className="capa-escura relative left-1/2 -mt-[76px] w-screen -translate-x-1/2 md:-mt-[120px]">
-      <div className="relative mx-auto max-w-[1440px] px-4 pb-16 pt-[84px] md:px-6 md:pb-[84px] md:pt-[120px] lg:px-16">
+    <section className="capa-escura relative left-1/2 -mt-[76px] w-[calc(100vw-var(--menu-portal,0px))] -translate-x-1/2 md:-mt-12">
+      <div className="relative mx-auto max-w-[1440px] px-4 pb-16 pt-[84px] md:px-8 md:pb-[84px] md:pt-[72px] lg:px-14">
         <div
           aria-hidden="true"
           className="absolute right-[150px] top-[170px] size-60 max-lg:hidden"
@@ -25,8 +26,8 @@ export function CapaPortal({ children }: { children: ReactNode }) {
 /** Folha clara com cantos arredondados que sobe por cima da capa. */
 export function FolhaPortal({ children }: { children: ReactNode }) {
   return (
-    <div className="relative left-1/2 -mt-9 min-h-[50dvh] w-screen -translate-x-1/2 rounded-t-[28px] bg-portal-fundo shadow-[0_-20px_50px_rgba(14,16,19,0.25)] md:rounded-t-[32px]">
-      <div className="mx-auto max-w-[1440px] px-4 pt-7 md:px-6 md:pt-10 lg:px-16">{children}</div>
+    <div className="relative left-1/2 -mt-9 min-h-[50dvh] w-[calc(100vw-var(--menu-portal,0px))] -translate-x-1/2 rounded-t-[28px] bg-portal-fundo shadow-[0_-20px_50px_rgba(14,16,19,0.25)] md:rounded-t-[32px]">
+      <div className="mx-auto max-w-[1440px] px-4 pt-7 md:px-8 md:pt-10 lg:px-14">{children}</div>
     </div>
   );
 }

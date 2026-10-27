@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { SituacaoFase, SituacaoProjeto } from "@/lib/projetos";
 import { enviarDoPortal, tipoDoArquivo } from "@/lib/materiais";
+import type { SitePortal } from "@/lib/sitesCliente";
 import type { ContextoPedido, SituacaoPedido } from "@/lib/pedidos";
 
 /** Portal do cliente (card S3): tudo pelas RPCs portal_*, que só devolvem a empresa de quem entrou. */
@@ -70,6 +71,8 @@ export type InicioPortal = {
     modulos?: ModuloPortal[];
   } | null;
   acoes: AcaoPortal[];
+  /** Primeiro site da empresa (card PC-1); null quando não há site ligado. */
+  site?: SitePortal | null;
 };
 
 /** Módulo como o cliente vê (sem link de testes nem rodadas). */
