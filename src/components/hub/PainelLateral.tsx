@@ -15,6 +15,7 @@ export function PainelLateral({
   descricao,
   children,
   rodape,
+  largo = false,
 }: {
   aberto: boolean;
   aoMudar: (aberto: boolean) => void;
@@ -22,6 +23,8 @@ export function PainelLateral({
   descricao?: string | undefined;
   children: ReactNode;
   rodape?: ReactNode;
+  /** Editor com mais conteúdo (ex.: artigo do site, CMS-2): mais largo no computador e mais alto no celular. */
+  largo?: boolean;
 }) {
   const celular = useIsMobile();
   return (
@@ -30,7 +33,9 @@ export function PainelLateral({
         side={celular ? "bottom" : "right"}
         className={cn(
           "flex flex-col gap-0 bg-white p-0 text-hub-tinta",
-          celular ? "max-h-[85dvh] rounded-t-3xl" : "w-full sm:max-w-[460px]",
+          celular
+            ? cn("rounded-t-3xl", largo ? "h-[92dvh] max-h-[92dvh]" : "max-h-[85dvh]")
+            : cn("w-full", largo ? "sm:max-w-[880px]" : "sm:max-w-[460px]"),
         )}
       >
         {celular && (

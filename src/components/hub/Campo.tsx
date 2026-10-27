@@ -2,7 +2,7 @@ import { useId, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-const classeEntrada =
+export const classeEntrada =
   "w-full min-w-0 rounded-xl border border-[#DADAD3] bg-white px-3 text-base text-hub-tinta outline-none placeholder:text-[#9A9DA3] focus:border-hub-tinta focus:ring-2 focus:ring-hub-tinta/10 disabled:text-hub-suave md:text-[15px]";
 
 type Base = { rotulo: string; ajuda?: ReactNode; className?: string | undefined };

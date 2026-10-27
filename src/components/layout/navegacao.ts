@@ -5,6 +5,7 @@ import {
   FileText,
   Folder,
   FolderKanban,
+  Globe,
   Home,
   Inbox,
   KanbanSquare,
@@ -50,6 +51,8 @@ export const menuOperador: GrupoMenu[] = [
       { rotulo: "Reuniões", para: "/app/reunioes", icone: Video },
       { rotulo: "Propostas", para: "/app/propostas", icone: FileText },
       { rotulo: "Tráfego pago", para: "/app/trafego", icone: Megaphone },
+      // CMS-2: artigos e imagens do site (só o dono; a área /app já exige o papel)
+      { rotulo: "Conteúdo do site", para: "/app/site", icone: Globe },
     ],
   },
   {
