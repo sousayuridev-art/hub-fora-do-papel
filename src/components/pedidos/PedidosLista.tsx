@@ -6,7 +6,7 @@ import { diaMes, moeda } from "@/lib/formatar";
 import {
   proximoPasso,
   rotuloClassificacao,
-  rotuloOrigem,
+  origemDoPedido,
   rotuloSituacaoPedido,
   tomSituacaoPedido,
   type PedidoLinha,
@@ -63,7 +63,7 @@ export function PedidosLista({
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate font-semibold">{p.title}</span>
                     <span className="text-[13px] text-hub-suave">
-                      {rotuloOrigem[p.origin]} · {diaMes(p.created_at)}
+                      {origemDoPedido(p)} · {diaMes(p.created_at)}
                     </span>
                   </span>
                   <span className="min-w-0 truncate text-[14px]">

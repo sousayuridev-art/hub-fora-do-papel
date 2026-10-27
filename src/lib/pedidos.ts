@@ -5,7 +5,21 @@ import { supabase } from "@/lib/supabase";
 export type SituacaoPedido =
   "recebido" | "em_analise" | "aguardando_cliente" | "fazendo" | "pronto" | "recusado";
 export type Classificacao = "escopo" | "mensalidade" | "adicional";
-export type Origem = "portal" | "whatsapp" | "reuniao" | "hub";
+export type Origem = "portal" | "painel" | "whatsapp" | "reuniao" | "hub";
+
+/** Onde o cliente estava ao pedir (card PC-2). */
+export type ContextoPedido = { pagina?: string; secao?: string; tela?: string };
+
+export type AnexoPedido = {
+  id: string;
+  arquivo: string;
+  caminho: string;
+  mime: string | null;
+  tamanho: number | null;
+};
+
+/** Origens que o Hub registra; portal e painel são só do cliente. */
+export type OrigemDoHub = Exclude<Origem, "portal" | "painel">;
 
 export type Pedido = {
   id: string;
@@ -32,6 +46,11 @@ export type PedidoLinha = Pedido & {
   company_name: string;
   contact_name: string | null;
   project_name: string | null;
+  site_id: string | null;
+  site_nome: string | null;
+  site_dominio: string | null;
+  contexto: ContextoPedido | null;
+  anexos: AnexoPedido[];
 };
 
 export type ResumoPedidos = {
@@ -78,10 +97,17 @@ export const rotuloClassificacao: Record<Classificacao, string> = {
 
 export const rotuloOrigem: Record<Origem, string> = {
   portal: "Portal",
+  painel: "Painel",
   whatsapp: "WhatsApp",
   reuniao: "Reunião",
   hub: "Hub",
 };
+
+/** "Painel · Página inicial" quando o cliente disse a página; senão só a origem. */
+export function origemDoPedido(p: Pick<PedidoLinha, "origin" | "contexto">): string {
+  const pagina = p.contexto?.pagina;
+  return p.origin === "painel" && pagina ? `Painel · ${pagina}` : rotuloOrigem[p.origin];
+}
 
 export const tomSituacaoPedido: Record<
   SituacaoPedido,
@@ -136,7 +162,7 @@ export const registrarPedido = (v: {
   clienteId: string;
   titulo: string;
   descricao: string;
-  origem: Exclude<Origem, "portal">;
+  origem: OrigemDoHub;
   projetoId: string | null;
 }) =>
   rpc<{ id: string; codigo: string }>("pedido_registrar", {

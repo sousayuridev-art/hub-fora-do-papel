@@ -5,11 +5,12 @@ import { CampoArea } from "@/components/hub/Campo";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { Selo } from "@/components/hub/Selo";
+import { PedidoOnde } from "@/components/pedidos/PedidoOnde";
 import { Button } from "@/components/ui/button";
 import { diaComHora, moeda } from "@/lib/formatar";
 import {
   rotuloClassificacao,
-  rotuloOrigem,
+  origemDoPedido,
   rotuloSituacaoPedido,
   tomSituacaoPedido,
   type Classificacao,
@@ -159,10 +160,11 @@ export function PedidoPainel({
           <div className="flex flex-wrap items-center gap-2">
             <Selo tom={tomSituacaoPedido[p.status]}>{rotuloSituacaoPedido[p.status]}</Selo>
             <span className="text-[13.5px] text-hub-suave">
-              {rotuloOrigem[p.origin]} · {diaComHora(p.created_at)}
+              {origemDoPedido(p)} · {diaComHora(p.created_at)}
             </span>
           </div>
           {p.description && <p className="whitespace-pre-line text-[15px]">{p.description}</p>}
+          <PedidoOnde p={p} />
           {p.project_id && (
             <Link
               to="/app/projetos/$id"

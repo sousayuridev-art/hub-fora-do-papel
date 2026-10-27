@@ -11,6 +11,7 @@ import {
   pedirAjuste,
   type AprovacoesPortal,
   type InicioPortal,
+  type NovoPedido,
   type PendenciasDoPortal,
 } from "@/lib/portal";
 
@@ -161,8 +162,9 @@ export function useMutacoesPortal() {
   });
 
   const pedido = useMutation({
-    mutationFn: (v: { titulo: string; descricao: string }) => fazerPedido(v.titulo, v.descricao),
+    mutationFn: (v: NovoPedido) => fazerPedido(v),
     onSuccess: (r) => ok(`Pedido ${r.codigo} recebido. Respondemos em breve.`),
+    // O painel continua aberto com o texto; "Tentar de novo" não reenvia anexos que já subiram
     onError: (e, v) => erro(falhou(e), { tentarDeNovo: () => pedido.mutate(v) }),
     onSettled: recarregar,
   });

@@ -5,13 +5,13 @@ import { BotoesPainel } from "@/components/hub/BotoesPainel";
 import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { chavesClientes, listarClientes } from "@/lib/funil";
-import type { Origem } from "@/lib/pedidos";
+import type { OrigemDoHub } from "@/lib/pedidos";
 
 export type PedidoNovo = {
   clienteId: string;
   titulo: string;
   descricao: string;
-  origem: Exclude<Origem, "portal">;
+  origem: OrigemDoHub;
   projetoId: string | null;
 };
 
@@ -33,7 +33,7 @@ export function RegistrarPedidoPainel({
   const [cliente, setCliente] = useState("");
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [origem, setOrigem] = useState<Exclude<Origem, "portal">>("whatsapp");
+  const [origem, setOrigem] = useState<OrigemDoHub>("whatsapp");
   useEffect(() => {
     if (aberto) {
       setCliente("");
@@ -90,7 +90,7 @@ export function RegistrarPedidoPainel({
             </button>
           </p>
         )}
-        <CampoEscolha<Exclude<Origem, "portal">>
+        <CampoEscolha<OrigemDoHub>
           rotulo="Chegou por"
           valor={origem}
           aoMudar={setOrigem}
