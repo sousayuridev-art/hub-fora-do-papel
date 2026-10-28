@@ -5,12 +5,16 @@ import { toast } from "sonner";
  * - ok: confirma a ação; pode oferecer "Desfazer".
  * - erro: explica em português e pode oferecer "Tentar de novo".
  */
-type OkOpcoes = { desfazer?: () => void };
+type OkOpcoes = { desfazer?: () => void; acao?: { rotulo: string; aoClicar: () => void } };
 type ErroOpcoes = { tentarDeNovo?: () => void; detalhe?: string };
 
 export function ok(mensagem: string, opcoes: OkOpcoes = {}) {
   toast.success(mensagem, {
-    action: opcoes.desfazer ? { label: "Desfazer", onClick: opcoes.desfazer } : undefined,
+    action: opcoes.desfazer
+      ? { label: "Desfazer", onClick: opcoes.desfazer }
+      : opcoes.acao
+        ? { label: opcoes.acao.rotulo, onClick: opcoes.acao.aoClicar }
+        : undefined,
   });
 }
 

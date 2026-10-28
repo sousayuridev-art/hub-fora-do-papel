@@ -242,6 +242,14 @@
 
 /* Capa escura das páginas do cliente (direção A, cards CX-3 e CX-5):
    brilho azul-marinho no canto, um calor âmbar discreto embaixo e grade fina. */
+/* Editor de páginas (PC-4): o Puck envolve tudo num div próprio; ele precisa ocupar a tela. */
+.editor-pagina > .Puck {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+}
+
 /* Botão principal do painel do cliente (PC-0/PC-1, escolha do Yuri em 27/10): degradê da marca. */
 .botao-degrade {
   background-image: linear-gradient(135deg, #ffcf52 0%, #ffb020 48%, #ff7a0a 100%);
@@ -255,7 +263,11 @@
   background-color: #0e1013;
   background-image:
     radial-gradient(ellipse 140% 42% at 0% 0%, rgb(46 72 150 / 0.5) 0, rgb(46 72 150 / 0) 72%),
-    radial-gradient(ellipse 110% 30% at 100% 100%, rgb(255 176 32 / 0.11) 0, rgb(255 176 32 / 0) 72%);
+    radial-gradient(
+      ellipse 110% 30% at 100% 100%,
+      rgb(255 176 32 / 0.11) 0,
+      rgb(255 176 32 / 0) 72%
+    );
 }
 
 .capa-escura {

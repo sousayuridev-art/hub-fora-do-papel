@@ -1,11 +1,10 @@
-import { useNavigate } from "@tanstack/react-router";
-
 import type { AcaoRapida } from "@/components/layout/navegacao";
+import { useAbrirAcao } from "@/components/portal/useAbrirAcao";
 import { cn } from "@/lib/utils";
 
-/** Ações rápidas do Início (card PC-1). As que dependem dos cards PC-3 a PC-6 aparecem com "Em breve". */
+/** Ações rápidas do Início (card PC-1). As que dependem de cards ainda não feitos aparecem com "Em breve". */
 export function AcoesRapidas({ acoes, aoPedir }: { acoes: AcaoRapida[]; aoPedir: () => void }) {
-  const navigate = useNavigate();
+  const abrir = useAbrirAcao(aoPedir);
   return (
     <section aria-labelledby="acoes-t" className="flex flex-col gap-3">
       <h2 id="acoes-t" className="text-[18px] font-semibold md:text-[19px]">
@@ -32,9 +31,7 @@ export function AcoesRapidas({ acoes, aoPedir }: { acoes: AcaoRapida[]; aoPedir:
               ) : (
                 <button
                   type="button"
-                  onClick={() =>
-                    a.para ? void navigate({ to: a.para, search: { artigo: "novo" } }) : aoPedir()
-                  }
+                  onClick={() => abrir(a)}
                   className={cn(
                     classe,
                     "border-hub-borda bg-white hover:border-hub-tinta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hub-tinta",

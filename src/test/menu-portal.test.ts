@@ -46,7 +46,8 @@ describe("PC-1 · menu do painel pelos módulos do site", () => {
       (g) => g.itens,
     );
     const emBreve = itens.filter((i) => i.emBreve).map((i) => i.rotulo);
-    expect(emBreve).toContain("Páginas");
+    expect(emBreve).not.toContain("Páginas");
+    expect(emBreve).toContain("Produtos");
     expect(emBreve).not.toContain("Aprovações");
     expect(emBreve).not.toContain("Início");
     expect(emBreve).not.toContain("Fotos e arquivos");
@@ -64,9 +65,6 @@ describe("PC-1 · ações rápidas", () => {
     expect(acoesRapidas(null).map((a) => a.id)).toEqual(["pedido"]);
     expect(acoesRapidas(["loja"]).find((a) => a.id === "pedido")?.emBreve).toBeUndefined();
     // PC-3: escrever artigo já funciona e abre a tela de artigos
-    expect(acoesRapidas(["artigos"]).find((a) => a.id === "artigo")).toMatchObject({
-      para: "/portal/site/artigos",
-    });
     expect(acoesRapidas(["artigos"]).find((a) => a.id === "artigo")?.emBreve).toBeUndefined();
   });
 });
