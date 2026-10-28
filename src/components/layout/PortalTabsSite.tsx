@@ -4,6 +4,7 @@ import { Globe, Home, Menu, MessagesSquare, Plus, type LucideIcon } from "lucide
 
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import type { AcaoRapida, GrupoPortal, SecaoPortal } from "@/components/layout/navegacao";
+import { useAbrirAcao } from "@/components/portal/useAbrirAcao";
 import type { PendenciasPortal } from "@/hooks/usePendenciasPortal";
 import { cn } from "@/lib/utils";
 
@@ -87,6 +88,7 @@ export function PortalTabsSite({
 }) {
   const [gaveta, setGaveta] = useState<Gaveta>(null);
   const navigate = useNavigate();
+  const abrir = useAbrirAcao(() => void navigate({ to: "/portal/pedidos", search: { novo: 1 } }));
   const grupo = (t: string) => grupos.find((g) => g.titulo === t);
   const site = grupo("Meu site");
   const clientes = grupo("Clientes");
@@ -179,8 +181,7 @@ export function PortalTabsSite({
                     className={cn(classe, "hover:bg-hub-fundo active:bg-[#E9E9E3]")}
                     onClick={() => {
                       fechar();
-                      if (a.para) void navigate({ to: a.para, search: { artigo: "novo" } });
-                      else void navigate({ to: "/portal/pedidos", search: { novo: 1 } });
+                      abrir(a);
                     }}
                   >
                     <Icone className="size-5 shrink-0 text-hub-suave" aria-hidden="true" />

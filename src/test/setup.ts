@@ -18,3 +18,17 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => {},
   }),
 });
+
+// O editor de páginas (Puck/dnd-kit) usa ResizeObserver ao carregar; o jsdom não tem.
+class ResizeObserverFalso {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+if (!("ResizeObserver" in window))
+  Object.defineProperty(window, "ResizeObserver", { writable: true, value: ResizeObserverFalso });
+if (!("ResizeObserver" in globalThis))
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    writable: true,
+    value: ResizeObserverFalso,
+  });

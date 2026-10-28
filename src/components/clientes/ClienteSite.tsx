@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { SitePaginasHub } from "@/components/clientes/SitePaginasHub";
 import { CampoEscolha, CampoTexto } from "@/components/hub/Campo";
 import { classeBotaoSecundario } from "@/lib/estilos";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
@@ -207,6 +208,7 @@ export function ClienteSite({ clienteId }: { clienteId: string }) {
               </button>
             )}
           </div>
+          {ligado?.modulos.includes("paginas") && <SitePaginasHub siteId={ligado.id} />}
         </>
       )}
     </section>
