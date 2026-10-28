@@ -76,5 +76,8 @@ describe("Revisão de segurança · links das seções", () => {
     expect(linkSeguro("/contato")).toBe("/contato");
     expect(linkSeguro("tel:+55 79 99999-0001")).toBe("tel:+55 79 99999-0001");
     expect(linkSeguro("")).toBe("#");
+    expect(linkSeguro("//golpe.test")).toBe("#");
+    expect(linkSeguro("/\\golpe.test")).toBe("#");
+    expect(linkSeguro("/")).toBe("/");
   });
 });

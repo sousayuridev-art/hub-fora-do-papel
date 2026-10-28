@@ -14,7 +14,12 @@ export type Negocio = {
 
 export type Google = { titulo?: string; descricao?: string };
 
-export type PessoaEquipe = { nome: string | null; email: string; perfil: "responsavel" | "equipe" };
+/** E-mail só vem para o dono e o responsável (revisão de segurança, rodada 2). */
+export type PessoaEquipe = {
+  nome: string | null;
+  email: string | null;
+  perfil: "responsavel" | "equipe";
+};
 
 export type AjustesSite = {
   negocio: Negocio;

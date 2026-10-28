@@ -274,6 +274,8 @@ const mensagens: Record<string, string> = {
   resumo_longo: "O resumo passa de 300 caracteres.",
   campo_longo: "O tempo de leitura ou o autor estão longos demais.",
   capa_invalida: "A capa precisa ser um dos desenhos ou um endereço https:// de imagem.",
+  artigo_invalido:
+    "A capa precisa ser uma foto de Fotos e arquivos, e os links do texto precisam começar com https://, / ou mailto:.",
   falta_seo: "Para publicar, preencha o título para o Google, a descrição e o resumo.",
   corpo_incompleto: "Para publicar, preencha os 3 pontos e escreva pelo menos uma seção.",
   marcador_pendente: "Há marcador pendente, como [PREÇO]. Troque pelo texto final antes.",

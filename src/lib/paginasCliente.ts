@@ -74,7 +74,9 @@ type PaginaRpc = Omit<PaginaCompleta, "caminho" | "nome"> & { caminho: string; n
 
 export const salvarRascunho = (id: string, dados: DadosPagina, versao: number) =>
   rpc<PaginaRpc>("site_pagina_salvar_rascunho", { p_id: id, p_dados: dados, p_versao: versao });
-export const publicarPagina = (id: string) => rpc<PaginaRpc>("site_pagina_publicar", { p_id: id });
+/** Publica conferindo a versão que a pessoa está vendo (outra pessoa salvou depois: recusa). */
+export const publicarPagina = (id: string, versao: number) =>
+  rpc<PaginaRpc>("site_pagina_publicar", { p_id: id, p_versao: versao });
 export const criarPagina = (siteId: string, nome: string, caminho: string) =>
   rpc<PaginaRpc>("site_pagina_criar", { p_site: siteId, p_nome: nome, p_caminho: caminho });
 export const definirSecoes = (siteId: string, secoes: SecaoPermitida[]) =>
@@ -117,6 +119,7 @@ export function mensagemDaPagina(e: unknown): string | null {
     caminho_invalido:
       "O endereço precisa começar com / e ter só letras minúsculas, números e hífens.",
     nome_obrigatorio: "Dê um nome à página.",
+    muitas_tentativas: "Muitas publicações seguidas. Espere alguns minutos e publique de novo.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;

@@ -32,7 +32,7 @@ export function useRascunho(pagina: PaginaCompleta) {
   const salvar = useMutation({
     mutationFn: (d: DadosPagina) => salvarRascunho(pagina.id, d, versao.current),
   });
-  const publicar = useMutation({ mutationFn: () => publicarPagina(pagina.id) });
+  const publicar = useMutation({ mutationFn: () => publicarPagina(pagina.id, versao.current) });
 
   const gravar = useCallback(async (): Promise<boolean> => {
     if (conflito.current) return false;
@@ -82,14 +82,28 @@ export function useRascunho(pagina: PaginaCompleta) {
     return gravar();
   }, [gravar]);
 
-  // Saindo do editor com mudança pendente: grava sem esperar
+  // Saindo do editor: grava o que falta sem esperar e descarta a cópia guardada da página,
+  // para quem reabrir receber a versão nova (e não um falso "alterada por outra pessoa").
   useEffect(
     () => () => {
       if (relogio.current) clearTimeout(relogio.current);
-      if (!conflito.current && atual.current !== gravado.current)
-        void salvarRascunho(pagina.id, atual.current, versao.current).catch(() => undefined);
+      const pendente = !conflito.current && atual.current !== gravado.current;
+      const fim = pendente
+        ? salvarRascunho(pagina.id, atual.current, versao.current).then(
+            () => undefined,
+            (e: unknown) => {
+              erro(
+                `A última mudança da página não foi salva. ${mensagemDaPagina(e) ?? mensagemDeErro(e)}`,
+              );
+            },
+          )
+        : Promise.resolve();
+      void fim.finally(() => {
+        void qc.invalidateQueries({ queryKey: chavesPaginas.pagina(pagina.id) });
+        void qc.invalidateQueries({ queryKey: chavesPaginas.doSite(pagina.site_id) });
+      });
     },
-    [pagina.id],
+    [pagina.id, pagina.site_id, qc],
   );
 
   async function aoPublicar(): Promise<boolean> {

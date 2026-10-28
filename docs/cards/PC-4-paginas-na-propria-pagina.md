@@ -17,7 +17,7 @@
 - `site_paginas` (id, site_id, tenant_id, nome, caminho único por site, rascunho jsonb, publicado jsonb, publicado_em, atualizado_em, versao int). O jsonb segue o formato de dados do Puck (`root` + `content[]` com `type` e `props`).
 - `site_paginas_versoes` (pagina_id, tenant_id, dados jsonb, publicado_em, publicado_por) — só inserção, na publicação.
 - `site_secoes_permitidas` (site_id, tipo, travada bool): quais seções o cliente pode adicionar e quais ficam fixas (ex.: rodapé travado). Definido pelo Yuri no Hub.
-- RPCs: `site_pagina_salvar_rascunho(p_id, p_dados, p_versao)` — recusa se a versão mudou (`pagina_alterada`, outra pessoa editou); `site_pagina_publicar(p_id)` — valida que só há seções permitidas, que nenhuma seção travada foi removida ou movida, limites de caracteres por campo e nenhum marcador `[ ]`; copia para `publicado`, grava versão e evento `pagina.publicada`.
+- RPCs: `site_pagina_salvar_rascunho(p_id, p_dados, p_versao)` — recusa se a versão mudou (`pagina_alterada`, outra pessoa editou); `site_pagina_publicar(p_id, p_versao)` — recusa se a versão vista não é a atual (`pagina_alterada`, revisão de 28/10); valida que só há seções permitidas, que nenhuma seção travada foi removida ou movida, limites de caracteres por campo e nenhum marcador `[ ]`; copia para `publicado`, grava versão e evento `pagina.publicada`. Exceção registrada: o rascunho automático (a cada 1,2 s) não grava evento em `event_outbox`, para não encher a fila; o evento sai na publicação.
 - Leitura pública: `site_publico_pagina(p_dominio, p_caminho)` devolve só `publicado`.
 - Permissão de edição: `pode_editar_site` (PC-3).
 

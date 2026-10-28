@@ -81,7 +81,7 @@ select is((public.site_midia_descrever('30000000-0000-0000-0000-000000000001/fac
 -- Usa a foto como capa
 select lives_ok(format($$ select public.site_artigo_salvar('30000000-0000-0000-0000-000000000001', %L) $$,
   jsonb_build_object('id', (select valor ->> 'id' from t where chave = 'pub'),
-    'capa', 'https://abc.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000001/fachada.webp')),
+    'capa', 'https://cjzzbpqwlpjvlawllfqy.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000001/fachada.webp')),
   'Usa a foto na capa do artigo');
 select is((select (e -> 'usos' -> 0 ->> 'nome') || ' / ' || (e ->> 'descricao')
              from jsonb_array_elements(public.site_midia_lista('30000000-0000-0000-0000-000000000001')) e),

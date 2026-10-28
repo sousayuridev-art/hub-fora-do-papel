@@ -57,11 +57,11 @@ select throws_ok($$ select public.site_pagina_salvar_rascunho('40000000-0000-000
   '22023', 'pagina_invalida', 'Foto de fora do site-midia é recusada');
 select throws_ok($$ select public.site_pagina_salvar_rascunho('40000000-0000-0000-0000-000000000001',
   '{"root": {"props": {}}, "content": [{"type": "Capa", "props": {"id": "c1", "titulo": "Oi",
-    "foto": "https://abc.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000009/x.webp"}}]}', 1) $$,
+    "foto": "https://cjzzbpqwlpjvlawllfqy.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000009/x.webp"}}]}', 1) $$,
   '22023', 'pagina_invalida', 'Foto de outro site é recusada');
 select lives_ok($$ select public.site_pagina_salvar_rascunho('40000000-0000-0000-0000-000000000001',
   '{"root": {"props": {}}, "content": [{"type": "Capa", "props": {"id": "c1", "titulo": "Oi", "link": "https://wa.me/5579999990001",
-    "foto": "https://abc.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000001/capa.webp"}}]}', 1) $$,
+    "foto": "https://cjzzbpqwlpjvlawllfqy.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000001/capa.webp"}}]}', 1) $$,
   'Link https e foto do próprio site passam');
 reset role;
 
