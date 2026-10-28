@@ -27,6 +27,8 @@ export function CampoTexto({
   max?: string;
   min?: string;
   required?: boolean;
+  /** id de um <datalist> com sugestões */
+  list?: string;
 }) {
   const id = useId();
   return (

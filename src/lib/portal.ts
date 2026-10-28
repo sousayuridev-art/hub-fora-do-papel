@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { SituacaoFase, SituacaoProjeto } from "@/lib/projetos";
-import type { SituacaoPedido } from "@/lib/pedidos";
+import { enviarDoPortal, tipoDoArquivo } from "@/lib/materiais";
+import type { ContextoPedido, SituacaoPedido } from "@/lib/pedidos";
 
 /** Portal do cliente (card S3): tudo pelas RPCs portal_*, que só devolvem a empresa de quem entrou. */
 
@@ -163,11 +164,54 @@ export const decidirAdicional = (id: string, aprova: boolean, comentario: string
     p_comentario: comentario || null,
   });
 export const marcarPendenciaFeita = (id: string) => rpc("portal_pendencia_feita", { p_id: id });
-export const fazerPedido = (titulo: string, descricao: string) =>
-  rpc<{ id: string; codigo: string }>("portal_pedido_criar", {
-    p_titulo: titulo,
-    p_descricao: descricao || null,
+/** Anexos do pedido (card PC-2): até 3, só print ou PDF, até 5 MB cada. */
+export const anexosDoPedido = {
+  maximo: 3,
+  tamanho: 5 * 1024 * 1024,
+  tipos: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
+  aceitar: ".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf",
+};
+
+/** Confere o anexo antes de enviar; devolve o motivo da recusa ou null. */
+export function problemaDoAnexo(f: File): string | null {
+  if (!anexosDoPedido.tipos.includes(tipoDoArquivo(f)))
+    return `${f.name}: use foto (JPG, PNG ou WebP) ou PDF.`;
+  if (f.size > anexosDoPedido.tamanho) return `${f.name}: passa de 5 MB.`;
+  return null;
+}
+
+export type NovoPedido = {
+  titulo: string;
+  descricao: string;
+  siteId?: string | null;
+  contexto?: ContextoPedido | null;
+  arquivos?: File[];
+};
+
+// Arquivo já enviado não sobe de novo quando o cliente toca em "Tentar de novo"
+const anexosEnviados = new WeakMap<File, string>();
+
+export async function fazerPedido(v: NovoPedido) {
+  const anexos: string[] = [];
+  for (const arquivo of v.arquivos ?? []) {
+    const problema = problemaDoAnexo(arquivo);
+    if (problema) throw new Error(problema);
+    let id = anexosEnviados.get(arquivo);
+    if (!id) {
+      id = (await enviarDoPortal({ arquivo, titulo: `Anexo: ${v.titulo}`, pendenciaId: null })).id;
+      anexosEnviados.set(arquivo, id);
+    }
+    anexos.push(id);
+  }
+  const contexto = v.contexto && Object.values(v.contexto).some(Boolean) ? v.contexto : null;
+  return rpc<{ id: string; codigo: string }>("portal_pedido_criar", {
+    p_titulo: v.titulo,
+    p_descricao: v.descricao || null,
+    p_site: v.siteId ?? null,
+    p_contexto: contexto,
+    p_anexos: anexos.length ? anexos : null,
   });
+}
 
 /** Etapa atual (0 a 4); -1 quando recusado. Depois do sim, o adicional já conta como "Fazendo". */
 export function etapaDoPedido(
@@ -206,6 +250,10 @@ export function mensagemDoPortal(e: unknown): string | null {
     pedido_indisponivel: "Esse pedido não está mais esperando sua decisão.",
     muitas_tentativas: "Você já fez muitos pedidos hoje. Fale com o seu responsável pelo WhatsApp.",
     titulo_obrigatorio: "Escreva o que você precisa (pelo menos 2 letras).",
+    site_de_outra_empresa: "Esse site não é da sua empresa. Recarregue a página.",
+    muitos_anexos: "Anexe no máximo 3 arquivos.",
+    anexo_invalido: "Um dos anexos não serve: use foto ou PDF de até 5 MB e tente de novo.",
+    arquivo_nao_chegou: "O anexo não chegou. Confira a internet e tente de novo.",
     aprovacao_inexistente: "Essa entrega não está mais disponível.",
     pendencia_inexistente: "Essa pendência não está mais disponível.",
     sem_permissao_financeiro:

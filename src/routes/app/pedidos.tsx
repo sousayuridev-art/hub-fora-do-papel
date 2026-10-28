@@ -19,8 +19,10 @@ import {
   chavesPedidos,
   listarPedidos,
   resumoPedidos,
+  rotuloOrigem,
   situacoesDaAba,
   type AbaPedidos,
+  type Origem,
 } from "@/lib/pedidos";
 import { chavesPrecos, lerPrecos } from "@/lib/precos";
 
@@ -31,6 +33,7 @@ const busca = z.object({
     .catch(undefined),
   pedido: z.string().uuid().optional().catch(undefined),
   cliente: z.string().uuid().optional().catch(undefined),
+  origem: z.enum(["portal", "painel", "whatsapp", "reuniao", "hub"]).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/app/pedidos")({
@@ -40,12 +43,18 @@ export const Route = createFileRoute("/app/pedidos")({
 });
 
 function Pedidos() {
-  const { aba = "todos", pedido, cliente: clienteNaUrl } = Route.useSearch();
+  const { aba = "todos", pedido, cliente: clienteNaUrl, origem: origemNaUrl } = Route.useSearch();
   const navigate = Route.useNavigate();
   const cliente = clienteNaUrl ?? "todos";
   const setCliente = (v: string) =>
     void navigate({
       search: (s) => ({ ...s, cliente: v === "todos" ? undefined : v }),
+      replace: true,
+    });
+  const origem: Origem | "todas" = origemNaUrl ?? "todas";
+  const setOrigem = (v: Origem | "todas") =>
+    void navigate({
+      search: (s) => ({ ...s, origem: v === "todas" ? undefined : v }),
       replace: true,
     });
   const [texto, setTexto] = useState("");
@@ -74,9 +83,10 @@ function Pedidos() {
       (p) =>
         (!sit || sit.includes(p.status)) &&
         (cliente === "todos" || p.client_id === cliente) &&
+        (origem === "todas" || p.origin === origem) &&
         (!termo || `${p.code} ${p.title} ${p.company_name}`.toLowerCase().includes(termo)),
     );
-  }, [lista.data, aba, cliente, termo]);
+  }, [lista.data, aba, cliente, origem, termo]);
 
   const aberto = pedido ? ((lista.data ?? []).find((p) => p.id === pedido) ?? null) : null;
   // Abrir o pedido cria entrada no histórico; fechar pela tela não (RD-9)
@@ -130,6 +140,19 @@ function Pedidos() {
           valor={cliente}
           aoMudar={setCliente}
           opcoes={[{ id: "todos", rotulo: "Todos os clientes" }, ...clientes]}
+        />
+        <CampoEscolha<Origem | "todas">
+          className="sm:w-48"
+          rotulo="Origem"
+          valor={origem}
+          aoMudar={setOrigem}
+          opcoes={[
+            { id: "todas", rotulo: "Todas" },
+            ...(Object.keys(rotuloOrigem) as Origem[]).map((id) => ({
+              id,
+              rotulo: rotuloOrigem[id],
+            })),
+          ]}
         />
         <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border border-[#DADAD3] bg-white px-3 focus-within:border-hub-tinta sm:max-w-sm sm:ml-auto">
           <Search className="size-4 shrink-0 text-hub-suave" aria-hidden="true" />

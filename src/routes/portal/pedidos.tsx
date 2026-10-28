@@ -123,7 +123,11 @@ function Pedidos() {
         </aside>
       </div>
 
-      <FazerPedidoPainel aberto={aberto} aoMudar={setAberto} aoEnviar={(v) => m.pedido.mutate(v)} />
+      <FazerPedidoPainel
+        aberto={aberto}
+        aoMudar={setAberto}
+        aoEnviar={(v) => m.pedido.mutateAsync(v)}
+      />
     </div>
   );
 }
