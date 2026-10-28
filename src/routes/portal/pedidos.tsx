@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
@@ -8,9 +9,14 @@ import { FazerPedidoPainel } from "@/components/portal/FazerPedidoPainel";
 import { PedidoPortalCartao } from "@/components/portal/PedidoPortalCartao";
 import { TituloPortal } from "@/components/portal/TituloPortal";
 import { useMutacoesPortal } from "@/components/portal/useMutacoesPortal";
+import { useSitesPortal } from "@/hooks/useSitesPortal";
 import { chavesPortal, pedidosDoPortal } from "@/lib/portal";
 
+// ?novo=1 abre o painel do pedido (botão "Criar" das abas e ações rápidas do Início: PC-1)
+const busca = z.object({ novo: z.literal(1).optional().catch(undefined) });
+
 export const Route = createFileRoute("/portal/pedidos")({
+  validateSearch: busca,
   head: () => ({ meta: [{ title: "Pedidos · Portal Fora do Papel" }] }),
   component: Pedidos,
 });
@@ -29,7 +35,15 @@ const etapas = [
 function Pedidos() {
   const q = useQuery({ queryKey: chavesPortal.pedidos, queryFn: pedidosDoPortal });
   const m = useMutacoesPortal();
-  const [aberto, setAberto] = useState(false);
+  const { novo } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const { site } = useSitesPortal();
+  const [abertoAqui, setAberto] = useState(false);
+  const aberto = abertoAqui || novo === 1;
+  const mudarPainel = (v: boolean) => {
+    setAberto(v);
+    if (!v && novo) void navigate({ search: {}, replace: true });
+  };
   const andamento = q.data?.filter((p) => p.status !== "pronto" && p.status !== "recusado") ?? [];
   const encerrados = q.data?.filter((p) => p.status === "pronto" || p.status === "recusado") ?? [];
 
@@ -125,8 +139,9 @@ function Pedidos() {
 
       <FazerPedidoPainel
         aberto={aberto}
-        aoMudar={setAberto}
+        aoMudar={mudarPainel}
         aoEnviar={(v) => m.pedido.mutateAsync(v)}
+        origem={site ? { siteId: site.id } : undefined}
       />
     </div>
   );

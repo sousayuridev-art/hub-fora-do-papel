@@ -1,8 +1,13 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { ExternalLink, MessageSquarePlus } from "lucide-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import { EstadoErro } from "@/components/hub/EstadoErro";
+import { acoesRapidas } from "@/components/layout/navegacao";
+import { AcoesRapidas } from "@/components/portal/AcoesRapidas";
+import { FazerPedidoPainel } from "@/components/portal/FazerPedidoPainel";
+import { SaudeSite } from "@/components/portal/SaudeSite";
 import { CapaPortal, FolhaPortal } from "@/components/portal/CapaPortal";
 import { LinhaProjeto } from "@/components/portal/LinhaProjeto";
 import { PortalAcoes } from "@/components/portal/PortalAcoes";
@@ -49,12 +54,14 @@ function linhaDoProjeto(p: NonNullable<InicioPortal["projeto"]>): ReactNode {
 }
 
 /**
- * Início do portal (card CX-5, direção A): capa escura com a saudação e a linha do projeto;
- * na folha clara, o que precisa da pessoa e quem cuida do projeto.
+ * Início do painel (cards CX-5 e PC-1, direção A): capa escura com a saudação, o site e a linha do projeto;
+ * na folha clara, o que precisa da pessoa, ações rápidas, saúde do site e quem cuida do projeto.
+ * Sem site ligado, fica como o Início de antes.
  */
 function Inicio() {
   const q = useQuery({ queryKey: chavesPortal.inicio, queryFn: inicioDoPortal });
   const m = useMutacoesPortal();
+  const [pedindo, setPedindo] = useState(false);
 
   if (q.isError)
     return (
@@ -74,6 +81,7 @@ function Inicio() {
   const d = q.data;
   const primeiro = d.contato?.split(" ")[0];
   const p = d.projeto;
+  const site = d.site ?? null;
 
   return (
     <>
@@ -92,6 +100,47 @@ function Inicio() {
           <p className="mt-1 max-w-[60ch] text-[15.5px] leading-relaxed text-[#C9CBD0] md:mt-1 md:text-[18px]">
             {resumo(d.pendencias.total)}
           </p>
+          {site && (
+            <div className="mt-5 flex flex-col gap-4 md:mt-7">
+              <p className="flex flex-wrap items-center gap-x-2 text-[14.5px] text-[#C9CBD0]">
+                <span
+                  aria-hidden="true"
+                  className={
+                    site.no_ar
+                      ? "size-2 rounded-full bg-[#3BB273]"
+                      : "size-2 rounded-full bg-[#9A9DA3]"
+                  }
+                />
+                {site.no_ar ? (
+                  <>
+                    No ar em <b className="font-semibold text-[#F5F5F2]">{site.dominio}</b>
+                  </>
+                ) : (
+                  <>{site.nome} ainda não está no ar</>
+                )}
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => setPedindo(true)}
+                  className="botao-degrade inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-semibold text-hub-tinta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white max-sm:w-full"
+                >
+                  <MessageSquarePlus className="size-4" aria-hidden="true" /> Pedir um ajuste
+                </button>
+                {site.no_ar && (
+                  <a
+                    href={`https://${site.dominio}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/20 px-5 text-[15px] font-semibold text-[#F5F5F2] hover:bg-white/10 max-sm:w-full"
+                  >
+                    Ver site <ExternalLink className="size-4" aria-hidden="true" />
+                    <span className="sr-only">(abre em outra aba)</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         {p ? (
           <div aria-label="Linha do projeto" className="mt-8 flex flex-col gap-5 md:mt-[46px]">
@@ -126,6 +175,9 @@ function Inicio() {
               enviando={m.pendencia.isPending}
               aoMarcarFeita={(id) => m.pendencia.mutate(id)}
             />
+            {site && (
+              <AcoesRapidas acoes={acoesRapidas(site.modulos)} aoPedir={() => setPedindo(true)} />
+            )}
             {d.projeto?.tipo === "sob_medida" && (
               <PortalModulosNoAr modulos={d.projeto.modulos ?? []} />
             )}
@@ -141,14 +193,23 @@ function Inicio() {
               </Link>
             )}
           </div>
-          <ResponsavelCartao
-            nome={d.responsavel}
-            whatsapp={d.responsavel_whatsapp}
-            empresa={d.empresa}
-            contato={d.contato}
-          />
+          <div className="flex flex-col gap-6">
+            {site && <SaudeSite site={site} />}
+            <ResponsavelCartao
+              nome={d.responsavel}
+              whatsapp={d.responsavel_whatsapp}
+              empresa={d.empresa}
+              contato={d.contato}
+            />
+          </div>
         </div>
       </FolhaPortal>
+      <FazerPedidoPainel
+        aberto={pedindo}
+        aoMudar={setPedindo}
+        aoEnviar={(v) => m.pedido.mutateAsync(v)}
+        origem={site ? { siteId: site.id } : undefined}
+      />
     </>
   );
 }

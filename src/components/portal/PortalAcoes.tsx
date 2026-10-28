@@ -37,7 +37,7 @@ export function PortalAcoes({
   return (
     <section id="precisa" aria-labelledby="precisa-t" className="flex scroll-mt-20 flex-col gap-3">
       <h2 id="precisa-t" className="text-[18px] font-semibold md:text-[19px]">
-        Precisa de você
+        Precisa da sua atenção
       </h2>
 
       {acoes.length === 0 && (

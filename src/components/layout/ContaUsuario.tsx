@@ -18,8 +18,14 @@ export function iniciais(texto: string) {
 export function ContaUsuario({
   cartao = false,
   compacto = false,
+  legenda = "Dono da conta",
+  saida = "/gestor",
 }: {
   cartao?: boolean;
+  /** Linha de baixo do cartão (ex.: "Responsável pelo contrato" no portal). */
+  legenda?: string;
+  /** Para onde vai depois de sair. */
+  saida?: "/gestor" | "/entrar";
   /** Menu recolhido: só o botão de sair, com as iniciais no título. */
   compacto?: boolean;
 }) {
@@ -34,7 +40,7 @@ export function ContaUsuario({
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       queryClient.clear();
-      await navigate({ to: "/gestor" });
+      await navigate({ to: saida });
     } catch (e) {
       erro(mensagemDeErro(e), { tentarDeNovo: () => void sair() });
     }
@@ -77,7 +83,7 @@ export function ContaUsuario({
         >
           {nome}
         </span>
-        {cartao && <span className="truncate text-[12.5px] text-[#C9CBD0]">Dono da conta</span>}
+        {cartao && <span className="truncate text-[12.5px] text-[#C9CBD0]">{legenda}</span>}
       </span>
       <button
         type="button"
