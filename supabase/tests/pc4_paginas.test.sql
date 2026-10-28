@@ -64,7 +64,7 @@ select throws_ok($$ select public.site_secoes_definir('30000000-0000-0000-0000-0
 -- Troca o título e a foto da capa, salva e publica
 insert into t select 'v2', public.site_pagina_salvar_rascunho((select (valor ->> 'id')::uuid from t where chave = 'criada'),
   jsonb_set(jsonb_set((select valor from t where chave = 'pagina'), '{content,0,props,titulo}', '"Sorrisos leves o ano todo"'),
-            '{content,0,props,foto}', '"https://abc.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000001/capa.webp"'),
+            '{content,0,props,foto}', '"https://cjzzbpqwlpjvlawllfqy.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000001/capa.webp"'),
   1);
 select is((select valor ->> 'versao' from t where chave = 'v2'), '2', 'Rascunho salvo sobe a versão');
 select throws_ok(format($$ select public.site_pagina_salvar_rascunho(%L, %L, 1) $$,
@@ -134,7 +134,7 @@ select is((select count(*)::int from public.event_outbox where event = 'site.pag
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select is(public.site_publico_pagina('www.clinicasol.test', '/') -> 'content' -> 0 -> 'props' ->> 'foto',
-  'https://abc.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000001/capa.webp',
+  'https://cjzzbpqwlpjvlawllfqy.supabase.co/storage/v1/object/public/site-midia/30000000-0000-0000-0000-000000000001/capa.webp',
   'Site lê a foto nova da capa publicada');
 select is(public.site_publico_pagina('plamev.test', '/'), null, 'Outro site não recebe a página');
 reset role;

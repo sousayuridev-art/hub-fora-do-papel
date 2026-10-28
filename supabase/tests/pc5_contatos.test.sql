@@ -50,7 +50,7 @@ select lives_ok($$ select public.site_contato_registrar('clinicasol.test',
   jsonb_build_object('origem', 'formulario', 'nome', 'Repetido ' || n, 'email', 'r' || n || '@x.test'))
   from generate_series(1, 7) n $$, 'Mais 7 formulários do mesmo endereço entram');
 select throws_ok($$ select public.site_contato_registrar('clinicasol.test',
-  '{"origem": "formulario", "nome": "Nono", "email": "nono@x.test"}') $$, '54000', 'muitas_tentativas',
+  '{"origem": "formulario", "nome": "Nono", "email": "nono@x.test"}') $$, 'PT429', 'muitas_tentativas',
   'O nono formulário na hora é recusado');
 reset role;
 select is((select count(*)::int from public.site_cliente_contatos), 9, 'Recusado não grava');
