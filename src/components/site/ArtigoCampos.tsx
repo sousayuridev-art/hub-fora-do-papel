@@ -1,6 +1,8 @@
 import { CampoEscolha, CampoTexto } from "@/components/hub/Campo";
 import { ArtigoEndereco } from "@/components/site/ArtigoEndereco";
 import { CampoContador } from "@/components/site/CampoContador";
+import { EscolherImagem } from "@/components/site/EscolherImagem";
+import { useGaleria } from "@/components/site/galeria";
 import { limites, mudarTitulo, type FormArtigo } from "@/lib/editorArtigo";
 import { capas, type CapaArtigo } from "@/lib/site";
 
@@ -11,13 +13,16 @@ export function ArtigoCampos({
   categorias,
   dominio,
   slugTravado,
+  siteId,
 }: {
   form: FormArtigo;
   aoMudar: (f: FormArtigo) => void;
   categorias: string[];
   dominio: string;
   slugTravado: boolean;
+  siteId: string;
 }) {
+  const galeria = useGaleria();
   const opcoesCategoria = [...new Set([...categorias, form.categoria].filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, "pt-BR"))
     .map((c) => ({ id: c, rotulo: c }));
@@ -71,19 +76,14 @@ export function ArtigoCampos({
         rotulo="Capa"
         valor={form.capa}
         aoMudar={(v) => aoMudar({ ...form, capa: v })}
-        opcoes={[...capas, { id: "imagem", rotulo: "Imagem enviada (aba Mídia)" }]}
+        opcoes={[...capas, { id: "imagem", rotulo: `Foto enviada (${galeria.nome})` }]}
       />
       {form.capa === "imagem" && (
-        <CampoTexto
-          rotulo="Endereço da imagem"
-          tipo="url"
-          inputMode="url"
-          placeholder="https://"
-          valor={form.capaUrl}
-          aoMudar={(v) => aoMudar({ ...form, capaUrl: v })}
-          maxLength={limites.capaUrl}
-          autoComplete="off"
-          ajuda='Na aba Mídia, use "Copiar endereço" e cole aqui.'
+        <EscolherImagem
+          siteId={siteId}
+          rotulo="Foto da capa"
+          valor={form.capaUrl || null}
+          aoMudar={(url) => aoMudar({ ...form, capaUrl: url ?? "" })}
         />
       )}
     </div>

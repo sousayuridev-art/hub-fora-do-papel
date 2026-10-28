@@ -26,6 +26,7 @@
 - Aviso de sucesso: "Alterações salvas e publicadas no site".
 
 ## Critérios de aceite
+- Pessoa de outra empresa não lê nem grava os dados do negócio (teste de banco). Gravação pelo cliente passa por `_site_editavel` (PC-3).
 - Dado o responsável, quando muda o sábado para 9h às 14h e salva, então `site_publico_negocio` devolve o horário novo e o rodapé do site mostra em até 5 minutos.
 - Título com 61 caracteres é recusado pelo banco e a tela mostra o limite antes de salvar.
 - Equipe também salva (não é dinheiro); outra empresa não (teste de banco).

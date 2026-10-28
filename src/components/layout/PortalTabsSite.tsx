@@ -179,7 +179,8 @@ export function PortalTabsSite({
                     className={cn(classe, "hover:bg-hub-fundo active:bg-[#E9E9E3]")}
                     onClick={() => {
                       fechar();
-                      void navigate({ to: "/portal/pedidos", search: { novo: 1 } });
+                      if (a.para) void navigate({ to: a.para, search: { artigo: "novo" } });
+                      else void navigate({ to: "/portal/pedidos", search: { novo: 1 } });
                     }}
                   >
                     <Icone className="size-5 shrink-0 text-hub-suave" aria-hidden="true" />

@@ -294,6 +294,7 @@ export function ArtigoEditor({
           <div className="flex flex-col gap-6">
             <Parte titulo="Artigo">
               <ArtigoCampos
+                siteId={siteId}
                 form={form}
                 aoMudar={setForm}
                 categorias={categorias}
