@@ -24,6 +24,7 @@
 - Site: formulário e botão de WhatsApp chamam `site_contato_registrar` (no site, card próprio do repositório do site).
 
 ## Critérios de aceite
+- Sem o módulo `contatos` em `sites.modulos`, as RPCs de gravação recusam com `modulo_nao_contratado` (42501), mesmo chamadas por fora da tela (teste de banco). O dono passa sempre (regra do PC-3, `_site_editavel`).
 - Dado um envio do formulário no site da Clínica, então o contato aparece no painel da Clínica e no contador do Início, e não aparece para outra empresa (teste de banco).
 - "Já respondi" tira da aba "Esperando resposta" na hora; se o banco recusar, volta e avisa.
 - `anon` não lê `site_contatos` (teste de banco); só registra pela RPC.

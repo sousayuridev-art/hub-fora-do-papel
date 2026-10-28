@@ -36,6 +36,7 @@
 - **Hub › ficha do site:** o Yuri escolhe as seções permitidas e as travadas.
 
 ## Critérios de aceite
+- Sem o módulo `paginas` em `sites.modulos`, as RPCs de gravação recusam com `modulo_nao_contratado` (42501), mesmo chamadas por fora da tela (teste de banco). O dono passa sempre (regra do PC-3, `_site_editavel`).
 - Dado o responsável na Página inicial, quando troca a foto da capa e publica, então `site_publico_pagina` devolve a foto nova e o site mostra em até 5 minutos.
 - Publicar com uma seção não permitida (enviada por chamada direta) é recusado pelo banco.
 - Remover ou mover a seção travada é recusado pelo banco.

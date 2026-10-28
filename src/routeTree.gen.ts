@@ -41,6 +41,8 @@ import { Route as AppClientesIndexRouteImport } from './routes/app/clientes/inde
 import { Route as AppClientesIdRouteImport } from './routes/app/clientes/$id'
 import { Route as AppProjetosIndexRouteImport } from './routes/app/projetos/index'
 import { Route as AppProjetosIdRouteImport } from './routes/app/projetos/$id'
+import { Route as PortalSiteArtigosRouteImport } from './routes/portal/site/artigos'
+import { Route as PortalSiteFotosRouteImport } from './routes/portal/site/fotos'
 import { Route as PreviaPropostaIdRouteImport } from './routes/previa.proposta.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -203,6 +205,16 @@ const AppProjetosIdRoute = AppProjetosIdRouteImport.update({
   path: '/projetos/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const PortalSiteArtigosRoute = PortalSiteArtigosRouteImport.update({
+  id: '/site/artigos',
+  path: '/site/artigos',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalSiteFotosRoute = PortalSiteFotosRouteImport.update({
+  id: '/site/fotos',
+  path: '/site/fotos',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PreviaPropostaIdRoute = PreviaPropostaIdRouteImport.update({
   id: '/previa/proposta/$id',
   path: '/previa/proposta/$id',
@@ -240,6 +252,8 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/portal/site/artigos': typeof PortalSiteArtigosRoute
+  '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
   '/app/projetos/': typeof AppProjetosIndexRoute
@@ -273,6 +287,8 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/portal/site/artigos': typeof PortalSiteArtigosRoute
+  '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes': typeof AppClientesIndexRoute
   '/app/projetos': typeof AppProjetosIndexRoute
@@ -309,6 +325,8 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/portal/site/artigos': typeof PortalSiteArtigosRoute
+  '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
   '/app/projetos/': typeof AppProjetosIndexRoute
@@ -346,6 +364,8 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/app/clientes/$id'
     | '/app/projetos/$id'
+    | '/portal/site/artigos'
+    | '/portal/site/fotos'
     | '/previa/proposta/$id'
     | '/app/clientes/'
     | '/app/projetos/'
@@ -379,6 +399,8 @@ export interface FileRouteTypes {
     | '/portal'
     | '/app/clientes/$id'
     | '/app/projetos/$id'
+    | '/portal/site/artigos'
+    | '/portal/site/fotos'
     | '/previa/proposta/$id'
     | '/app/clientes'
     | '/app/projetos'
@@ -414,6 +436,8 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/app/clientes/$id'
     | '/app/projetos/$id'
+    | '/portal/site/artigos'
+    | '/portal/site/fotos'
     | '/previa/proposta/$id'
     | '/app/clientes/'
     | '/app/projetos/'
@@ -660,6 +684,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjetosIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/portal/site/artigos': {
+      id: '/portal/site/artigos'
+      path: '/site/artigos'
+      fullPath: '/portal/site/artigos'
+      preLoaderRoute: typeof PortalSiteArtigosRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/site/fotos': {
+      id: '/portal/site/fotos'
+      path: '/site/fotos'
+      fullPath: '/portal/site/fotos'
+      preLoaderRoute: typeof PortalSiteFotosRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/previa/proposta/$id': {
       id: '/previa/proposta/$id'
       path: '/previa/proposta/$id'
@@ -716,6 +754,8 @@ interface PortalRouteChildren {
   PortalPagamentosRoute: typeof PortalPagamentosRoute
   PortalPedidosRoute: typeof PortalPedidosRoute
   PortalIndexRoute: typeof PortalIndexRoute
+  PortalSiteArtigosRoute: typeof PortalSiteArtigosRoute
+  PortalSiteFotosRoute: typeof PortalSiteFotosRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
@@ -724,6 +764,8 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalPagamentosRoute: PortalPagamentosRoute,
   PortalPedidosRoute: PortalPedidosRoute,
   PortalIndexRoute: PortalIndexRoute,
+  PortalSiteArtigosRoute: PortalSiteArtigosRoute,
+  PortalSiteFotosRoute: PortalSiteFotosRoute,
 }
 
 const PortalRouteWithChildren =

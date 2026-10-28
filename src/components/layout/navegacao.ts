@@ -173,7 +173,6 @@ export function gruposDoPortal(
         rotulo: "Artigos",
         para: "/portal/site/artigos",
         icone: Newspaper,
-        emBreve: true,
       });
     if (tem("portfolio"))
       site.push({
@@ -186,7 +185,6 @@ export function gruposDoPortal(
       rotulo: "Fotos e arquivos",
       para: "/portal/site/fotos",
       icone: Image,
-      emBreve: true,
     });
     grupos.push({ titulo: "Meu site", itens: site });
     if (tem("loja"))
@@ -230,11 +228,13 @@ export type AcaoRapida = {
   rotulo: string;
   icone: LucideIcon;
   emBreve?: true;
+  /** Tela que a ação abre (com o painel de novo item já aberto). */
+  para?: "/portal/site/artigos";
 };
 
 /**
  * Ações rápidas do Início e do botão "Criar" (card PC-1), pelos módulos do site.
- * "Pedir um ajuste" vem primeiro: é a única que já funciona; as outras chegam com PC-3 a PC-6.
+ * "Pedir um ajuste" vem primeiro; "Escrever artigo" funciona desde o PC-3; as outras chegam com PC-4 a PC-6.
  */
 export function acoesRapidas(modulos: ModuloSite[] | null): AcaoRapida[] {
   const acoes: AcaoRapida[] = [
@@ -245,7 +245,12 @@ export function acoesRapidas(modulos: ModuloSite[] | null): AcaoRapida[] {
   if (modulos?.includes("loja"))
     acoes.push({ id: "produto", rotulo: "Novo produto", icone: PackagePlus, emBreve: true });
   if (modulos?.includes("artigos"))
-    acoes.push({ id: "artigo", rotulo: "Escrever artigo", icone: PenLine, emBreve: true });
+    acoes.push({
+      id: "artigo",
+      rotulo: "Escrever artigo",
+      icone: PenLine,
+      para: "/portal/site/artigos",
+    });
   if (modulos)
     acoes.push({
       id: "horario",

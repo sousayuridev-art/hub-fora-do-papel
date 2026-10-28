@@ -22,6 +22,7 @@ export function useSitesPortal() {
     site,
     modulos: site?.modulos ?? null,
     falhou: q.isError,
+    carregando: q.isPending,
     tentarDeNovo: () => void q.refetch(),
   };
 }
