@@ -1,3 +1,4 @@
+import { linkSeguro } from "./link";
 export type ChamadaProps = {
   titulo: string;
   texto: string;
@@ -19,7 +20,7 @@ export function Chamada({ titulo, texto, botao, link, fundo }: ChamadaProps) {
         {texto && <p className="mx-auto mt-4 max-w-xl break-words text-white/80">{texto}</p>}
         {botao && (
           <a
-            href={link || "#"}
+            href={linkSeguro(link)}
             className="mt-8 inline-flex min-h-12 items-center rounded-full bg-white px-7 text-sm font-semibold text-neutral-900"
           >
             {botao}

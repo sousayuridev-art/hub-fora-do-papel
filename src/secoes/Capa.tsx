@@ -1,4 +1,5 @@
 import { Foto } from "./Foto";
+import { linkSeguro } from "./link";
 
 export type CapaProps = {
   chamada: string;
@@ -45,7 +46,7 @@ export function Capa({
           )}
           {botao && (
             <a
-              href={link || "#"}
+              href={linkSeguro(link)}
               className="mt-8 inline-flex min-h-12 items-center rounded-full px-7 text-sm font-semibold text-white shadow-lg"
               style={{ background: "var(--site-cor)" }}
             >
