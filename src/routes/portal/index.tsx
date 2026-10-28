@@ -98,7 +98,7 @@ function Inicio() {
             )}
           </h1>
           <p className="mt-1 max-w-[60ch] text-[15.5px] leading-relaxed text-[#C9CBD0] md:mt-1 md:text-[18px]">
-            {resumo(d.pendencias.total)}
+            {resumo(d.pendencias.total + (d.pendencias.contatos ?? 0))}
           </p>
           {site && (
             <div className="mt-5 flex flex-col gap-4 md:mt-7">
@@ -174,6 +174,7 @@ function Inicio() {
               acoes={d.acoes}
               enviando={m.pendencia.isPending}
               aoMarcarFeita={(id) => m.pendencia.mutate(id)}
+              contatos={d.pendencias.contatos ?? 0}
             />
             {site && (
               <AcoesRapidas acoes={acoesRapidas(site.modulos)} aoPedir={() => setPedindo(true)} />

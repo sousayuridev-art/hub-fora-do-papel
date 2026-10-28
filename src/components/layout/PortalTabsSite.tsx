@@ -92,9 +92,18 @@ export function PortalTabsSite({
   const grupo = (t: string) => grupos.find((g) => g.titulo === t);
   const site = grupo("Meu site");
   const clientes = grupo("Clientes");
-  const mais = grupos.filter(
-    (g) => g.titulo !== "Meu site" && g.titulo !== "Clientes" && g.itens[0]?.para !== "/portal",
-  );
+  // Com o módulo de contatos, a aba leva direto à caixa (PC-5); o resto de Clientes vai para "Mais"
+  const contatos = clientes?.itens.find((i) => i.selo === "contatos" && !i.emBreve);
+  const restoClientes = clientes && {
+    ...clientes,
+    itens: clientes.itens.filter((i) => i !== contatos),
+  };
+  const mais = [
+    ...grupos.filter(
+      (g) => g.titulo !== "Meu site" && g.titulo !== "Clientes" && g.itens[0]?.para !== "/portal",
+    ),
+    ...(contatos && restoClientes?.itens.length ? [restoClientes] : []),
+  ];
   const selosMais = mais
     .flatMap((g) => g.itens)
     .reduce((n, i) => n + (i.selo ? selos[i.selo] : 0), 0);
@@ -149,7 +158,18 @@ export function PortalTabsSite({
           </span>
           Criar
         </button>
-        {botaoAba("clientes", "Contatos", MessagesSquare)}
+        {contatos ? (
+          <Link
+            to="/portal/clientes/contatos"
+            className={classeAba}
+            activeProps={{ className: "text-hub-tinta font-semibold", "aria-current": "page" }}
+          >
+            <IconeAba icone={MessagesSquare} total={selos.contatos} />
+            Contatos
+          </Link>
+        ) : (
+          botaoAba("clientes", "Contatos", MessagesSquare)
+        )}
         {botaoAba("mais", "Mais", Menu, selosMais)}
       </nav>
 

@@ -42,6 +42,7 @@ import { Route as AppClientesIdRouteImport } from './routes/app/clientes/$id'
 import { Route as AppPaginasIdRouteImport } from './routes/app/paginas.$id'
 import { Route as AppProjetosIndexRouteImport } from './routes/app/projetos/index'
 import { Route as AppProjetosIdRouteImport } from './routes/app/projetos/$id'
+import { Route as PortalClientesContatosRouteImport } from './routes/portal/clientes/contatos'
 import { Route as PortalSiteArtigosRouteImport } from './routes/portal/site/artigos'
 import { Route as PortalSiteFotosRouteImport } from './routes/portal/site/fotos'
 import { Route as PreviaPropostaIdRouteImport } from './routes/previa.proposta.$id'
@@ -213,6 +214,11 @@ const AppProjetosIdRoute = AppProjetosIdRouteImport.update({
   path: '/projetos/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const PortalClientesContatosRoute = PortalClientesContatosRouteImport.update({
+  id: '/clientes/contatos',
+  path: '/clientes/contatos',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalSiteArtigosRoute = PortalSiteArtigosRouteImport.update({
   id: '/site/artigos',
   path: '/site/artigos',
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
   '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByTo {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
   '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
@@ -350,6 +358,7 @@ export interface FileRoutesById {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
   '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
@@ -392,6 +401,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/portal/clientes/contatos'
     | '/portal/site/artigos'
     | '/portal/site/fotos'
     | '/previa/proposta/$id'
@@ -430,6 +440,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/portal/clientes/contatos'
     | '/portal/site/artigos'
     | '/portal/site/fotos'
     | '/previa/proposta/$id'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/portal/clientes/contatos'
     | '/portal/site/artigos'
     | '/portal/site/fotos'
     | '/previa/proposta/$id'
@@ -727,6 +739,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjetosIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/portal/clientes/contatos': {
+      id: '/portal/clientes/contatos'
+      path: '/clientes/contatos'
+      fullPath: '/portal/clientes/contatos'
+      preLoaderRoute: typeof PortalClientesContatosRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/site/artigos': {
       id: '/portal/site/artigos'
       path: '/site/artigos'
@@ -813,6 +832,7 @@ interface PortalRouteChildren {
   PortalPagamentosRoute: typeof PortalPagamentosRoute
   PortalPedidosRoute: typeof PortalPedidosRoute
   PortalIndexRoute: typeof PortalIndexRoute
+  PortalClientesContatosRoute: typeof PortalClientesContatosRoute
   PortalSiteArtigosRoute: typeof PortalSiteArtigosRoute
   PortalSiteFotosRoute: typeof PortalSiteFotosRoute
   PortalSitePaginasIdRoute: typeof PortalSitePaginasIdRoute
@@ -825,6 +845,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalPagamentosRoute: PortalPagamentosRoute,
   PortalPedidosRoute: PortalPedidosRoute,
   PortalIndexRoute: PortalIndexRoute,
+  PortalClientesContatosRoute: PortalClientesContatosRoute,
   PortalSiteArtigosRoute: PortalSiteArtigosRoute,
   PortalSiteFotosRoute: PortalSiteFotosRoute,
   PortalSitePaginasIdRoute: PortalSitePaginasIdRoute,
