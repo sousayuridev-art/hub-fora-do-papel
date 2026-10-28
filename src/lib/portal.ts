@@ -13,6 +13,8 @@ export type PendenciasDoPortal = {
   pagamentos: number;
   total: number;
   pedidos_andamento: number;
+  /** Formulários do site sem resposta (PC-5). Fica fora de "total": a tela soma. */
+  contatos?: number;
 };
 
 export type AcaoPortal =

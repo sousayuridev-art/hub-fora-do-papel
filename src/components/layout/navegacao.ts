@@ -97,7 +97,7 @@ export const itemConfiguracoes: ItemMenu = {
 
 /** Seções do portal do cliente (menu de cima no computador, abas embaixo no celular). */
 export type SecaoPortal = ItemMenu & {
-  selo?: "inicio" | "aprovacoes" | "pagamentos" | "arquivos";
+  selo?: "inicio" | "aprovacoes" | "pagamentos" | "arquivos" | "contatos";
   /** Nome por extenso no menu do computador (o celular usa o rótulo curto). */
   rotuloLongo?: string;
   /** Só para o responsável pelo contrato (CX-0). A equipe vê 4 abas. */
@@ -199,9 +199,9 @@ export function gruposDoPortal(
     if (tem("contatos"))
       clientes.push({
         rotulo: "Contatos",
-        para: "/portal/contatos",
+        para: "/portal/clientes/contatos",
         icone: MessagesSquare,
-        emBreve: true,
+        selo: "contatos",
       });
     clientes.push({
       rotulo: "Desempenho",
