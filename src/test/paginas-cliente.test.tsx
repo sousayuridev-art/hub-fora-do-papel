@@ -66,3 +66,15 @@ describe("PC-4 · páginas", () => {
     expect(mensagemDaPagina({ message: "pagina_alterada" })).toContain("outra pessoa");
   });
 });
+
+describe("Revisão de segurança · links das seções", () => {
+  it("só deixa passar https, caminho, âncora, mailto e tel", async () => {
+    const { linkSeguro } = await import("@/secoes/link");
+    expect(linkSeguro("javascript:alert(1)")).toBe("#");
+    expect(linkSeguro("http://inseguro.test")).toBe("#");
+    expect(linkSeguro("https://wa.me/5579999990001")).toBe("https://wa.me/5579999990001");
+    expect(linkSeguro("/contato")).toBe("/contato");
+    expect(linkSeguro("tel:+55 79 99999-0001")).toBe("tel:+55 79 99999-0001");
+    expect(linkSeguro("")).toBe("#");
+  });
+});

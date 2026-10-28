@@ -217,7 +217,7 @@ export function gruposDoPortal(
   });
   grupos.push({
     titulo: null,
-    itens: [{ rotulo: "Ajustes", para: "/portal/ajustes", icone: Settings, emBreve: true }],
+    itens: [{ rotulo: "Ajustes", para: "/portal/ajustes", icone: Settings }],
   });
   return grupos;
 }
@@ -231,7 +231,7 @@ export type AcaoRapida = {
 
 /**
  * Ações rápidas do Início e do botão "Criar" (card PC-1), pelos módulos do site.
- * "Pedir um ajuste" vem primeiro; "Escrever artigo" (PC-3) e "Trocar foto da capa" (PC-4) já funcionam.
+ * "Pedir um ajuste" vem primeiro; "Novo produto" espera a loja (as outras já funcionam).
  */
 export function acoesRapidas(modulos: ModuloSite[] | null): AcaoRapida[] {
   const acoes: AcaoRapida[] = [
@@ -248,7 +248,6 @@ export function acoesRapidas(modulos: ModuloSite[] | null): AcaoRapida[] {
       id: "horario",
       rotulo: "Mudar horário de atendimento",
       icone: Clock,
-      emBreve: true,
     });
   return acoes;
 }

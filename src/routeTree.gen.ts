@@ -31,6 +31,7 @@ import { Route as AppTrafegoRouteImport } from './routes/app/trafego'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as EntrarCodigoRouteImport } from './routes/entrar_.codigo'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
+import { Route as PortalAjustesRouteImport } from './routes/portal/ajustes'
 import { Route as PortalAprovacoesRouteImport } from './routes/portal/aprovacoes'
 import { Route as PortalArquivosRouteImport } from './routes/portal/arquivos'
 import { Route as PortalPagamentosRouteImport } from './routes/portal/pagamentos'
@@ -159,6 +160,11 @@ const PortalIndexRoute = PortalIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalAjustesRoute = PortalAjustesRouteImport.update({
+  id: '/ajustes',
+  path: '/ajustes',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalAprovacoesRoute = PortalAprovacoesRouteImport.update({
   id: '/aprovacoes',
   path: '/aprovacoes',
@@ -266,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/entrar/codigo': typeof EntrarCodigoRoute
+  '/portal/ajustes': typeof PortalAjustesRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
@@ -305,6 +312,7 @@ export interface FileRoutesByTo {
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/entrar/codigo': typeof EntrarCodigoRoute
+  '/portal/ajustes': typeof PortalAjustesRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
@@ -347,6 +355,7 @@ export interface FileRoutesById {
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/entrar_/codigo': typeof EntrarCodigoRoute
+  '/portal/ajustes': typeof PortalAjustesRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
   '/portal/pagamentos': typeof PortalPagamentosRoute
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
     | '/app/trafego'
     | '/auth/callback'
     | '/entrar/codigo'
+    | '/portal/ajustes'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
     | '/portal/pagamentos'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/app/trafego'
     | '/auth/callback'
     | '/entrar/codigo'
+    | '/portal/ajustes'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
     | '/portal/pagamentos'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/app/trafego'
     | '/auth/callback'
     | '/entrar_/codigo'
+    | '/portal/ajustes'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
     | '/portal/pagamentos'
@@ -662,6 +674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalIndexRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/ajustes': {
+      id: '/portal/ajustes'
+      path: '/ajustes'
+      fullPath: '/portal/ajustes'
+      preLoaderRoute: typeof PortalAjustesRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/aprovacoes': {
       id: '/portal/aprovacoes'
       path: '/aprovacoes'
@@ -827,6 +846,7 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface PortalRouteChildren {
+  PortalAjustesRoute: typeof PortalAjustesRoute
   PortalAprovacoesRoute: typeof PortalAprovacoesRoute
   PortalArquivosRoute: typeof PortalArquivosRoute
   PortalPagamentosRoute: typeof PortalPagamentosRoute
@@ -840,6 +860,7 @@ interface PortalRouteChildren {
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
+  PortalAjustesRoute: PortalAjustesRoute,
   PortalAprovacoesRoute: PortalAprovacoesRoute,
   PortalArquivosRoute: PortalArquivosRoute,
   PortalPagamentosRoute: PortalPagamentosRoute,

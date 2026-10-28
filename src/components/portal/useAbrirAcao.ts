@@ -9,6 +9,7 @@ export function useAbrirAcao(aoPedir: () => void) {
     if (a.id === "artigo")
       void navigate({ to: "/portal/site/artigos", search: { artigo: "novo" } });
     else if (a.id === "capa") void navigate({ to: "/portal/site/paginas" });
+    else if (a.id === "horario") void navigate({ to: "/portal/ajustes" });
     else aoPedir();
   };
 }
