@@ -19,9 +19,9 @@
 
 - **`ai_usage`** (tabela da regra de IA, primeira vez no Hub). Cada chamada grava:
   - tenant, projeto (`fdp-hub`), recurso (`marketing.versoes`, `marketing.ganchos`, `marketing.revisao`), modelo, tokens de entrada, de saída e de cache;
-  - custo estimado em centavos de dólar (inteiro), peça e quem pediu.
+  - custo estimado em centésimos de centavo de dólar (inteiro; 1 = US$ 0,0001, para uma sugestão barata não virar zero), peça e quem pediu.
   - RLS só de leitura para o dono; gravação só pela função de servidor.
-- **`ai_limits`:** teto mensal por tenant e projeto, em centavos de dólar. Começa com o valor que o Yuri decidir (pergunta 1).
+- **`ai_limits`:** teto mensal por tenant e área, na mesma unidade do custo (US$ 10 = 100000).
 - **`mkt_ai_suggestions`:** a sugestão guardada, para a pessoa comparar e usar depois.
   - campos: versão, tipo, conteúdo em JSON, base usada (briefing, textos e versão do manual) e se foi usada;
   - fica 30 dias.
@@ -53,7 +53,7 @@
 - **Cada sugestão:**
   - mostra a base usada (por exemplo: "Ideia central + briefing + manual de voz de 27/10") e quando foi feita;
   - tem "Usar tudo", "Usar" por campo e "Descartar". Usar passa pela mesma revisão da marca e pela mesma regra de aprovação desfeita.
-- **Contador de uso:** "Uso da IA neste mês: R$ [valor] de [teto]" no rodapé da aba, com aviso aos 80% e botões desligados aos 100%.
+- **Contador de uso:** "Uso da IA neste mês: US$ [valor] de US$ [teto]" no rodapé das sugestões, com aviso aos 80% e botões desligados aos 100%. Em dólar porque a Anthropic cobra em dólar.
 - **Sem briefing completo:** os botões ficam apagados e a tela diz o que falta (a IA não inventa objetivo nem pilar).
 - **Feedback:** carregando com texto ("Escrevendo a versão do Instagram…"); erro com toast e "Tentar de novo".
 
@@ -75,7 +75,12 @@
 - Rodar o fluxo "Banco de produção" e publicar a função (instruções no PR).
 - Medir no piloto quanto custa, em média, uma sugestão de versão, antes de usar em peças de clientes (regra 5).
 
-## Perguntas antes de começar
+## Decisões (Yuri, 29/10)
+1. **Teto mensal da Central:** US$ 10.
+2. **Ações:** as três entram agora (sugerir a versão, mais ganchos e revisar pela voz).
+- **Preço do modelo:** fica na tabela `ai_model_prices`, corrigível sem mexer no código. O valor inicial do Sonnet 5.5 foi conferido em 29/10/2026 numa fonte de terceiros e deve ser conferido no Console da Anthropic: US$ 2 por milhão de tokens de entrada, US$ 10 de saída, US$ 2,50 de escrita no cache e US$ 0,20 de leitura do cache.
 
-1. **Teto mensal da Central de conteúdo:** quanto, em dólares? Sugestão: US$ 10 por mês. O workspace `fdp-hub` tem US$ 40 no total, divididos com as reuniões.
-2. **As três ações** ("Sugerir esta versão", "Mais ganchos" e "Revisar pela voz") entram todas agora? Ou só a primeira, para medir o custo antes?
+## Como ficou (implementação, 29/10)
+- Falhas da IA também contam no limite de 30 pedidos do dia (protege contra clique repetido quando a API está instável) e ficam em `ai_usage` com o motivo.
+- A função `marketing-ia` exige login na porta (`verify_jwt = true`) e confere o dono de novo no banco.
+- Teste local sem gastar: `MARKETING_IA_API_URL` aponta a função para um servidor falso; em produção essa variável não existe e vale o endereço da Anthropic.

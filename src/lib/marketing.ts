@@ -507,6 +507,8 @@ export const chavesMarketing = {
   clientes: ["marketing", "clientes"] as const,
   links: (caminhos: string[]) => ["marketing", "links", caminhos] as const,
   materiais: ["marketing", "materiais"] as const,
+  sugestoes: (versao: string) => ["marketing", "sugestoes", versao] as const,
+  usoIA: ["marketing", "uso-ia"] as const,
 };
 
 async function rpc<T>(nome: string, args?: Record<string, unknown>): Promise<T> {
@@ -706,6 +708,92 @@ export function nomeDoMes(mes: string): string {
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
+// ---------------------------------------------------------------------
+// IA que sugere (MK-3)
+// ---------------------------------------------------------------------
+export type TipoSugestao = "versao" | "ganchos" | "revisao";
+export type CampoSugestao = "gancho" | "texto" | "roteiro" | "slides" | "chamada" | "hashtags";
+export type ItemRevisao = { trecho: string; problema: string; troca: string };
+export type ConteudoSugestao = {
+  gancho?: string;
+  texto?: string;
+  roteiro?: Cena[];
+  slides?: Slide[];
+  chamada?: Chamada;
+  hashtags?: string;
+  observacao?: string;
+  ganchos?: string[];
+  itens?: ItemRevisao[];
+  resumo?: string;
+};
+export type Sugestao = {
+  id: string;
+  version_id: string;
+  tipo: TipoSugestao;
+  conteudo: ConteudoSugestao;
+  base: { instrucoes?: string; usou?: string[]; descartados?: string[] };
+  usada_em: string | null;
+  campos_usados: string[] | null;
+  created_at: string;
+};
+/** Valores em centésimos de centavo de dólar (1 = US$ 0,0001). */
+export type UsoIA = {
+  gasto: number;
+  teto: number;
+  pedidos_hoje: number;
+  limite_diario: number;
+  percentual: number;
+};
+
+export const rotuloCampoSugestao: Record<CampoSugestao, string> = {
+  gancho: "Gancho",
+  texto: "Texto",
+  roteiro: "Roteiro",
+  slides: "Slides",
+  chamada: "Chamada",
+  hashtags: "Hashtags",
+};
+
+/** Mesmo critério do banco (_mkt_falta_briefing): a IA não inventa objetivo, funil, pilar nem ideia. */
+export function faltaNoBriefing(p: Peca): string[] {
+  return [
+    !p.objective && "objetivo",
+    !p.funnel && "etapa do funil",
+    !p.pillar && "pilar",
+    (p.core_idea ?? "").trim().length < 10 && "ideia central",
+  ].filter((x): x is string => !!x);
+}
+
+/** "US$ 1,23": dólares a partir dos centésimos de centavo. */
+export function dolares(unidades: number): string {
+  return `US$ ${(unidades / 10000).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export const usoDaIA = () => rpc<UsoIA>("ia_uso_do_mes", { p_area: "marketing" });
+export const listarSugestoes = (versao: string) =>
+  rpc<Sugestao[]>("mkt_sugestoes_listar", { p_versao: versao });
+export const usarSugestao = (id: string, campos: CampoSugestao[] | null, opcao: number | null) =>
+  rpc<unknown>("mkt_sugestao_usar", { p_id: id, p_campos: campos, p_opcao: opcao });
+export const descartarSugestao = (id: string) =>
+  rpc<unknown>("mkt_sugestao_descartar", { p_id: id });
+
+/** Pede a sugestão à função de servidor (a chave da IA fica só lá). */
+export async function pedirSugestao(versao: string, tipo: TipoSugestao): Promise<Sugestao> {
+  const { data, error } = await supabase.functions.invoke("marketing-ia", {
+    method: "POST",
+    body: { versao, tipo },
+  });
+  if (error) {
+    const corpo: unknown = await (error as { context?: Response }).context
+      ?.json?.()
+      .catch(() => null);
+    const msg =
+      corpo && typeof corpo === "object" && "erro" in corpo ? String(corpo.erro) : "ia_sem_rede";
+    throw new Error(msg);
+  }
+  return (data as { sugestao: Sugestao }).sugestao;
+}
+
 /** Erros do banco em português (o detalhe diz o que falta nas portas). */
 export function mensagemDoMarketing(e: unknown): string | null {
   const obj = (e ?? {}) as { message?: string; details?: string };
@@ -749,6 +837,20 @@ export function mensagemDoMarketing(e: unknown): string | null {
     ordem_invalida: "A lista mudou enquanto isso. Recarregue a página e ordene de novo.",
     campos_invalidos: "Confira os dados: algum campo está fora do formato.",
     filtros_invalidos: "Esses filtros não valem mais. Limpe os filtros e tente de novo.",
+    teto_mensal:
+      "O uso da IA chegou ao teto do mês. As sugestões voltam no mês que vem ou com um teto maior.",
+    limite_diario: "Foram 30 pedidos à IA hoje, o limite do dia. Amanhã libera de novo.",
+    sem_texto_para_revisar: "Escreva o gancho ou o texto antes de pedir a revisão.",
+    ia_indisponivel: "A IA não respondeu agora. Nada mudou na peça.",
+    ia_resposta_invalida: "A IA respondeu fora do formato. Nada mudou na peça.",
+    ia_sem_rede: "Sem conexão com a IA agora. Confira a internet. Nada mudou na peça.",
+    pedido_invalido: "Pedido inválido. Recarregue a página.",
+    sem_login: "Sua sessão expirou. Entre de novo.",
+    campo_invalido: "Esse campo não pode ser usado.",
+    opcao_invalida: "Essa opção não existe mais. Peça de novo.",
+    trecho_nao_encontrado: "O texto mudou e esse trecho não está mais lá. Peça a revisão de novo.",
+    nada_para_usar: "Essa sugestão não tem nada para usar nesse campo.",
+    sugestao_inexistente: "Essa sugestão não existe mais. Recarregue a página.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;

@@ -7,6 +7,7 @@ import { VersaoEditor } from "@/components/marketing/VersaoEditor";
 import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import type { Material } from "@/lib/materiais";
 import {
+  faltaNoBriefing,
   formatosDe,
   rotuloFormato,
   type Canal,
@@ -154,6 +155,7 @@ export function VersoesPeca({
           aoRegistrar={(r) => acoes.registrar(ativa.id, r)}
           clienteDaPeca={p.client_id}
           clienteAutorizou={p.client_authorized}
+          faltaBriefing={faltaNoBriefing(p)}
           enviando={enviando}
           arquivos={{
             enviar: (fs) => acoes.enviarArquivos(ativa.id, ativa.format, fs),

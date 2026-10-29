@@ -8,6 +8,7 @@ import { PreviaVersao } from "@/components/marketing/PreviaVersao";
 import { PublicacaoVersao } from "@/components/marketing/PublicacaoVersao";
 import { RoteiroEditor } from "@/components/marketing/RoteiroEditor";
 import { SlidesEditor } from "@/components/marketing/SlidesEditor";
+import { SugestoesIA } from "@/components/marketing/SugestoesIA";
 import { useLinksArquivos } from "@/components/marketing/useLinksArquivos";
 import { useRascunho } from "@/components/marketing/useRascunho";
 import {
@@ -62,6 +63,7 @@ export function VersaoEditor({
   arquivos,
   clienteDaPeca,
   clienteAutorizou,
+  faltaBriefing,
   enviando,
   ocupado,
 }: {
@@ -77,6 +79,8 @@ export function VersaoEditor({
   arquivos: AcoesArquivos;
   clienteDaPeca: string | null;
   clienteAutorizou: boolean;
+  /** O que falta no briefing para a IA sugerir (MK-3). */
+  faltaBriefing: string[];
   enviando: boolean;
   ocupado: boolean;
 }) {
@@ -248,6 +252,8 @@ export function VersaoEditor({
             </div>
           </div>
         </fieldset>
+
+        <SugestoesIA v={v} faltaBriefing={faltaBriefing} ocupado={ocupado} />
 
         <section aria-label="Arquivos" className="flex flex-col gap-2">
           <h3 className="text-[14px] font-medium">Arquivos</h3>

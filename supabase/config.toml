@@ -425,3 +425,7 @@ enabled = true
 # Card RE-1: o Google chama /retorno sem login; as rotas do dono conferem o login dentro da função.
 [functions.reunioes-google]
 verify_jwt = false
+
+# Card MK-3: só o dono chama; o login é conferido na porta (JWT) e de novo dentro da função.
+[functions.marketing-ia]
+verify_jwt = true
