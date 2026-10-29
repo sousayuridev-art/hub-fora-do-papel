@@ -89,6 +89,9 @@ function recarregar(qc: QueryClient, id?: string) {
   void qc.invalidateQueries({ queryKey: chavesMarketing.resumo });
   void qc.invalidateQueries({ queryKey: chavesMarketing.calendarios });
   void qc.invalidateQueries({ queryKey: chavesMarketing.campanhas });
+  // MK-4: publicar, registrar números ou mudar o briefing muda os resultados.
+  void qc.invalidateQueries({ queryKey: chavesMarketing.todosResultados });
+  void qc.invalidateQueries({ queryKey: chavesMarketing.todosDestaques });
   if (id) void qc.invalidateQueries({ queryKey: chavesMarketing.detalhe(id) });
 }
 

@@ -4,6 +4,8 @@
 -- Código de rastreio por versão, link com UTM, peça de origem no cliente (automática pelo
 -- formulário do site e manual na ficha) e resultados agregados no banco.
 -- Decisões do Yuri (29/10): "contatos" = todo cliente com peça de origem; negócios fechados à parte.
+-- Os números de uma versão contam no período em que ela foi publicada (inclusive os contatos que
+-- chegaram depois); negócio fechado só conta se fechou depois da publicação.
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -85,8 +87,24 @@ alter table public.clients
   add column mkt_origem_manual boolean not null default false;
 create index clients_mkt_versao_idx on public.clients (mkt_version_id) where mkt_version_id is not null;
 
--- Automático: o contato do site chegou pelo link de uma versão do mesmo tenant. Roda depois de
--- site_contatos_para_funil (ordem alfabética dos gatilhos), que já criou ou achou o cliente.
+-- A peça de origem não conta como edição da ficha (mesma regra da última atividade): quem está com
+-- "Editar cliente" aberto não perde o salvamento porque o contato chegou pelo link.
+create or replace function public.clients_touch_updated_at()
+returns trigger language plpgsql as $$
+begin
+  if (to_jsonb(new) - 'last_activity_at' - 'updated_at' - 'whatsapp_digits' - 'mkt_version_id' - 'mkt_origem_manual')
+     = (to_jsonb(old) - 'last_activity_at' - 'updated_at' - 'whatsapp_digits' - 'mkt_version_id' - 'mkt_origem_manual') then
+    new.updated_at := old.updated_at;
+  else
+    new.updated_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+-- Automático: o contato do site chegou pelo link de uma versão do mesmo tenant E virou negócio novo
+-- (site_contatos_para_funil roda antes, pela ordem alfabética dos gatilhos, e grava site_contato_id
+-- no negócio). Inscrição na lista ou contato de quem já tinha negócio aberto não ligam nada.
 -- Só preenche se o cliente ainda não tem peça de origem (vale a primeira; a manual nunca é trocada).
 -- Nunca impede o contato de ser gravado.
 create or replace function public._mkt_origem_do_contato()
@@ -97,13 +115,10 @@ begin
     select v.id into v_versao from public.mkt_versions v
      where v.tenant_id = new.tenant_id and v.codigo = upper(trim(left(new.origem ->> 'utm_content', 20)));
     if v_versao is null then return new; end if;
-    select d.client_id into v_cliente from public.deals d where d.site_contato_id = new.id;
-    if v_cliente is null then
-      select c.id into v_cliente from public.clients c
-       where c.tenant_id = new.tenant_id and lower(c.email) = lower(new.email)
-       order by c.created_at limit 1;
-    end if;
-    update public.clients set mkt_version_id = v_versao
+    select d.client_id into v_cliente from public.deals d
+     where d.site_contato_id = new.id and d.tenant_id = new.tenant_id;
+    if v_cliente is null then return new; end if;
+    update public.clients set mkt_version_id = v_versao, mkt_origem_manual = false
      where id = v_cliente and tenant_id = new.tenant_id and mkt_version_id is null;
   exception when others then
     raise warning 'mk4: origem do contato não registrada (%)', sqlstate;
@@ -198,7 +213,7 @@ begin
     'negocios_fechados', (select count(*) from public.deals d
                             join public.clients c on c.id = d.client_id
                             join public.mkt_versions v on v.id = c.mkt_version_id
-                           where v.piece_id = p.id and d.stage = 'fechado'),
+                           where v.piece_id = p.id and d.stage = 'fechado' and d.closed_at >= v.published_at),
     'historico', coalesce((
       select jsonb_agg(jsonb_build_object('id', e.id, 'tipo', e.kind, 'de', e.from_stage, 'para', e.to_stage, 'nota', e.note,
                                           'versao_id', e.version_id, 'quando', e.created_at) order by e.created_at desc, e.id desc)
@@ -225,9 +240,9 @@ returns table (
          coalesce((v.results ->> 'cliques')::bigint, 0), coalesce((v.results ->> 'mensagens')::bigint, 0),
          (select count(*) from public.clients c where c.mkt_version_id = v.id),
          (select count(*) from public.deals d join public.clients c on c.id = d.client_id
-           where c.mkt_version_id = v.id and d.stage = 'fechado'),
+           where c.mkt_version_id = v.id and d.stage = 'fechado' and d.closed_at >= v.published_at),
          (select coalesce(sum(d.value_cents), 0) from public.deals d join public.clients c on c.id = d.client_id
-           where c.mkt_version_id = v.id and d.stage = 'fechado')
+           where c.mkt_version_id = v.id and d.stage = 'fechado' and d.closed_at >= v.published_at)
     from public.mkt_versions v
     join public.mkt_pieces p on p.id = v.piece_id, fuso
    where v.tenant_id = p_tenant and v.published_at is not null

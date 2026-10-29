@@ -44,7 +44,7 @@ Hoje a Central registra alcance, salvamentos, cliques e mensagens por versão, m
   - versões publicadas no período e quantas têm resultado registrado;
   - soma de alcance, salvamentos, cliques e mensagens (só das versões com resultado);
   - salvamentos por mil de alcance (nulo quando o alcance é zero);
-  - contatos ligados (clientes com peça de origem no grupo, criados no período), negócios fechados e valor fechado em centavos.
+  - contatos ligados (clientes com peça de origem nas versões do grupo), negócios fechados depois da publicação e valor fechado em centavos.
   - Período no fuso do tenant, pela data da publicação da versão. Linha "Sem pilar" ou "Sem campanha" para o que não tem.
 - **Destaques (`mkt_resultados_destaques(p_inicio, p_fim)`):** as 5 peças com mais contatos e as 5 com mais salvamentos por mil (mínimo de alcance: 100, para uma peça com 3 visualizações não liderar); lista "Falta registrar" (versões publicadas há mais de 7 dias sem resultado).
 - **Na peça:** `mkt_peca_detalhe` passa a trazer, por versão, `codigo`, `link` e `contatos` (quantos clientes têm essa versão como origem) e, na peça, o total de negócios fechados.
@@ -109,6 +109,13 @@ Já resolvido pelo card SITE-21 (29/10): o site guarda na sessão a origem da pr
 
 1. **Contatos** conta todo cliente novo com peça de origem; "negócios fechados" fica em coluna separada.
 2. **Site:** a origem da primeira página da visita já está no SITE-21; nada novo no site.
+
+## Como ficou (implementação, 29/10)
+
+- **Período:** os números de uma versão contam no período em que ela foi publicada, inclusive os contatos que chegaram depois (a peça leva o crédito no mês em que saiu). Negócio fechado só conta se fechou depois da publicação.
+- **Ligação automática:** só quando o contato do site virou negócio novo no funil (inscrição na lista ou contato de quem já tinha negócio aberto não ligam). Não procura pelo e-mail.
+- **Peça de origem na ficha:** RPC própria (`mkt_cliente_origem_definir`) em vez de um campo novo em `cliente_salvar`, para não mexer na edição do cliente. Mudar a peça de origem não muda a versão da ficha (quem está editando não perde o salvamento).
+- **Abrir peça pela aba Resultados:** abre direto em Versões.
 
 ## Para o Yuri depois de publicar
 

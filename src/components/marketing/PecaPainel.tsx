@@ -37,6 +37,7 @@ export function PecaPainel({
   campanhas,
   m,
   aoFechar,
+  abaInicial,
 }: {
   id: string | undefined;
   daLista: Peca | null;
@@ -44,6 +45,8 @@ export function PecaPainel({
   campanhas: Campanha[];
   m: Mutacoes;
   aoFechar: () => void;
+  /** Aba ao abrir (ex.: Resultados abre direto em Versões, para registrar os números). */
+  abaInicial?: Aba | undefined;
 }) {
   const detalhe = useQuery({
     queryKey: chavesMarketing.detalhe(id ?? ""),
@@ -71,9 +74,10 @@ export function PecaPainel({
   useEffect(() => {
     if (!id) return;
     setAba(
-      etapaInicial && ["aprovacao", "pronto", "publicado", "analisado"].includes(etapaInicial)
-        ? "versoes"
-        : "briefing",
+      abaInicial ??
+        (etapaInicial && ["aprovacao", "pronto", "publicado", "analisado"].includes(etapaInicial)
+          ? "versoes"
+          : "briefing"),
     );
     // Só ao trocar de peça; mudar de etapa com o painel aberto não troca a aba.
     // eslint-disable-next-line react-hooks/exhaustive-deps

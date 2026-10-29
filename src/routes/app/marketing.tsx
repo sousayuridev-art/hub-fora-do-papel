@@ -223,11 +223,12 @@ function CentralConteudo() {
         </>
       )}
 
-      {aba === "resultados" && hoje && (
+      {aba === "resultados" && (
         <ResultadosConteudo
           periodo={busca.periodo ?? "30"}
           agrupar={busca.agrupar ?? "pilar"}
-          hoje={hoje}
+          // Sem a data do banco (lista e resumo falharam), usa a do aparelho para não deixar a aba vazia.
+          hoje={hoje || new Date().toLocaleDateString("sv-SE")}
           aoMudar={mudar}
           aoAbrir={(id) => painel.abrir(id)}
         />
@@ -260,6 +261,7 @@ function CentralConteudo() {
 
       <PecaPainel
         id={busca.peca}
+        abaInicial={aba === "resultados" ? "versoes" : undefined}
         daLista={daLista}
         canais={canais.data ?? []}
         campanhas={campanhas.data ?? []}
