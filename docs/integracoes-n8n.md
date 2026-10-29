@@ -17,3 +17,12 @@ Pipedrive e ChatGuru/WhatsApp. Card REV-5.
 - Evento reservado e não confirmado volta à fila depois de 5 minutos.
 - Depois de 10 tentativas o evento para; conferir `last_error` e reenviar zerando `attempts` no SQL.
 - O destino deve aceitar o mesmo evento duas vezes sem duplicar (usar o `id` do evento como chave).
+
+## Eventos da Central de conteúdo (card MK-1)
+| Evento | Quando | Dados |
+| --- | --- | --- |
+| `marketing.peca_aprovada` | a peça foi aprovada | `peca_id`, `titulo`, `canais` |
+| `marketing.versao_agendada` | uma versão ganhou data | `peca_id`, `versao_id`, `canal`, `formato`, `quando` |
+| `marketing.versao_publicada` | uma versão foi marcada como publicada (link colado) | `peca_id`, `versao_id`, `canal`, `formato`, `link`, `quando`, `pilar` |
+
+Hoje nenhum fluxo publica na rede: esses eventos servem para avisos e, no MK-5, para publicar e trazer números.
