@@ -146,7 +146,11 @@ async function publicarUma(versao: string): Promise<void> {
   try {
     if (s.tipo === "publicada") await registrar(versao, "publicada", { link: s.link, id: s.id });
     else if (s.tipo === "enviada") await registrar(versao, "enviada", { id: s.id });
-    else if (s.tipo === "falhou") await registrar(versao, "falhou", { erro: traduzirErro(s.erro) });
+    // Recusa dentro de uma resposta de sucesso: pode ter saído mesmo assim.
+    else if (s.tipo === "falhou")
+      await registrar(versao, "falhou", {
+        erro: `${traduzirErro(s.erro)} Confira o perfil antes de tentar de novo: o post pode ter saído.`,
+      });
   } catch {
     console.error("marketing-publicar: envio feito, registro pendente");
   }
@@ -199,6 +203,11 @@ async function conferir(comChave: boolean): Promise<void> {
           erro: "A rede não confirmou a publicação em 24 horas. Confira o perfil antes de tentar de novo.",
         });
     } catch {
+      // A consulta falha sempre (pedido expirado, API fora): o prazo vale do mesmo jeito.
+      if (esperouDemais(e.enviada_em))
+        await registrar(e.versao_id, "falhou", {
+          erro: "Não conseguimos confirmar a publicação em 24 horas. Confira o perfil antes de tentar de novo: o post pode ter saído.",
+        }).catch(() => undefined);
       console.error("marketing-publicar: falha ao conferir uma versão");
     }
   }

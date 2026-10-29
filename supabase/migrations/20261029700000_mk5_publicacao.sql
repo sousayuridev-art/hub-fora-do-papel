@@ -214,7 +214,9 @@ declare s text;
 begin
   if to_regclass('vault.decrypted_secrets') is null then return false; end if;
   execute 'select decrypted_secret from vault.decrypted_secrets where name = $1' into s using 'marketing_publicar';
-  return s is not null and p_segredo is not null and length(p_segredo) = length(s) and p_segredo = s;
+  -- Compara os resumos (mesmo tamanho sempre), não o texto.
+  return s is not null and p_segredo is not null
+     and extensions.digest(p_segredo, 'sha256') = extensions.digest(s, 'sha256');
 end;
 $$;
 
@@ -351,7 +353,7 @@ returns jsonb language sql stable security definer set search_path = public as $
   select coalesce(jsonb_agg(jsonb_build_object('versao_id', v.id, 'canal', v.channel, 'id_externo', v.id_externo,
                                                'enviada_em', v.publicacao_em) order by v.publicacao_em), '[]'::jsonb)
     from public.mkt_versions v
-    join public.mkt_publicacao_contas c on c.tenant_id = v.tenant_id
+   -- Sem exigir o perfil: uma enviada de tenant que perdeu o perfil também precisa de saída.
    where v.publicacao = 'enviada' and v.published_at is null;
 $$;
 
