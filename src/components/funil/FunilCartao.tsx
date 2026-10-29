@@ -1,3 +1,5 @@
+import type { HTMLAttributes } from "react";
+import { useDraggable } from "@dnd-kit/core";
 import { Link } from "@tanstack/react-router";
 import { CalendarClock, MoreHorizontal } from "lucide-react";
 
@@ -42,10 +44,20 @@ export function FunilCartao({
   o,
   aoAgir,
   arrastavel,
+  flutuando = false,
+  fantasma = false,
+  refArrastar,
+  propsArrastar,
 }: {
   o: Oportunidade;
   aoAgir: (acao: AcaoCartao, o: Oportunidade) => void;
   arrastavel: boolean;
+  /** Cópia que segue o cursor enquanto arrasta (levemente inclinada, com sombra). */
+  flutuando?: boolean;
+  /** Lugar de origem enquanto o cartão está sendo arrastado. */
+  fantasma?: boolean;
+  refArrastar?: ((el: HTMLElement | null) => void) | undefined;
+  propsArrastar?: HTMLAttributes<HTMLElement> | undefined;
 }) {
   const prazo =
     o.next_step_date && o.stage !== "fechado" && !o.archived_at
@@ -55,14 +67,14 @@ export function FunilCartao({
 
   return (
     <article
-      draggable={arrastavel}
-      onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", o.id);
-        e.dataTransfer.effectAllowed = "move";
-      }}
+      ref={refArrastar}
+      {...propsArrastar}
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border border-[rgba(14,16,19,0.07)] bg-white shadow-[0_1px_2px_rgba(14,16,19,0.05)] transition-shadow hover:shadow-[0_8px_20px_-10px_rgba(14,16,19,0.25)]",
+        "group relative flex touch-manipulation flex-col overflow-hidden rounded-xl border border-[rgba(14,16,19,0.07)] bg-white shadow-[0_1px_2px_rgba(14,16,19,0.05)] transition-[box-shadow,opacity] hover:shadow-[0_8px_20px_-10px_rgba(14,16,19,0.25)]",
         arrastavel && "cursor-grab active:cursor-grabbing",
+        fantasma && "opacity-35 shadow-none",
+        flutuando &&
+          "rotate-[2deg] scale-[1.03] cursor-grabbing shadow-[0_18px_40px_-12px_rgba(14,16,19,0.45)]",
       )}
     >
       <div className="flex items-center gap-2.5 py-2 pl-3.5 pr-1.5">
@@ -71,6 +83,7 @@ export function FunilCartao({
           <Link
             to="/app/clientes/$id"
             params={{ id: o.client_id }}
+            draggable={false}
             className="truncate text-[14.5px] font-semibold leading-snug text-hub-tinta after:absolute after:inset-0 after:content-[''] focus-visible:outline-2 focus-visible:outline-hub-tinta"
           >
             {o.company_name}
@@ -167,5 +180,31 @@ export function FunilCartao({
         </p>
       )}
     </article>
+  );
+}
+
+/** Cartão que pode ser arrastado entre colunas (o cartão acompanha o cursor). */
+export function FunilCartaoArrastavel({
+  o,
+  aoAgir,
+  arrastavel,
+}: {
+  o: Oportunidade;
+  aoAgir: (acao: AcaoCartao, o: Oportunidade) => void;
+  arrastavel: boolean;
+}) {
+  const { setNodeRef, attributes, listeners, isDragging } = useDraggable({
+    id: o.id,
+    disabled: !arrastavel,
+  });
+  return (
+    <FunilCartao
+      o={o}
+      aoAgir={aoAgir}
+      arrastavel={arrastavel}
+      fantasma={isDragging}
+      refArrastar={setNodeRef}
+      propsArrastar={arrastavel ? { ...attributes, ...listeners } : undefined}
+    />
   );
 }
