@@ -86,4 +86,4 @@
 ## Perguntas antes de começar
 
 1. ~~Formato visual sem arquivo: bloquear ou só avisar?~~ **Decidido (Yuri, 29/10): bloquear.**
-2. **Arquivos que o cliente enviou:** podem ser usados numa peça (fotos de um projeto real, por exemplo)? A proposta é sim, mas só com a autorização do cliente marcada na peça.
+2. ~~Arquivos que o cliente enviou podem entrar numa peça?~~ **Decidido (Yuri, 29/10): sim, só com o cliente ligado à peça e a autorização marcada.**
