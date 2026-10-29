@@ -73,9 +73,9 @@ Hoje a Central registra alcance, salvamentos, cliques e mensagens por versão, m
 
 - Colunas de resultado novas (visualizações de vídeo, compartilhamentos) quando o MK-5 trouxer números automáticos: a função de resultados soma as chaves que existirem.
 
-### Dependência no site (repositório `fora-do-papel-blueprint`)
+### Site (repositório `fora-do-papel-blueprint`)
 
-Hoje o site guarda os `utm_*` só da página em que o formulário é enviado. Quem entra por `/?utm_content=ABC123` e vai para `/contato` perde a origem. Precisa de um card no site (sugestão: SITE-21) para guardar a origem da primeira página da visita na sessão do navegador e mandar no envio. Sem ele, a ligação automática só pega quem envia o formulário na página em que chegou.
+Já resolvido pelo card SITE-21 (29/10): o site guarda na sessão a origem da primeira página com campanha e manda no envio do formulário (`origem ->> 'utm_content'`). Conferir que o SITE-21 está publicado no Lovable antes de contar com a ligação automática.
 
 ## Casos de borda
 
@@ -105,10 +105,10 @@ Hoje o site guarda os `utm_*` só da página em que o formulário é enviado. Qu
 - Rápida: em 2 semanas, mais da metade das versões publicadas tem resultado registrado (a lista "Falta registrar" ajuda).
 - Depois: em 2 meses, pelo menos um ajuste de calendário decidido pela aba Resultados (registrado na nota da campanha).
 
-## Perguntas para o Yuri
+## Decisões (Yuri, 29/10: "Tome as melhores decisões e continue")
 
-1. **"Contato" no painel conta quem chegou ou só quem virou negócio no funil?** Sugestão: conta todo cliente novo com peça de origem; "negócios fechados" fica em coluna separada. Não bloqueia.
-2. **Escrevo o card do site (guardar a origem da primeira página) junto?** Sem ele, a ligação automática perde quem navega antes de enviar. Não bloqueia o Hub, mas reduz o valor do item 2 dos objetivos.
+1. **Contatos** conta todo cliente novo com peça de origem; "negócios fechados" fica em coluna separada.
+2. **Site:** a origem da primeira página da visita já está no SITE-21; nada novo no site.
 
 ## Para o Yuri depois de publicar
 
