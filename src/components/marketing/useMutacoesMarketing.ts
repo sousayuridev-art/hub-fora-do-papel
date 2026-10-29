@@ -27,6 +27,7 @@ import {
   papelDoArquivo,
   registrarResultados,
   removerArquivo,
+  salvarModelo,
   removerCampanha,
   removerPeca,
   removerVersao,
@@ -416,6 +417,71 @@ export function useMutacoesMarketing() {
     },
   });
 
+  /**
+   * Modelo da marca (MK-6): os novos entram primeiro; só depois os antigos saem e o tema é gravado.
+   * Assim a versão nunca fica sem arquivo. "Tentar de novo" manda só o que faltou.
+   */
+  const geradosEnviados = useRef(0);
+  const gerarModelo = useMutation({
+    mutationFn: async (a: {
+      pecaId: string;
+      versao: string;
+      formato: Formato;
+      arquivos: File[];
+      antigos: string[];
+      capa: string;
+      final: string;
+    }) => {
+      geradosEnviados.current = 0;
+      let ultima: Peca | null = null;
+      for (const f of a.arquivos) {
+        const papel = papelDoArquivo(a.formato, tipoDoArquivo(f));
+        if (!papel) throw new Error(`tipo_do_arquivo:${f.name}`);
+        const m = await enviarMaterial({
+          arquivo: f,
+          categoria: "redes",
+          titulo: f.name.replace(/\.[^.]+$/, "").slice(0, 120) || "Arquivo da peça",
+          descricao: "",
+          clienteId: null,
+          projetoId: null,
+          compartilhado: false,
+        });
+        ultima = await ligarArquivo(a.versao, m.id, papel);
+        geradosEnviados.current += 1;
+      }
+      for (const id of a.antigos) {
+        try {
+          ultima = await removerArquivo(id);
+        } catch (e) {
+          // Já saiu numa tentativa anterior: segue.
+          if (!(mensagemDoMarketing(e) ?? "").includes("já saiu")) throw e;
+        }
+      }
+      await salvarModelo(a.versao, a.capa, a.final);
+      return ultima;
+    },
+    onSuccess: (p, a) => {
+      if (p) gravarPeca(qc, p);
+      ok(
+        `${a.arquivos.length} ${a.arquivos.length === 1 ? "imagem gerada e ligada" : "imagens geradas e ligadas"} à versão.`,
+      );
+    },
+    onError: (e, a) => {
+      const resto = a.arquivos.slice(geradosEnviados.current);
+      erro(mensagemDoMaterial(e) ?? falhou(e), {
+        ...(geradosEnviados.current > 0 && {
+          detalhe: `${geradosEnviados.current} de ${a.arquivos.length} já entraram na versão.`,
+        }),
+        tentarDeNovo: () => gerarModelo.mutate({ ...a, arquivos: resto }),
+      });
+    },
+    onSettled: (_d, _e, a) => {
+      recarregar(qc, a.pecaId);
+      void qc.invalidateQueries({ queryKey: chavesMarketing.materiais });
+      void qc.invalidateQueries({ queryKey: ["marketing", "proxima-capa"] });
+    },
+  });
+
   const campanha = useMutation({
     mutationFn: (v: { id: string | null; campos: CamposCampanha }) =>
       salvarCampanha(v.id, v.campos),
@@ -447,6 +513,7 @@ export function useMutacoesMarketing() {
     removerArquivo: removerArquivoM,
     ordenar,
     enviar,
+    gerarModelo,
     campanha,
     removerCampanha: removerCampanhaM,
   };

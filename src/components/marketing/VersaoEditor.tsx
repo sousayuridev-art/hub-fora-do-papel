@@ -1,4 +1,4 @@
-import { useState, type FocusEvent } from "react";
+import { lazy, Suspense, useState, type FocusEvent } from "react";
 import { Copy, Sparkles, Trash2 } from "lucide-react";
 
 import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
@@ -6,7 +6,6 @@ import { ArquivosVersao, type AcoesArquivos } from "@/components/marketing/Arqui
 import { AvisosMarca } from "@/components/marketing/AvisosMarca";
 import { PreviaVersao } from "@/components/marketing/PreviaVersao";
 import { LinkRastreio } from "@/components/marketing/LinkRastreio";
-import { GerarModeloPainel } from "@/components/marketing/modelos/GerarModeloPainel";
 import { PublicacaoVersao } from "@/components/marketing/PublicacaoVersao";
 import { RoteiroEditor } from "@/components/marketing/RoteiroEditor";
 import { SlidesEditor } from "@/components/marketing/SlidesEditor";
@@ -33,6 +32,9 @@ import {
 import { geraModelo } from "@/lib/modelosMarca";
 import { cn } from "@/lib/utils";
 import { classeAcaoTexto } from "@/lib/estilos";
+
+// MK-6: o gerador (e o que ele usa) só carrega quando a pessoa abre.
+const GerarModeloPainel = lazy(() => import("@/components/marketing/modelos/GerarModeloPainel"));
 
 /** Forma única de roteiro e slides para comparar com o banco (que reordena as chaves). */
 const roteiroEmTexto = (c: Cena[]) => JSON.stringify(c.map((x) => [x.tempo, x.fala, x.na_tela]));
@@ -286,7 +288,8 @@ export function VersaoEditor({
             enviando={enviando}
             ocupado={ocupado}
             extra={
-              geraModelo(v.format) && (
+              geraModelo(v.format) &&
+              arquivos.gerar && (
                 <button
                   type="button"
                   className={`${classeAcaoTexto} gap-2`}
@@ -298,14 +301,16 @@ export function VersaoEditor({
               )
             }
           />
-          {geraModelo(v.format) && !publicada && (
-            <GerarModeloPainel
-              aberto={gerarAberto}
-              aoMudar={setGerarAberto}
-              v={v}
-              pilar={pilar}
-              aoEnviar={arquivos.enviar}
-            />
+          {geraModelo(v.format) && !publicada && arquivos.gerar && gerarAberto && (
+            <Suspense fallback={null}>
+              <GerarModeloPainel
+                aberto={gerarAberto}
+                aoMudar={setGerarAberto}
+                v={v}
+                pilar={pilar}
+                aoGerar={arquivos.gerar}
+              />
+            </Suspense>
           )}
         </section>
 
@@ -331,6 +336,7 @@ export function VersaoEditor({
       <aside aria-label="Prévia" className="flex flex-col gap-2 lg:sticky lg:top-0 lg:self-start">
         <h3 className="text-[14px] font-medium">Prévia</h3>
         <PreviaVersao
+          pilar={pilar}
           v={{ ...v, hook: gancho, body: texto, script: roteiro, slides }}
           links={links}
           falhou={linksFalharam}

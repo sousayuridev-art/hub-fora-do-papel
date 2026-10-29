@@ -4,7 +4,14 @@ import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { PreviaModelo } from "@/components/marketing/modelos/PreviaModelo";
 import { classeAcaoTexto } from "@/lib/estilos";
 import { geraModelo } from "@/lib/modelosMarca";
-import { ehSlides, ehVideo, rotuloChamada, type Midia, type Versao } from "@/lib/marketing";
+import {
+  ehSlides,
+  ehVideo,
+  rotuloChamada,
+  type Midia,
+  type Pilar,
+  type Versao,
+} from "@/lib/marketing";
 
 /** Quanto de texto cada canal mostra antes do "mais" (aproximado, para o gancho segurar). */
 const corte: Record<string, number> = { instagram: 125, linkedin: 210, tiktok: 80, youtube: 100 };
@@ -210,8 +217,11 @@ export function PreviaVersao({
   v,
   links = {},
   falhou = false,
+  pilar = null,
 }: {
   v: Versao;
+  /** Rótulo da capa no modelo da marca (MK-6). */
+  pilar?: Pilar | null;
   links?: Record<string, string>;
   falhou?: boolean;
 }) {
@@ -231,7 +241,7 @@ export function PreviaVersao({
         {(v.midias?.length ?? 0) > 0 ? (
           <Real v={v} links={links} vertical={vertical} falhou={falhou} />
         ) : v.format === "texto" || v.format === "artigo" ? null : geraModelo(v.format) ? (
-          <PreviaModelo v={v} largura={vertical ? 220 : 300} />
+          <PreviaModelo v={v} pilar={pilar} largura={vertical ? 220 : 300} />
         ) : (
           <Capa titulo={titulo} vertical={vertical} />
         )}

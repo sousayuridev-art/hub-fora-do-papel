@@ -30,6 +30,15 @@ export type AcoesVersao = {
   enviarArquivos: (id: string, formato: Formato, arquivos: File[]) => void;
   ligarArquivo: (id: string, material: Material, papel: PapelMidia) => void;
   removerArquivo: (id: string, midia: string) => void;
+  /** MK-6: liga as imagens geradas, tira as antigas e grava o tema; true quando deu tudo certo. */
+  gerarModelo: (
+    id: string,
+    formato: Formato,
+    arquivos: File[],
+    antigos: string[],
+    capa: string,
+    final: string,
+  ) => Promise<boolean>;
   ordenarArquivos: (id: string, ids: string[]) => void;
 };
 
@@ -177,6 +186,8 @@ export function VersoesPeca({
             ligar: (mat, papel) => acoes.ligarArquivo(ativa.id, mat, papel),
             remover: (mid) => acoes.removerArquivo(ativa.id, mid),
             ordenar: (ids) => acoes.ordenarArquivos(ativa.id, ids),
+            gerar: (fs, antigos, capa, final) =>
+              acoes.gerarModelo(ativa.id, ativa.format, fs, antigos, capa, final),
           }}
         />
       ) : (

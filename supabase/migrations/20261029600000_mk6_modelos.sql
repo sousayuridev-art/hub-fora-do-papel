@@ -36,15 +36,18 @@ begin
 end;
 $$;
 
--- Última capa gerada no canal (publicada, agendada ou só gerada; a mais recente) e o próximo tema.
+-- Última capa que vai para a grade do canal (versão agendada ou publicada, a mais recente; Stories
+-- não aparecem na grade) e o próximo tema na ordem escuro → claro → âmbar.
 create or replace function public.mkt_proxima_capa(p_canal text, p_ignorar uuid default null)
 returns jsonb language sql stable security definer set search_path = public as $$
   with ultima as (
     select v.modelo ->> 'capa' as capa
       from public.mkt_versions v
      where v.tenant_id = public._tenant_do_dono() and v.channel = p_canal and v.modelo is not null
+       and v.format <> 'stories'
+       and (v.published_at is not null or v.scheduled_at is not null)
        and (p_ignorar is null or v.id <> p_ignorar)
-     order by coalesce(v.published_at, v.scheduled_at, (v.modelo ->> 'gerado_em')::timestamptz) desc
+     order by coalesce(v.published_at, v.scheduled_at) desc
      limit 1)
   select jsonb_build_object(
     'ultima', (select capa from ultima),

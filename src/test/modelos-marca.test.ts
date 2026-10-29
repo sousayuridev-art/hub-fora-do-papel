@@ -82,6 +82,21 @@ describe("quadros do modelo", () => {
     expect(q).toHaveLength(2);
   });
 
+  it("slide vazio no começo: a capa usa o primeiro com texto", () => {
+    const q = quadrosDaVersao(
+      versao({ slides: [{ titulo: "", texto: " " }, ...slides(3)] }),
+      null,
+      escolha,
+    );
+    expect(q[0]?.titulo).toBe("Título 1");
+    expect(q).toHaveLength(3);
+  });
+
+  it("carrossel de um slide com chamada: só a capa (não há onde pôr a chamada)", () => {
+    const q = quadrosDaVersao(versao({ slides: slides(1), cta: "marcar_conversa" }), null, escolha);
+    expect(q.map((x) => x.tipo)).toEqual(["capa"]);
+  });
+
   it("Reels: uma capa vertical com o gancho", () => {
     const q = quadrosDaVersao(versao({ format: "reels" }), null, escolha);
     expect(q).toHaveLength(1);

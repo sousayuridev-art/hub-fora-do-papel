@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 
 import { QuadroEscalado } from "@/components/marketing/modelos/QuadroMarca";
-import type { Versao } from "@/lib/marketing";
+import type { Pilar, Versao } from "@/lib/marketing";
 import { quadrosDaVersao } from "@/lib/modelosMarca";
 
 /**
  * Prévia sem arquivo (MK-6): a capa como sairia pelo modelo da marca, no tema já usado ou no
  * escuro. As fontes da marca carregam só aqui (o resto do Hub não baixa nada a mais).
  */
-export function PreviaModelo({ v, largura }: { v: Versao; largura: number }) {
+export function PreviaModelo({
+  v,
+  pilar,
+  largura,
+}: {
+  v: Versao;
+  pilar: Pilar | null;
+  largura: number;
+}) {
   const [pronto, setPronto] = useState(false);
   useEffect(() => {
     let vivo = true;
@@ -19,7 +27,7 @@ export function PreviaModelo({ v, largura }: { v: Versao; largura: number }) {
       vivo = false;
     };
   }, []);
-  const capa = quadrosDaVersao(v, null, {
+  const capa = quadrosDaVersao(v, pilar, {
     capa: v.modelo?.capa ?? "escuro",
     final: v.modelo?.final ?? "ambar",
   })[0];

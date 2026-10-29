@@ -31,6 +31,8 @@ export type AcoesArquivos = {
   ligar: (material: Material, papel: PapelMidia) => void;
   remover: (id: string) => void;
   ordenar: (ids: string[]) => void;
+  /** MK-6: imagens do modelo da marca (novas entram, antigas saem, tema gravado). */
+  gerar?: (arquivos: File[], antigos: string[], capa: string, final: string) => Promise<boolean>;
 };
 
 /** Miniatura com a conferência da proporção do formato (medida pela própria imagem). */

@@ -122,6 +122,13 @@ export function PecaPainel({
             },
           }),
         removerArquivo: (vid, id) => m.removerArquivo.mutate({ pecaId: p.id, versao: vid, id }),
+        gerarModelo: (vid, formato, arquivos, antigos, capa, final) =>
+          m.gerarModelo
+            .mutateAsync({ pecaId: p.id, versao: vid, formato, arquivos, antigos, capa, final })
+            .then(
+              () => true,
+              () => false,
+            ),
         ordenarArquivos: (vid, ids) => m.ordenar.mutate({ pecaId: p.id, versao: vid, ids }),
       }
     : null;
@@ -223,7 +230,7 @@ export function PecaPainel({
               canais={canais}
               acoes={acoesVersao}
               ocupado={ocupado}
-              enviando={m.enviar.isPending}
+              enviando={m.enviar.isPending || m.gerarModelo.isPending}
             />
           )}
           {aba === "historico" && <HistoricoPeca itens={p.historico} />}

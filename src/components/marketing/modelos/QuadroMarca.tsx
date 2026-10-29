@@ -25,7 +25,8 @@ function cores(tema: Quadro["tema"]) {
       fundo: COR.escuro,
       tinta: "#FFFFFF",
       apoio: COR.apoioEscuro,
-      rotulo: COR.ambar,
+      // Âmbar só no símbolo: o rótulo da capa escura fica no apoio claro.
+      rotulo: COR.apoioEscuro,
       quadrado: COR.ambar,
     };
   if (tema === "claro")
@@ -146,8 +147,11 @@ export const QuadroMarca = forwardRef<HTMLDivElement, { q: Quadro }>(function Qu
       {q.tipo === "capa" && <Assinatura c={c} />}
 
       <div
+        data-medir="area"
         style={{
           flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
           display: "flex",
           flexDirection: "column",
           justifyContent: q.tipo === "capa" ? "flex-end" : "center",
@@ -173,6 +177,7 @@ export const QuadroMarca = forwardRef<HTMLDivElement, { q: Quadro }>(function Qu
         )}
         {q.titulo && (
           <h1
+            data-medir="linha"
             style={{
               margin: 0,
               fontFamily: TITULO,
@@ -188,6 +193,7 @@ export const QuadroMarca = forwardRef<HTMLDivElement, { q: Quadro }>(function Qu
         )}
         {q.texto && (
           <p
+            data-medir="linha"
             style={{
               margin: 0,
               fontSize: texto,
@@ -262,7 +268,7 @@ export function QuadroEscalado({ q, largura }: { q: Quadro; largura: number }) {
   return (
     <div
       style={{ width: largura, height: h * escala, overflow: "hidden", borderRadius: 10 }}
-      aria-label={`Slide ${q.indice} de ${q.total}`}
+      aria-label={`${q.tipo === "capa" ? "Capa" : q.tipo === "final" ? "Chamada final" : `Slide ${q.indice}`}: ${q.titulo || "sem título"}`}
       role="img"
     >
       <div

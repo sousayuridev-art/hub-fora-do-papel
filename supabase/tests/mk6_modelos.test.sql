@@ -1,7 +1,7 @@
 -- MK-6: tema do modelo por versão, alternância da capa na grade e isolamento.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(15);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -25,10 +25,22 @@ select throws_ok(format($$ select public.mkt_versao_modelo(%L, 'roxo', 'ambar') 
 select is((public.mkt_versao_modelo(current_setting('teste.v')::uuid, 'escuro', 'ambar')) -> 'modelo' ->> 'capa', 'escuro', 'Grava o tema');
 select ok(exists (select 1 from public.mkt_events where kind = 'modelo_gerado' and version_id = current_setting('teste.v')::uuid),
   'Fica no histórico');
-select is((public.mkt_proxima_capa('instagram')) ->> 'ultima', 'escuro', 'Última capa no Instagram: escura');
+select is((public.mkt_proxima_capa('instagram')) ->> 'ultima', null, 'Só gerada (rascunho) não conta na grade');
+reset role;
+update public.mkt_versions set scheduled_at = now() + interval '1 day' where id = current_setting('teste.v')::uuid;
+set local role authenticated;
+select is((public.mkt_proxima_capa('instagram')) ->> 'ultima', 'escuro', 'Agendada: a última capa no Instagram é escura');
 select is((public.mkt_proxima_capa('instagram')) ->> 'sugerida', 'claro', 'Sugere a clara (a grade alterna)');
 select is((public.mkt_proxima_capa('instagram', current_setting('teste.v')::uuid)) ->> 'ultima', null,
   'Ignora a própria versão ao gerar de novo');
+-- Stories não entram na grade
+select lives_ok(format($$ select public.mkt_versao_adicionar(%L, 'instagram', 'stories') $$, current_setting('teste.p')), 'Stories na mesma peça');
+select lives_ok(format($$ select public.mkt_versao_modelo(%L, 'ambar', 'ambar') $$,
+  (select id from public.mkt_versions where piece_id = current_setting('teste.p')::uuid and format = 'stories')), 'Gera nos Stories');
+reset role;
+update public.mkt_versions set scheduled_at = now() + interval '2 days' where piece_id = current_setting('teste.p')::uuid and format = 'stories';
+set local role authenticated;
+select is((public.mkt_proxima_capa('instagram')) ->> 'ultima', 'escuro', 'Stories agendado não muda a grade');
 select is((public.mkt_proxima_capa('linkedin')) ->> 'sugerida', 'escuro', 'Cada canal tem a sua grade');
 
 reset role;

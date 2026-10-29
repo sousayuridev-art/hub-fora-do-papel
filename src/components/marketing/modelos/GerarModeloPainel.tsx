@@ -1,18 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, Sparkles, TriangleAlert } from "lucide-react";
 
 import { CampoEscolha } from "@/components/hub/Campo";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { QuadroEscalado, QuadroMarca } from "@/components/marketing/modelos/QuadroMarca";
+import { quadrosQueEstouram } from "@/components/marketing/modelos/medirQuadros";
 import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
 import {
   chavesMarketing,
-  mensagemDoMarketing,
   proximaCapa,
-  removerArquivo,
   rotuloPapel,
-  salvarModelo,
   type Pilar,
   type Versao,
 } from "@/lib/marketing";
@@ -28,28 +26,27 @@ import {
   type TemaCapa,
   type TemaFinal,
 } from "@/lib/modelosMarca";
-import { erro, mensagemDeErro } from "@/lib/notify";
-
-const falhou = (e: unknown) => mensagemDoMarketing(e) ?? mensagemDeErro(e);
+import { erro } from "@/lib/notify";
 
 /**
- * Gerar com o modelo da marca (MK-6): escolhe os temas, confere as miniaturas e gera os PNG,
- * que entram na versão pelo mesmo caminho do envio do MK-2 (Materiais › Conteúdo das redes).
+ * Gerar com o modelo da marca (MK-6): escolhe os temas, confere as miniaturas e gera os PNG.
+ * Os quadros ficam montados em tamanho real (escondidos) enquanto o painel está aberto: servem
+ * para medir o que não cabe e para gerar. O envio é a mutação `gerarModelo` (novos entram antes
+ * de os antigos saírem).
  */
-export function GerarModeloPainel({
+export default function GerarModeloPainel({
   aberto,
   aoMudar,
   v,
   pilar,
-  aoEnviar,
+  aoGerar,
 }: {
   aberto: boolean;
   aoMudar: (aberto: boolean) => void;
   v: Versao;
   pilar: Pilar | null;
-  aoEnviar: (arquivos: File[]) => void;
+  aoGerar: (arquivos: File[], antigos: string[], capa: string, final: string) => Promise<boolean>;
 }) {
-  const qc = useQueryClient();
   const sugestao = useQuery({
     queryKey: chavesMarketing.proximaCapa(v.channel, v.id),
     queryFn: () => proximaCapa(v.channel, v.id),
@@ -60,6 +57,8 @@ export function GerarModeloPainel({
   const temaCapa: TemaCapa = capa ?? v.modelo?.capa ?? sugestao.data?.sugerida ?? "escuro";
   const [fontes, setFontes] = useState(false);
   const [gerando, setGerando] = useState(false);
+  const [trocar, setTrocar] = useState(false);
+  const [estouram, setEstouram] = useState<number[]>([]);
   const quadrosRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -67,8 +66,8 @@ export function GerarModeloPainel({
     let vivo = true;
     void import("@/components/marketing/modelos/fontesMarca")
       .then((m) => m.carregarFontesMarca())
-      .then(() => vivo && setFontes(true))
-      .catch(() => vivo && setFontes(true));
+      .catch(() => undefined)
+      .finally(() => vivo && setFontes(true));
     return () => {
       vivo = false;
     };
@@ -78,43 +77,71 @@ export function GerarModeloPainel({
     () => quadrosDaVersao(v, pilar, { capa: temaCapa, final }),
     [v, pilar, temaCapa, final],
   );
-  const { bloqueia, avisa } = avisosDoModelo(quadros);
+
+  // Mede com as fontes já aplicadas (o tamanho muda com a fonte).
+  useLayoutEffect(() => {
+    if (!aberto || !fontes) return;
+    const id = requestAnimationFrame(() =>
+      setEstouram(quadrosQueEstouram(quadrosRef.current.slice(0, quadros.length))),
+    );
+    return () => cancelAnimationFrame(id);
+  }, [aberto, fontes, quadros]);
+
+  const avisos = avisosDoModelo(quadros);
+  const bloqueia = [
+    ...avisos.bloqueia,
+    ...estouram.map(
+      (n) => `O texto do slide ${n} não cabe no quadro (palavra longa ou linhas demais): encurte.`,
+    ),
+  ];
   const papel = papelGerado(v.format);
   const atuais = (v.midias ?? []).filter((m) => m.papel === papel);
   const titulo = quadros[0]?.titulo ?? "peca";
+  const podeGerar =
+    !gerando &&
+    fontes &&
+    bloqueia.length === 0 &&
+    quadros.length > 0 &&
+    (atuais.length === 0 || trocar);
 
   async function gerar() {
     setGerando(true);
     try {
-      const [{ toBlob }, { cssDasFontesEmbutido }] = await Promise.all([
-        import("html-to-image"),
-        import("@/components/marketing/modelos/fontesMarca"),
-      ]);
-      const fontEmbedCSS = await cssDasFontesEmbutido();
-      // Espera os quadros em tamanho real aparecerem na página (escondidos).
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-      const arquivos: File[] = [];
-      for (const [i, q] of quadros.entries()) {
-        const no = quadrosRef.current[i];
-        if (!no) throw new Error("quadro_nao_montado");
-        const blob = await toBlob(no, {
-          width: LARGURA,
-          height: altura(q.vertical),
-          pixelRatio: 1,
-          fontEmbedCSS,
-          cacheBust: false,
-        });
-        if (!blob) throw new Error("png_vazio");
-        arquivos.push(new File([blob], nomeDoArquivo(titulo, q), { type: "image/png" }));
+      let arquivos: File[];
+      try {
+        const [{ toBlob }, { cssDasFontesEmbutido }] = await Promise.all([
+          import("html-to-image"),
+          import("@/components/marketing/modelos/fontesMarca"),
+        ]);
+        const fontEmbedCSS = await cssDasFontesEmbutido();
+        arquivos = [];
+        for (const [i, q] of quadros.entries()) {
+          const no = quadrosRef.current[i];
+          if (!no) throw new Error("quadro_nao_montado");
+          const blob = await toBlob(no, {
+            width: LARGURA,
+            height: altura(q.vertical),
+            pixelRatio: 1,
+            fontEmbedCSS,
+            cacheBust: false,
+          });
+          if (!blob) throw new Error("png_vazio");
+          arquivos.push(new File([blob], nomeDoArquivo(titulo, q), { type: "image/png" }));
+        }
+      } catch {
+        erro(
+          "Não conseguimos montar as imagens neste navegador. Tente de novo pelo botão “Gerar”.",
+        );
+        return;
       }
-      await salvarModelo(v.id, temaCapa, final);
-      // Os atuais saem da versão (continuam em Materiais) antes de os novos entrarem.
-      for (const m of atuais) await removerArquivo(m.id);
-      aoEnviar(arquivos);
-      void qc.invalidateQueries({ queryKey: chavesMarketing.detalhes });
-      aoMudar(false);
-    } catch (e) {
-      erro(falhou(e) || "Não conseguimos gerar as imagens.", { tentarDeNovo: () => void gerar() });
+      // A mutação avisa o erro e oferece "Tentar de novo" só do que faltou.
+      const deuCerto = await aoGerar(
+        arquivos,
+        atuais.map((m) => m.id),
+        temaCapa,
+        final,
+      );
+      if (deuCerto) aoMudar(false);
     } finally {
       setGerando(false);
     }
@@ -140,20 +167,18 @@ export function GerarModeloPainel({
           <button
             type="button"
             className={`${classeAcaoPrincipal} disabled:cursor-not-allowed disabled:opacity-50`}
-            disabled={gerando || !fontes || bloqueia.length > 0 || quadros.length === 0}
+            disabled={!podeGerar}
             onClick={() => void gerar()}
           >
             {gerando ? (
               <>
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" /> Gerando{" "}
-                {quadros.length} imagens…
+                {quadros.length} {quadros.length === 1 ? "imagem" : "imagens"}…
               </>
             ) : (
               <>
                 <Sparkles className="size-4" aria-hidden="true" />
-                {atuais.length > 0
-                  ? `Gerar e trocar ${atuais.length === 1 ? "o atual" : `os ${atuais.length} atuais`}`
-                  : "Gerar e anexar"}
+                {atuais.length > 0 ? "Gerar e trocar" : "Gerar e anexar"}
               </>
             )}
           </button>
@@ -172,7 +197,7 @@ export function GerarModeloPainel({
             }))}
             ajuda={
               sugestao.data?.ultima
-                ? `A última capa no ${v.canal_nome ?? v.channel} foi ${rotuloTemaCapa[sugestao.data.ultima].toLowerCase()}: a grade pede ${rotuloTemaCapa[sugestao.data.sugerida].toLowerCase()}.`
+                ? `A última capa agendada ou publicada no ${v.canal_nome ?? v.channel} foi ${rotuloTemaCapa[sugestao.data.ultima].toLowerCase()}: a grade pede ${rotuloTemaCapa[sugestao.data.sugerida].toLowerCase()}.`
                 : "Alterne escura, clara e âmbar na grade."
             }
           />
@@ -201,7 +226,7 @@ export function GerarModeloPainel({
             ))}
           </ul>
         )}
-        {avisa.map((a) => (
+        {avisos.avisa.map((a) => (
           <p
             key={a}
             className="rounded-xl bg-sit-atencao px-3 py-2.5 text-[14px] text-sit-atencao-t"
@@ -210,11 +235,20 @@ export function GerarModeloPainel({
           </p>
         ))}
         {atuais.length > 0 && (
-          <p className="rounded-xl bg-sit-neutro px-3 py-2.5 text-[14px] text-sit-neutro-t">
-            {atuais.length === 1 ? "O arquivo atual" : `Os ${atuais.length} arquivos atuais`} (
-            {rotuloPapel[atuais[0]!.papel].toLowerCase()}) sai{atuais.length === 1 ? "" : "em"} da
-            versão e continua{atuais.length === 1 ? "" : "m"} em Materiais.
-          </p>
+          <label className="flex min-h-11 items-start gap-3 rounded-xl bg-sit-neutro px-3 py-2.5 text-[14px] text-sit-neutro-t">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-5 shrink-0"
+              checked={trocar}
+              onChange={(e) => setTrocar(e.target.checked)}
+            />
+            <span>
+              Trocar{" "}
+              {atuais.length === 1 ? "o arquivo atual" : `os ${atuais.length} arquivos atuais`} (
+              {rotuloPapel[atuais[0]!.papel].toLowerCase()}). Eles saem da versão depois que os
+              novos entrarem e continuam em Materiais.
+            </span>
+          </label>
         )}
 
         {!fontes ? (
@@ -227,9 +261,16 @@ export function GerarModeloPainel({
             {quadros.map((q) => (
               <li key={q.indice} className="flex flex-col gap-1">
                 <QuadroEscalado q={q} largura={q.vertical ? 140 : 160} />
-                <span className="text-[12.5px] text-hub-suave">
+                <span
+                  className={
+                    estouram.includes(q.indice)
+                      ? "text-[12.5px] font-semibold text-sit-risco-t"
+                      : "text-[12.5px] text-hub-suave"
+                  }
+                >
                   {q.indice}.{" "}
                   {q.tipo === "capa" ? "Capa" : q.tipo === "final" ? "Chamada final" : "Slide"}
+                  {estouram.includes(q.indice) ? " · não cabe" : ""}
                 </span>
               </li>
             ))}
@@ -237,7 +278,8 @@ export function GerarModeloPainel({
         )}
         <p className="text-[12.5px] text-hub-suave">
           Para mudar um texto, feche, ajuste o slide na versão e abra de novo. Foto ou tela real
-          continuam entrando por “Enviar do computador”.
+          continuam entrando por “Enviar do computador”. Confira as imagens no celular antes de
+          postar.
         </p>
         {gerando && (
           <p aria-live="polite" className="text-[13px] font-medium">
@@ -246,7 +288,7 @@ export function GerarModeloPainel({
         )}
       </div>
 
-      {gerando && (
+      {aberto && fontes && (
         <div
           aria-hidden="true"
           style={{ position: "fixed", left: -20000, top: 0, pointerEvents: "none" }}
