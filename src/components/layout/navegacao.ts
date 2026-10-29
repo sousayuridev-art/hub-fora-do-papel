@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Ticket,
   CheckSquare,
+  Clapperboard,
   CreditCard,
   FileText,
   Folder,
@@ -68,6 +69,11 @@ export const menuOperador: GrupoMenu[] = [
       // CMS-2: artigos e imagens do site (só o dono; a área /app já exige o papel)
       { rotulo: "Conteúdo do site", para: "/app/site", icone: Globe },
     ],
+  },
+  {
+    // MK-1: Central de conteúdo (planejar, produzir, aprovar e publicar as peças das redes)
+    titulo: "Marketing",
+    itens: [{ rotulo: "Central de conteúdo", para: "/app/marketing", icone: Clapperboard }],
   },
   {
     titulo: "Entregar",

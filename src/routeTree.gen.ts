@@ -19,6 +19,7 @@ import { Route as SemAcessoRouteImport } from './routes/sem-acesso'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppConfiguracoesRouteImport } from './routes/app/configuracoes'
 import { Route as AppFinanceiroRouteImport } from './routes/app/financeiro'
+import { Route as AppMarketingRouteImport } from './routes/app/marketing'
 import { Route as AppMateriaisRouteImport } from './routes/app/materiais'
 import { Route as AppPedidosRouteImport } from './routes/app/pedidos'
 import { Route as AppPipelineRouteImport } from './routes/app/pipeline'
@@ -98,6 +99,11 @@ const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
 const AppFinanceiroRoute = AppFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMarketingRoute = AppMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMateriaisRoute = AppMateriaisRouteImport.update({
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/sem-acesso': typeof SemAcessoRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/marketing': typeof AppMarketingRoute
   '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
@@ -301,6 +308,7 @@ export interface FileRoutesByTo {
   '/sem-acesso': typeof SemAcessoRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/marketing': typeof AppMarketingRoute
   '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
@@ -344,6 +352,7 @@ export interface FileRoutesById {
   '/sem-acesso': typeof SemAcessoRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/financeiro': typeof AppFinanceiroRoute
+  '/app/marketing': typeof AppMarketingRoute
   '/app/materiais': typeof AppMateriaisRoute
   '/app/pedidos': typeof AppPedidosRoute
   '/app/pipeline': typeof AppPipelineRoute
@@ -388,6 +397,7 @@ export interface FileRouteTypes {
     | '/sem-acesso'
     | '/app/configuracoes'
     | '/app/financeiro'
+    | '/app/marketing'
     | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
@@ -428,6 +438,7 @@ export interface FileRouteTypes {
     | '/sem-acesso'
     | '/app/configuracoes'
     | '/app/financeiro'
+    | '/app/marketing'
     | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/sem-acesso'
     | '/app/configuracoes'
     | '/app/financeiro'
+    | '/app/marketing'
     | '/app/materiais'
     | '/app/pedidos'
     | '/app/pipeline'
@@ -588,6 +600,13 @@ declare module '@tanstack/react-router' {
       path: '/financeiro'
       fullPath: '/app/financeiro'
       preLoaderRoute: typeof AppFinanceiroRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/marketing': {
+      id: '/app/marketing'
+      path: '/marketing'
+      fullPath: '/app/marketing'
+      preLoaderRoute: typeof AppMarketingRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/materiais': {
@@ -806,6 +825,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppConfiguracoesRoute: typeof AppConfiguracoesRoute
   AppFinanceiroRoute: typeof AppFinanceiroRoute
+  AppMarketingRoute: typeof AppMarketingRoute
   AppMateriaisRoute: typeof AppMateriaisRoute
   AppPedidosRoute: typeof AppPedidosRoute
   AppPipelineRoute: typeof AppPipelineRoute
@@ -826,6 +846,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppConfiguracoesRoute: AppConfiguracoesRoute,
   AppFinanceiroRoute: AppFinanceiroRoute,
+  AppMarketingRoute: AppMarketingRoute,
   AppMateriaisRoute: AppMateriaisRoute,
   AppPedidosRoute: AppPedidosRoute,
   AppPipelineRoute: AppPipelineRoute,
