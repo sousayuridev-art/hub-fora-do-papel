@@ -29,7 +29,7 @@ Hoje, depois de aprovar e agendar, alguém precisa abrir cada rede, subir as ima
   - `publicar_sozinho boolean default false`: marcado pela pessoa, só em versão de peça aprovada e com data;
   - `publicacao` (`manual | na_fila | enviada | publicada | falhou`) com `publicacao_erro`, `id_externo` e `publicacao_em`;
   - `resultados_fonte` (`manual | automatico`) e `resultados_em`.
-- `mkt_versao_publicar_sozinho(p_id, p_ligar)`: dono; exige peça aprovada, data marcada, arquivos exigidos (MK-2) e canal ligado. Ao ligar, grava o evento `marketing.publicar` em `event_outbox` com tudo o que o n8n precisa: canal, formato, texto, hashtags, link com rastreio (MK-4), caminhos dos arquivos na ordem e data. Desligar antes do envio tira da fila.
+- `mkt_versao_publicar_sozinho(p_id, p_ligar)`: dono; exige peça aprovada, data marcada, arquivos exigidos (MK-2) e canal ligado. Ao ligar, a versão entra na fila (`publicacao = na_fila`); na hora, a função pede o pacote (canal, formato, texto, hashtags, link com rastreio do MK-4, arquivos na ordem e o perfil do tenant). Desligar antes do envio tira da fila.
 - Mudar texto, arquivos ou data de uma versão na fila: desliga o "Publicar sozinho" e avisa (a pessoa liga de novo), para nunca sair uma versão diferente da aprovada.
 - RPCs só para a chave de serviço (o n8n):
   - `mkt_publicacao_registrar(p_versao, p_situacao, p_link, p_id_externo, p_erro)`: `enviada`, `publicada` (marca a versão como publicada, como o "Marcar como publicada" do MK-1, e dispara `marketing.versao_publicada`) ou `falhou` (com o motivo);
@@ -38,12 +38,11 @@ Hoje, depois de aprovar e agendar, alguém precisa abrir cada rede, subir as ima
 - `mkt_arquivos_assinados(p_versao)` (chave de serviço): links temporários (1 hora) dos arquivos da versão, para o Upload-Post baixar. O arquivo nunca fica público.
 - Testes pgTAP `supabase/tests/mk5_publicacao.test.sql`: regras de ligar, desligar ao editar, só serviço registra, isolamento por tenant, números automáticos x manuais.
 
-### P0 · n8n (`docs/n8n/marketing-publicar.json` e `docs/integracoes-n8n.md`)
+### P0 · Função `marketing-publicar` (ver "Como ficou")
 
-- **Fluxo "Publicar":** lê `marketing.publicar` da fila (`outbox_reservar`); na hora marcada, pede os links dos arquivos, chama o Upload-Post (foto, carrossel, vídeo, documento ou texto, conforme o formato) com o perfil da Fora do Papel e registra `enviada`; quando o Upload-Post confirma, registra `publicada` com o link; erro vira `falhou` com o motivo. O `id` do evento evita postar duas vezes.
-- **Fluxo "Números":** uma vez por dia, `mkt_versoes_para_medir` → números de cada post no Upload-Post → `mkt_resultados_automaticos`.
-- Chaves (Upload-Post e service role do Supabase) só nas credenciais do n8n; nunca no Hub, no repositório ou em log.
-- Antes de escrever os nós, conferir na especificação do Upload-Post (`docs.upload-post.com/openapi.json`) os nomes exatos dos campos de carrossel, Stories, documento do LinkedIn e carrossel de fotos do TikTok.
+- A cada 5 minutos (pg_cron, com o segredo do Vault): versões na hora → pacote → Upload-Post → `enviada`, `publicada` com o link, ou `falhou` com o motivo em português. Tempo esgotado ou resposta perdida não viram "não saiu" (o post pode ter saído): fica `enviada` e, sem confirmação em 30 minutos, volta para a pessoa com "confira o perfil".
+- Uma vez por dia: números de cada post (perfil e canal) → `mkt_resultados_automaticos`.
+- Cada tenant publica só no próprio perfil (`mkt_publicacao_contas`, ligado por quem administra o banco).
 
 ### P0 · Telas
 
@@ -52,7 +51,7 @@ Hoje, depois de aprovar e agendar, alguém precisa abrir cada rede, subir as ima
   - situação: "Na fila para 30/10, 9h", "Enviada", "Publicada · Abrir o post", "Não saiu: [motivo] · Tentar de novo";
   - aviso quando uma edição tirou a versão da fila.
 - **Resultados (MK-4):** números automáticos aparecem com "atualizado pela rede em [data]"; o "Falta registrar" deixa de listar versões medidas automaticamente.
-- **Painel:** "Não saiu" de publicação entra na fila do que precisa do Yuri.
+- **Painel:** aviso próprio "Publicações que precisam de você" no topo (a fila única do Painel tem tipos fixos; entrar nela fica para um ajuste do Painel).
 
 ### P1
 
@@ -74,12 +73,12 @@ Hoje, depois de aprovar e agendar, alguém precisa abrir cada rede, subir as ima
 
 ## Critérios de aceite
 
-- [ ] Versão aprovada, com data, arquivos e "Publicar sozinho" ligado gera um `marketing.publicar` na fila com texto, link com rastreio e arquivos na ordem.
+- [ ] Versão aprovada, com data, arquivos e "Publicar sozinho" ligado entra na fila; na hora, o pacote traz texto, link com rastreio, arquivos na ordem e o perfil do tenant.
 - [ ] Editar o texto de uma versão na fila desliga o "Publicar sozinho" e avisa.
 - [ ] `mkt_publicacao_registrar` com `publicada` marca a versão como publicada com o link; só a chave de serviço consegue chamar.
 - [ ] `mkt_resultados_automaticos` grava os números com fonte automática e aparece em Resultados.
 - [ ] Dono de outro tenant não liga, não vê nem registra nada nas versões de outro.
-- [ ] Fluxo do n8n importável no repositório, sem chave dentro.
+- [ ] A função só trabalha com o segredo do agendador e nunca registra chave, texto ou link assinado em log.
 - [ ] `supabase test db`, `bun run build`, `bun run lint` e `bun run test` passam.
 
 ## Para o Yuri

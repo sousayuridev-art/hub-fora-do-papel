@@ -28,4 +28,4 @@ Pipedrive e ChatGuru/WhatsApp. Card REV-5.
 
 Sugestão para o n8n: `marketing.publicacao_falhou` → mensagem no WhatsApp do Yuri com o motivo. A publicação em si não passa pelo n8n: a função `marketing-publicar` faz o envio (MK-5).
 
-Hoje nenhum fluxo publica na rede: esses eventos servem para avisos e, no MK-5, para publicar e trazer números.
+Nenhum fluxo do n8n publica na rede: esses eventos servem para avisos. A publicação e os números são da função `marketing-publicar` (MK-5).

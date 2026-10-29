@@ -20,6 +20,9 @@ export function enderecoUploadPost(supabaseUrl: string, troca: string | undefine
 export type Arquivo = { papel: string; caminho: string; mime: string; nome: string };
 export type Pacote = {
   versao_id: string;
+  /** Perfil do Upload-Post do tenant (mkt_publicacao_contas). */
+  perfil: string;
+  pagina_linkedin: string | null;
   canal: string;
   formato: string;
   titulo: string;
@@ -27,7 +30,6 @@ export type Pacote = {
   link: string | null;
   arquivos: Arquivo[];
 };
-export type Config = { perfil: string; paginaLinkedin: string | null };
 
 /** Pedido pronto: campos de texto, arquivos para baixar e anexar, e URLs que vão como texto. */
 export type Pedido = {
@@ -44,17 +46,34 @@ const VIDEOS = ["reels", "shorts", "video", "video_curto", "video_longo"];
 
 const corta = (t: string, n: number) => (t.length > n ? t.slice(0, n - 1).trimEnd() + "…" : t);
 
+/** O pedido não saiu (antes do envio ou recusa clara da API): volta para a pessoa com o motivo. */
 export class ErroPedido extends Error {}
+/** Não dá para saber se saiu (tempo esgotado, 5xx, rede): fica "enviada" e a conferência decide. */
+export class ErroIncerto extends Error {}
 
-export function montarPedido(p: Pacote, c: Config): Pedido {
+/** Mensagens da rede ou do Upload-Post (em geral em inglês) em português, com o que fazer. */
+export function traduzirErro(msg: string, status?: number): string {
+  const m = msg.toLowerCase();
+  if (status === 401 || status === 403 || /api key|apikey|unauthori[sz]ed|forbidden/.test(m))
+    return "A chave do Upload-Post foi recusada. Confira a chave nos segredos do Supabase.";
+  if (/token|expired|reconnect|not connected|disconnected|reauth|permission/.test(m))
+    return "A conta da rede está desconectada no Upload-Post. Reconecte e tente de novo.";
+  if (status === 429 || /rate limit|too many|limit reached|daily limit|quota/.test(m))
+    return "A rede chegou ao limite de publicações por agora (o TikTok aceita 15 por dia). Tente mais tarde.";
+  if (/aspect|resolution|dimension|too large|file size|duration|format/.test(m))
+    return `A rede recusou o arquivo (formato, tamanho ou duração). Detalhe: ${msg.slice(0, 160)}`;
+  return `A rede não aceitou a publicação. Detalhe: ${msg.slice(0, 200)}`;
+}
+
+export function montarPedido(p: Pacote): Pedido {
   const base: [string, string][] = [
-    ["user", c.perfil],
+    ["user", p.perfil],
     ["platform[]", p.canal],
     ["async_upload", "true"],
   ];
   const linkedin: [string, string][] =
-    p.canal === "linkedin" && c.paginaLinkedin
-      ? [["target_linkedin_page_id", c.paginaLinkedin]]
+    p.canal === "linkedin" && p.pagina_linkedin
+      ? [["target_linkedin_page_id", p.pagina_linkedin]]
       : [];
   const imagens = p.arquivos.filter((a) => a.papel === "slide" || a.papel === "imagem");
   const video = p.arquivos.find((a) => a.papel === "video");
@@ -115,7 +134,6 @@ export function montarPedido(p: Pacote, c: Config): Pedido {
         ["privacy_level", "PUBLIC_TO_EVERYONE"],
       );
     else campos.push(["title", p.legenda]);
-    if (p.canal === "instagram" && p.formato === "stories") campos.push(["media_type", "STORIES"]);
     const links = [{ campo: "video", caminho: video.caminho }];
     if (capa && p.canal === "instagram") links.push({ campo: "cover_url", caminho: capa.caminho });
     if (capa && p.canal === "youtube" && p.formato === "video_longo")
@@ -165,11 +183,12 @@ export function lerSituacao(r: Qualquer): Situacao {
   const erro = texto(achar(r, ["error", "error_message", "message"]));
   const situacao = (texto(achar(r, ["status", "state"])) ?? "").toLowerCase();
   const sucesso = achar(r, ["success"]);
+  // A falha vem antes: uma resposta de erro pode trazer um link qualquer.
+  if (["failed", "error", "failure", "rejected"].includes(situacao) || (sucesso === false && erro))
+    return { tipo: "falhou", erro: (erro ?? "A rede não aceitou a publicação.").slice(0, 300) };
   // Nunca confundir o link do nosso arquivo (Storage) com o link do post.
   if (link && /^https:\/\//.test(link) && !link.includes("/storage/v1/"))
     return { tipo: "publicada", link, id };
-  if (["failed", "error", "failure", "rejected"].includes(situacao) || (sucesso === false && erro))
-    return { tipo: "falhou", erro: (erro ?? "A rede não aceitou a publicação.").slice(0, 300) };
   const pedido = texto(achar(r, ["request_id", "job_id"]));
   if (pedido) return { tipo: "enviada", id: pedido };
   return { tipo: "aguardando" };

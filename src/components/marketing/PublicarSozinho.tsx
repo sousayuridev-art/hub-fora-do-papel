@@ -1,11 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { CircleAlert, CircleCheck, Clock, Send } from "lucide-react";
 
 import { diaComHora } from "@/lib/formatar";
-import type { Etapa, Versao } from "@/lib/marketing";
+import { chavesMarketing, publicacaoLigada, type Etapa, type Versao } from "@/lib/marketing";
 import { cn } from "@/lib/utils";
 
 /**
- * Publicar sozinho (MK-5): a versão aprovada e agendada sai pelo n8n (Upload-Post) na data marcada.
+ * Publicar sozinho (MK-5): a versão aprovada e agendada sai pelo Upload-Post na data marcada.
  * A pessoa liga e desliga; qualquer mudança na versão tira da fila e o aviso fica aqui.
  */
 export function PublicarSozinho({
@@ -19,7 +20,25 @@ export function PublicarSozinho({
   aoMudar: (ligar: boolean) => void;
   ocupado: boolean;
 }) {
+  const ligada = useQuery({
+    queryKey: chavesMarketing.publicacaoLigada,
+    queryFn: publicacaoLigada,
+    staleTime: 10 * 60_000,
+  });
   if (v.published_at || etapa !== "pronto") return null;
+  if (v.format === "anuncio" || v.format === "artigo")
+    return (
+      <p className="text-[12.5px] text-hub-suave">
+        Este formato sai à mão: publique e cole o link abaixo.
+      </p>
+    );
+  if (ligada.data === false && !v.publicacao_erro)
+    return (
+      <p className="rounded-lg bg-sit-neutro px-3 py-2 text-[13px] text-sit-neutro-t">
+        Publicar sozinho fica disponível quando o perfil do Upload-Post estiver ligado a esta
+        empresa.
+      </p>
+    );
   const situacao = v.publicacao ?? "manual";
   const ligado = !!v.publicar_sozinho && situacao === "na_fila";
   const semData = !v.scheduled_at;
@@ -42,7 +61,7 @@ export function PublicarSozinho({
         <input
           type="checkbox"
           role="switch"
-          aria-checked={ligado}
+          aria-checked={ligado || enviada}
           className="size-6 shrink-0 accent-[#0E1013]"
           checked={ligado || enviada}
           disabled={ocupado || enviada || (semData && !ligado)}

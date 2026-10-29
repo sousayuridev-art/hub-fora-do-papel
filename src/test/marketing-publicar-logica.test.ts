@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   acharPost,
   ErroPedido,
+  traduzirErro,
   esperouDemais,
   lerNumeros,
   lerSituacao,
@@ -10,7 +11,6 @@ import {
   type Pacote,
 } from "../../supabase/functions/marketing-publicar/logica";
 
-const config = { perfil: "fora-do-papel", paginaLinkedin: "123" };
 const arq = (papel: string, n = 1) => ({
   papel,
   caminho: `t/redes/${papel}${n}`,
@@ -20,6 +20,8 @@ const arq = (papel: string, n = 1) => ({
 function pacote(extra: Partial<Pacote> = {}): Pacote {
   return {
     versao_id: "v",
+    perfil: "fora-do-papel",
+    pagina_linkedin: "123",
     canal: "instagram",
     formato: "carrossel",
     titulo: "A planilha cresceu.",
@@ -34,7 +36,7 @@ const campo = (p: { campos: [string, string][] }, k: string) =>
 
 describe("pedido ao Upload-Post", () => {
   it("carrossel do Instagram: fotos em arquivo, na ordem, com a legenda", () => {
-    const p = montarPedido(pacote(), config);
+    const p = montarPedido(pacote());
     expect(p.caminho).toBe("/upload_photos");
     expect(campo(p, "platform[]")).toEqual(["instagram"]);
     expect(campo(p, "user")).toEqual(["fora-do-papel"]);
@@ -45,20 +47,14 @@ describe("pedido ao Upload-Post", () => {
 
   it("Stories marca o tipo; mais de 10 fotos no Instagram é recusado", () => {
     expect(
-      campo(
-        montarPedido(pacote({ formato: "stories", arquivos: [arq("imagem")] }), config),
-        "media_type",
-      ),
+      campo(montarPedido(pacote({ formato: "stories", arquivos: [arq("imagem")] })), "media_type"),
     ).toEqual(["STORIES"]);
     const muitas = Array.from({ length: 11 }, (_, i) => arq("slide", i));
-    expect(() => montarPedido(pacote({ arquivos: muitas }), config)).toThrow(ErroPedido);
+    expect(() => montarPedido(pacote({ arquivos: muitas }))).toThrow(ErroPedido);
   });
 
   it("Reels: vídeo e capa por link assinado", () => {
-    const p = montarPedido(
-      pacote({ formato: "reels", arquivos: [arq("video"), arq("capa")] }),
-      config,
-    );
+    const p = montarPedido(pacote({ formato: "reels", arquivos: [arq("video"), arq("capa")] }));
     expect(p.caminho).toBe("/upload");
     expect(p.links).toEqual([
       { campo: "video", caminho: "t/redes/video1" },
@@ -69,37 +65,77 @@ describe("pedido ao Upload-Post", () => {
   it("YouTube: título curto e a legenda (com link) na descrição", () => {
     const p = montarPedido(
       pacote({ canal: "youtube", formato: "shorts", arquivos: [arq("video")] }),
-      config,
     );
     expect(campo(p, "title")).toEqual(["A planilha cresceu."]);
     expect(campo(p, "description")[0]).toContain("planilha");
   });
 
   it("LinkedIn: texto, documento e página da empresa", () => {
-    const t = montarPedido(pacote({ canal: "linkedin", formato: "texto", arquivos: [] }), config);
+    const t = montarPedido(pacote({ canal: "linkedin", formato: "texto", arquivos: [] }));
     expect(t.caminho).toBe("/upload_text");
     expect(campo(t, "target_linkedin_page_id")).toEqual(["123"]);
     const d = montarPedido(
       pacote({ canal: "linkedin", formato: "documento", arquivos: [arq("documento")] }),
-      config,
     );
     expect(d.caminho).toBe("/upload_document");
     expect(d.links).toEqual([{ campo: "document", caminho: "t/redes/documento1" }]);
   });
 
   it("TikTok: carrossel de fotos público", () => {
-    const p = montarPedido(pacote({ canal: "tiktok", formato: "carrossel_fotos" }), config);
+    const p = montarPedido(pacote({ canal: "tiktok", formato: "carrossel_fotos" }));
     expect(campo(p, "privacy_level")).toEqual(["PUBLIC_TO_EVERYONE"]);
     expect(campo(p, "tiktok_description")[0]).toContain("planilha");
   });
 
   it("sem o arquivo exigido: erro claro (vira 'Não saiu' na tela)", () => {
-    expect(() => montarPedido(pacote({ arquivos: [] }), config)).toThrow(
-      "Falta a imagem da versão.",
-    );
-    expect(() => montarPedido(pacote({ formato: "reels", arquivos: [] }), config)).toThrow(
+    expect(() => montarPedido(pacote({ arquivos: [] }))).toThrow("Falta a imagem da versão.");
+    expect(() => montarPedido(pacote({ formato: "reels", arquivos: [] }))).toThrow(
       "Falta o vídeo da versão.",
     );
+  });
+});
+
+describe("erros em português", () => {
+  it("conta desconectada, limite e chave", () => {
+    expect(traduzirErro("Token expired, please reconnect")).toMatch(/desconectada/);
+    expect(traduzirErro("Daily limit reached", 429)).toMatch(/limite/);
+    expect(traduzirErro("Invalid API key", 401)).toMatch(/chave do Upload-Post/);
+    expect(traduzirErro("Something odd")).toBe(
+      "A rede não aceitou a publicação. Detalhe: Something odd",
+    );
+  });
+
+  it("vídeo do TikTok e do LinkedIn, capa do YouTube longo e anúncio sem caminho", () => {
+    const tk = montarPedido(
+      pacote({ canal: "tiktok", formato: "video", arquivos: [arq("video")] }),
+    );
+    expect(campo(tk, "tiktok_title")[0]).toContain("planilha");
+    const li = montarPedido(
+      pacote({ canal: "linkedin", formato: "video", arquivos: [arq("video")] }),
+    );
+    expect(campo(li, "target_linkedin_page_id")).toEqual(["123"]);
+    const yt = montarPedido(
+      pacote({ canal: "youtube", formato: "video_longo", arquivos: [arq("video"), arq("capa")] }),
+    );
+    expect(yt.links.map((l) => l.campo)).toEqual(["video", "thumbnail_url"]);
+    expect(() => montarPedido(pacote({ formato: "anuncio" }))).toThrow(ErroPedido);
+    expect(() =>
+      montarPedido(pacote({ canal: "linkedin", formato: "documento", arquivos: [arq("slide")] })),
+    ).toThrow("Falta o PDF do documento.");
+  });
+
+  it("perfil e página vêm do tenant", () => {
+    const p = montarPedido(
+      pacote({ perfil: "cliente-x", pagina_linkedin: null, canal: "linkedin", formato: "texto" }),
+    );
+    expect(campo(p, "user")).toEqual(["cliente-x"]);
+    expect(campo(p, "target_linkedin_page_id")).toEqual([]);
+  });
+
+  it("resposta de erro com link não vira publicada", () => {
+    expect(
+      lerSituacao({ status: "failed", error: "x", url: "https://instagram.com/p/y" }).tipo,
+    ).toBe("falhou");
   });
 });
 

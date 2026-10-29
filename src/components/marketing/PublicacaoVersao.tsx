@@ -97,44 +97,50 @@ export function PublicacaoVersao({
             A data entra no calendário. Para sair sozinha, ligue “Publicar sozinho” acima.
           </p>
         </div>
-        <form
-          className="flex flex-col gap-3 rounded-2xl border border-hub-borda p-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            aoPublicar(link.trim(), doCampo(publicadaEm));
-          }}
-        >
-          <b className="text-[15px]">Já publicou?</b>
-          <CampoTexto
-            rotulo="Link do post"
-            tipo="url"
-            inputMode="url"
-            valor={link}
-            aoMudar={setLink}
-            placeholder="https://"
-            required
-          />
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`publicada-${v.id}`} className="text-[14px] font-medium">
-              Quando saiu (se não foi agora)
-            </label>
-            <input
-              id={`publicada-${v.id}`}
-              type="datetime-local"
-              className={cn(classeEntrada, "h-11")}
-              value={publicadaEm}
-              max={paraCampo(new Date().toISOString())}
-              onChange={(e) => setPublicadaEm(e.target.value)}
-            />
-          </div>
-          <button
-            type="submit"
-            className={cn(classeBotaoSecundario, "self-start")}
-            disabled={ocupado || !link.trim().startsWith("https://")}
+        {v.publicacao === "enviada" ? (
+          <p className="rounded-2xl border border-hub-borda p-4 text-[14px] text-hub-suave">
+            A versão foi enviada para a rede. O link entra aqui sozinho quando a rede confirmar.
+          </p>
+        ) : (
+          <form
+            className="flex flex-col gap-3 rounded-2xl border border-hub-borda p-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              aoPublicar(link.trim(), doCampo(publicadaEm));
+            }}
           >
-            Marcar como publicada
-          </button>
-        </form>
+            <b className="text-[15px]">Já publicou?</b>
+            <CampoTexto
+              rotulo="Link do post"
+              tipo="url"
+              inputMode="url"
+              valor={link}
+              aoMudar={setLink}
+              placeholder="https://"
+              required
+            />
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`publicada-${v.id}`} className="text-[14px] font-medium">
+                Quando saiu (se não foi agora)
+              </label>
+              <input
+                id={`publicada-${v.id}`}
+                type="datetime-local"
+                className={cn(classeEntrada, "h-11")}
+                value={publicadaEm}
+                max={paraCampo(new Date().toISOString())}
+                onChange={(e) => setPublicadaEm(e.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              className={cn(classeBotaoSecundario, "self-start")}
+              disabled={ocupado || !link.trim().startsWith("https://")}
+            >
+              Marcar como publicada
+            </button>
+          </form>
+        )}
       </div>
     );
 

@@ -89,7 +89,7 @@ export type Versao = {
   position: number;
   /** Arquivos da versão (MK-2), na ordem; o caminho serve para pedir o link temporário. */
   midias: Midia[];
-  /** MK-5: publicar sozinho pelo n8n (Upload-Post) e de onde vieram os números. */
+  /** MK-5: publicar sozinho (função marketing-publicar + Upload-Post) e de onde vieram os números. */
   publicar_sozinho?: boolean;
   publicacao?: "manual" | "na_fila" | "enviada" | "publicada" | "falhou";
   publicacao_erro?: string | null;
@@ -546,6 +546,7 @@ export const chavesMarketing = {
   origemCliente: (cliente: string) => ["marketing", "origem-cliente", cliente] as const,
   publicadas: (busca: string) => ["marketing", "publicadas", busca] as const,
   problemasPublicacao: ["marketing", "problemas-publicacao"] as const,
+  publicacaoLigada: ["marketing", "publicacao-ligada"] as const,
   proximaCapa: (canal: string, versao: string) =>
     ["marketing", "proxima-capa", canal, versao] as const,
   usoIA: ["marketing", "uso-ia"] as const,
@@ -959,6 +960,7 @@ export type ProblemaPublicacao = {
   erro: string | null;
   situacao: string;
 };
+export const publicacaoLigada = () => rpc<boolean>("mkt_publicacao_ligada");
 export const publicacoesComProblema = () =>
   rpc<ProblemaPublicacao[]>("mkt_publicacoes_com_problema");
 
@@ -1003,6 +1005,11 @@ export function mensagemDoMarketing(e: unknown): string | null {
     autorizacao_sem_cliente: "Escolha o cliente antes de marcar a autorização.",
     periodo_invalido: "Período inválido. Escolha outro período.",
     sem_data: "Marque a data e a hora antes de ligar o publicar sozinho.",
+    sem_conta_publicacao:
+      "A publicação automática ainda não está ligada para esta empresa (falta o perfil do Upload-Post).",
+    formato_sem_publicacao:
+      "Esse formato sai à mão (anúncio pelo Tráfego pago; artigo do LinkedIn pelo LinkedIn).",
+    documento_sem_pdf: "O documento do LinkedIn sai em PDF: ligue o PDF na versão antes.",
     publicacao_em_andamento: "A publicação já foi enviada para a rede. Espere a confirmação.",
     modelo_invalido: "Esse tema não existe no modelo da marca.",
     agrupamento_invalido: "Esse agrupamento não existe. Recarregue a página.",
