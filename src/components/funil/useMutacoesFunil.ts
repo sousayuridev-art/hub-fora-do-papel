@@ -83,8 +83,12 @@ export function useMutacoesFunil() {
   }
 
   const mover = useMutation({
-    mutationFn: (v: { o: Oportunidade; etapa: Etapa; passo?: ProximoPasso | undefined }) =>
-      moverOportunidade(v.o.id, v.etapa, v.o.updated_at, v.passo),
+    mutationFn: (v: {
+      o: Oportunidade;
+      etapa: Etapa;
+      passo?: ProximoPasso | undefined;
+      motivoFechar?: string | undefined;
+    }) => moverOportunidade(v.o.id, v.etapa, v.o.updated_at, v.passo, v.motivoFechar),
     onMutate: (v) =>
       aplicarOtimista(v.o.id, (o) => ({
         ...o,

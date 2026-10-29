@@ -22,6 +22,7 @@ import {
   filtrosFunil,
   listarFunil,
   resumoFunil,
+  type Etapa,
   type FiltroFunil,
   type Oportunidade,
 } from "@/lib/funil";
@@ -42,6 +43,7 @@ function Funil() {
   const filtro: FiltroFunil = filtroUrl ?? "todos";
   const [novo, setNovo] = useState(false);
   const [mover, setMover] = useState<Oportunidade | null>(null);
+  const [etapaSolta, setEtapaSolta] = useState<Etapa | null>(null);
   const [passo, setPasso] = useState<Oportunidade | null>(null);
   const [arquivar, setArquivar] = useState<Oportunidade | null>(null);
   const m = useMutacoesFunil();
@@ -56,7 +58,10 @@ function Funil() {
   });
 
   function agir(acao: AcaoCartao, o: Oportunidade) {
-    if (acao === "mover") setMover(o);
+    if (acao === "mover") {
+      setEtapaSolta(null);
+      setMover(o);
+    }
     if (acao === "passo") setPasso(o);
     if (acao === "arquivar") setArquivar(o);
     if (acao === "desarquivar") m.desarquivar.mutate({ o });
@@ -147,8 +152,11 @@ function Funil() {
           arquivados={filtro === "arquivados"}
           aoAgir={agir}
           aoSoltar={(o, etapa) => {
-            if (etapa !== "fechado" && !o.next_step) setMover(o);
-            else m.mover.mutate({ o, etapa });
+            // Fechado à mão pede motivo; etapa aberta sem próximo passo pede o passo
+            if (etapa === "fechado" || !o.next_step) {
+              setEtapaSolta(etapa);
+              setMover(o);
+            } else m.mover.mutate({ o, etapa });
           }}
         />
       )}
@@ -156,8 +164,11 @@ function Funil() {
       <NovoContatoPainel aberto={novo} aoMudar={setNovo} />
       <MoverParaPainel
         o={mover}
+        etapaInicial={etapaSolta}
         aoFechar={() => setMover(null)}
-        aoMover={(o, etapa, p) => m.mover.mutate({ o, etapa, passo: p })}
+        aoMover={(o, etapa, p, motivoFechar) =>
+          m.mover.mutate({ o, etapa, passo: p, motivoFechar })
+        }
       />
       <ProximoPassoPainel
         o={passo}

@@ -64,7 +64,7 @@ export const chavesMateriais = {
   portal: ["portal", "arquivos"] as const,
 };
 
-/** Tipos aceitos (mesma lista do banco e do bucket) e tamanho máximo. */
+/** Tipos aceitos (mesma lista do banco e do bucket; SVG saiu no card REV-5) e tamanho máximo. */
 export const tiposAceitos = [
   "application/pdf",
   "image/png",
@@ -72,7 +72,6 @@ export const tiposAceitos = [
   "image/webp",
   "image/heic",
   "image/heif",
-  "image/svg+xml",
   "image/gif",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

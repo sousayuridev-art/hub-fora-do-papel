@@ -300,6 +300,7 @@ export async function moverOportunidade(
   etapa: Etapa,
   versao: string,
   passo?: ProximoPasso,
+  motivoFechar?: string,
 ) {
   const { data, error } = await supabase.rpc("funil_mover", {
     p_deal: id,
@@ -308,6 +309,7 @@ export async function moverOportunidade(
     p_proximo_passo: passo?.texto ?? null,
     p_data: passo?.data ?? null,
     p_hora: passo?.hora || null,
+    p_motivo_fechar: motivoFechar?.trim() || null,
   });
   if (error) falhar(error);
   return data as { updated_at: string };
@@ -395,6 +397,8 @@ export function mensagemDoFunil(e: unknown): string | null {
   const mapa: Record<string, string> = {
     versao_desatualizada: "Esta oportunidade mudou em outra tela. Atualize e tente de novo.",
     proximo_passo_obrigatorio: "Defina o próximo passo e a data antes de continuar.",
+    fechar_sem_proposta:
+      "Sem proposta aceita, escreva por que esta oportunidade está fechada (ex.: contrato assinado fora do Hub).",
     motivo_obrigatorio: "Escolha o motivo para arquivar.",
     nota_obrigatoria: "Escreva o motivo em poucas palavras.",
     whatsapp_ou_email: "Informe o WhatsApp ou o e-mail do contato.",

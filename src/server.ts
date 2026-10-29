@@ -44,18 +44,46 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+/**
+ * Cabeçalhos de segurança em toda página HTML (card REV-5):
+ * nenhuma tela do Hub, do portal ou da proposta pode ser aberta dentro de outro site
+ * (evita o golpe de esconder o botão "Aprovar" por baixo de outra página).
+ */
+export const cabecalhosDeSeguranca: Record<string, string> = {
+  "content-security-policy": "frame-ancestors 'none'",
+  "x-frame-options": "DENY",
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+};
+
+export function comCabecalhosDeSeguranca(response: Response): Response {
+  const tipo = response.headers.get("content-type") ?? "";
+  if (!tipo.includes("text/html")) return response;
+  const headers = new Headers(response.headers);
+  for (const [nome, valor] of Object.entries(cabecalhosDeSeguranca)) {
+    if (!headers.has(nome)) headers.set(nome, valor);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return comCabecalhosDeSeguranca(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
-        status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      return comCabecalhosDeSeguranca(
+        new Response(renderErrorPage(), {
+          status: 500,
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+      );
     }
   },
 };

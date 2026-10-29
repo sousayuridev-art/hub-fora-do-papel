@@ -197,7 +197,9 @@ function Ficha() {
       <MoverParaPainel
         o={painel?.acao === "mover" ? painel.o : null}
         aoFechar={() => setPainel(null)}
-        aoMover={(op, etapa, passo) => m.mover.mutate({ o: op, etapa, passo })}
+        aoMover={(op, etapa, passo, motivoFechar) =>
+          m.mover.mutate({ o: op, etapa, passo, motivoFechar })
+        }
       />
       <ProximoPassoPainel
         o={painel?.acao === "passo" ? painel.o : null}

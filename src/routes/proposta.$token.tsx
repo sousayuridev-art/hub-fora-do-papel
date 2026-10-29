@@ -26,6 +26,8 @@ export const Route = createFileRoute("/proposta/$token")({
     meta: [
       { title: "Proposta · Fora do Papel" },
       { name: "robots", content: "noindex, nofollow" },
+      // O endereço tem o código da proposta: não vazar para sites abertos a partir dela (REV-5)
+      { name: "referrer", content: "no-referrer" },
       // Prévia no WhatsApp (CX-8): fixa, sem dados do cliente e sem contar como "aberta"
       ...previaDoLink(
         "Sua proposta está pronta",
