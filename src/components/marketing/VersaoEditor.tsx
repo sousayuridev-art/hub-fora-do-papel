@@ -1,4 +1,4 @@
-import { useEffect, useState, type FocusEvent } from "react";
+import { type FocusEvent } from "react";
 import { Copy, Trash2 } from "lucide-react";
 
 import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
@@ -7,6 +7,7 @@ import { PreviaVersao } from "@/components/marketing/PreviaVersao";
 import { PublicacaoVersao } from "@/components/marketing/PublicacaoVersao";
 import { RoteiroEditor } from "@/components/marketing/RoteiroEditor";
 import { SlidesEditor } from "@/components/marketing/SlidesEditor";
+import { useRascunho } from "@/components/marketing/useRascunho";
 import {
   ehSlides,
   ehVideo,
@@ -24,6 +25,18 @@ import {
   type Versao,
 } from "@/lib/marketing";
 import { cn } from "@/lib/utils";
+
+/** Forma única de roteiro e slides para comparar com o banco (que reordena as chaves). */
+const roteiroEmTexto = (c: Cena[]) => JSON.stringify(c.map((x) => [x.tempo, x.fala, x.na_tela]));
+const slidesEmTexto = (s: Slide[]) => JSON.stringify(s.map((x) => [x.titulo, x.texto]));
+const roteiroDoTexto = (t: string): Cena[] =>
+  (JSON.parse(t) as [string, string, string][]).map(([tempo, fala, na_tela]) => ({
+    tempo,
+    fala,
+    na_tela,
+  }));
+const slidesDoTexto = (t: string): Slide[] =>
+  (JSON.parse(t) as [string, string][]).map(([titulo, texto]) => ({ titulo, texto }));
 
 /** Sai do grupo (e não só de um campo dentro dele). */
 const saiuDoGrupo = (e: FocusEvent<HTMLElement>) =>
@@ -57,19 +70,34 @@ export function VersaoEditor({
   ocupado: boolean;
 }) {
   const publicada = !!v.published_at;
-  const [gancho, setGancho] = useState(v.hook ?? "");
-  const [texto, setTexto] = useState(v.body ?? "");
-  const [hashtags, setHashtags] = useState(v.hashtags ?? "");
-  const [roteiro, setRoteiro] = useState<Cena[]>(v.script);
-  const [slides, setSlides] = useState<Slide[]>(v.slides);
-  // Compara pelo conteúdo: uma releitura do banco com os mesmos dados não apaga o que está sendo digitado.
-  const roteiroSalvo = JSON.stringify(v.script);
-  const slidesSalvos = JSON.stringify(v.slides);
-  useEffect(() => setGancho(v.hook ?? ""), [v.id, v.hook]);
-  useEffect(() => setTexto(v.body ?? ""), [v.id, v.body]);
-  useEffect(() => setHashtags(v.hashtags ?? ""), [v.id, v.hashtags]);
-  useEffect(() => setRoteiro(JSON.parse(roteiroSalvo) as Cena[]), [v.id, roteiroSalvo]);
-  useEffect(() => setSlides(JSON.parse(slidesSalvos) as Slide[]), [v.id, slidesSalvos]);
+  // Rascunhos: seguem o banco, mas guardam o que foi digitado se a gravação falhar.
+  const [gancho, setGancho, marcarGancho] = useRascunho(v.hook ?? "");
+  const [texto, setTexto, marcarTexto] = useRascunho(v.body ?? "");
+  const [hashtags, setHashtags, marcarHashtags] = useRascunho(v.hashtags ?? "");
+  const roteiroSalvo = roteiroEmTexto(v.script);
+  const slidesSalvos = slidesEmTexto(v.slides);
+  const [roteiroT, setRoteiroT, marcarRoteiro] = useRascunho(roteiroSalvo);
+  const [slidesT, setSlidesT, marcarSlides] = useRascunho(slidesSalvos);
+  const roteiro = roteiroDoTexto(roteiroT);
+  const slides = slidesDoTexto(slidesT);
+
+  const sairGancho = () => {
+    const n = gancho.trim();
+    if (n === (v.hook ?? "")) return;
+    marcarGancho(n);
+    aoSalvar({ gancho: n || null });
+  };
+  const sairTexto = () => {
+    if (texto === (v.body ?? "")) return;
+    marcarTexto(texto);
+    aoSalvar({ texto: texto || null });
+  };
+  const sairHashtags = () => {
+    const n = hashtags.trim();
+    if (n === (v.hashtags ?? "")) return;
+    marcarHashtags(n);
+    aoSalvar({ hashtags: n || null });
+  };
 
   const limite = v.limite_texto ?? 2200;
   const passou = texto.length > limite;
@@ -78,13 +106,14 @@ export function VersaoEditor({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="flex min-w-0 flex-col gap-5">
         <div className="flex flex-wrap items-end gap-3">
-          <CampoEscolha<Formato>
-            rotulo="Formato"
-            className="min-w-56 flex-1"
-            valor={v.format}
-            aoMudar={(f) => aoSalvar({ formato: f })}
-            opcoes={formatosDe(v.channel).map((f) => ({ id: f, rotulo: rotuloFormato[f] }))}
-          />
+          <fieldset disabled={publicada} className="min-w-56 flex-1">
+            <CampoEscolha<Formato>
+              rotulo="Formato"
+              valor={v.format}
+              aoMudar={(f) => aoSalvar({ formato: f })}
+              opcoes={formatosDe(v.channel).map((f) => ({ id: f, rotulo: rotuloFormato[f] }))}
+            />
+          </fieldset>
           {!publicada && (
             <span className="flex gap-1">
               <button
@@ -116,11 +145,7 @@ export function VersaoEditor({
         )}
 
         <fieldset disabled={publicada} className="flex flex-col gap-5">
-          <div
-            onBlur={() =>
-              gancho.trim() !== (v.hook ?? "") && aoSalvar({ gancho: gancho.trim() || null })
-            }
-          >
+          <div onBlur={sairGancho}>
             <CampoTexto
               rotulo="Gancho"
               valor={gancho}
@@ -130,7 +155,7 @@ export function VersaoEditor({
               ajuda="Começa pelo problema. Sem curiosidade vazia nem urgência falsa."
             />
           </div>
-          <div onBlur={() => texto !== (v.body ?? "") && aoSalvar({ texto: texto || null })}>
+          <div onBlur={sairTexto}>
             <CampoArea
               rotulo={v.channel === "youtube" ? "Descrição" : "Texto do post"}
               valor={texto}
@@ -151,12 +176,17 @@ export function VersaoEditor({
               aria-label="Roteiro"
               className="flex flex-col gap-2"
               onBlur={(e) => {
-                if (saiuDoGrupo(e) && JSON.stringify(roteiro) !== JSON.stringify(v.script))
-                  aoSalvar({ roteiro });
+                if (!saiuDoGrupo(e) || roteiroT === roteiroSalvo) return;
+                marcarRoteiro(roteiroT);
+                aoSalvar({ roteiro });
               }}
             >
               <h3 className="text-[14px] font-medium">Roteiro</h3>
-              <RoteiroEditor cenas={roteiro} aoMudar={setRoteiro} desativado={publicada} />
+              <RoteiroEditor
+                cenas={roteiro}
+                aoMudar={(c) => setRoteiroT(roteiroEmTexto(c))}
+                desativado={publicada}
+              />
             </section>
           )}
           {ehSlides(v.format) && (
@@ -164,12 +194,17 @@ export function VersaoEditor({
               aria-label="Slides"
               className="flex flex-col gap-2"
               onBlur={(e) => {
-                if (saiuDoGrupo(e) && JSON.stringify(slides) !== JSON.stringify(v.slides))
-                  aoSalvar({ slides });
+                if (!saiuDoGrupo(e) || slidesT === slidesSalvos) return;
+                marcarSlides(slidesT);
+                aoSalvar({ slides });
               }}
             >
               <h3 className="text-[14px] font-medium">Slides</h3>
-              <SlidesEditor slides={slides} aoMudar={setSlides} desativado={publicada} />
+              <SlidesEditor
+                slides={slides}
+                aoMudar={(x) => setSlidesT(slidesEmTexto(x))}
+                desativado={publicada}
+              />
             </section>
           )}
 
@@ -187,12 +222,7 @@ export function VersaoEditor({
               ]}
               ajuda="Uma chamada por peça, sempre com estas palavras."
             />
-            <div
-              onBlur={() =>
-                hashtags.trim() !== (v.hashtags ?? "") &&
-                aoSalvar({ hashtags: hashtags.trim() || null })
-              }
-            >
+            <div onBlur={sairHashtags}>
               <CampoTexto
                 rotulo="Hashtags"
                 valor={hashtags}
@@ -215,7 +245,7 @@ export function VersaoEditor({
         <section aria-label="Agenda e publicação" className="flex flex-col gap-2">
           <h3 className="text-[14px] font-medium">Agenda e publicação</h3>
           <PublicacaoVersao
-            key={`${v.id}-${v.published_at ?? ""}`}
+            key={`${v.id}-${v.published_at ?? ""}-${v.scheduled_at ?? ""}`}
             v={v}
             etapa={etapa}
             aoAgendar={aoAgendar}

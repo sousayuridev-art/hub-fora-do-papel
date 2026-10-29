@@ -1,5 +1,5 @@
 import { Selo, type Tom } from "@/components/hub/Selo";
-import { diaMes } from "@/lib/formatar";
+import { dataLocal, diaMes } from "@/lib/formatar";
 import {
   rotuloFrente,
   rotuloFunil,
@@ -42,8 +42,8 @@ export function CampanhasLista({
             <div className="flex min-w-0 flex-col gap-0.5">
               <b className="text-[16px] font-semibold">{c.name}</b>
               <span className="text-[13px] text-hub-suave">
-                {c.starts_on ? diaMes(c.starts_on) : "Sem início"} →{" "}
-                {c.ends_on ? diaMes(c.ends_on) : "sem fim"}
+                {c.starts_on ? diaMes(dataLocal(c.starts_on)) : "Sem início"} →{" "}
+                {c.ends_on ? diaMes(dataLocal(c.ends_on)) : "sem fim"}
               </span>
             </div>
             <Selo tom={tomDa[c.status]}>{rotuloSituacaoCampanha[c.status]}</Selo>

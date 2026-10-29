@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-
 import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
+import { useRascunho } from "@/components/marketing/useRascunho";
 import {
   ajudaObjetivo,
   ajudaPilar,
@@ -21,13 +20,6 @@ import {
 const opcoes = <T extends string>(r: Record<T, string>) =>
   (Object.keys(r) as T[]).map((id) => ({ id, rotulo: r[id] }));
 
-/** Texto que salva ao sair do campo (só se mudou). */
-function useRascunho(valor: string | null) {
-  const [v, setV] = useState(valor ?? "");
-  useEffect(() => setV(valor ?? ""), [valor]);
-  return [v, setV] as const;
-}
-
 /**
  * Briefing da peça (MK-1): objetivo, etapa do funil, pilar e ideia central são a porta para a
  * criação. Escolhas salvam na hora; textos salvam ao sair do campo.
@@ -43,25 +35,33 @@ export function BriefingPeca({
   clientes: ClienteOpcao[];
   aoSalvar: (c: CamposPeca) => void;
 }) {
-  const [titulo, setTitulo] = useRascunho(p.title);
-  const [ideia, setIdeia] = useRascunho(p.core_idea);
-  const [publico, setPublico] = useRascunho(p.audience);
-  const [serie, setSerie] = useRascunho(p.series);
-  const [direcao, setDirecao] = useRascunho(p.art_direction);
+  // Rascunhos: seguem o banco, mas guardam o que foi digitado se a gravação falhar.
+  const [titulo, setTitulo, marcarTitulo] = useRascunho(p.title);
+  const [ideia, setIdeia, marcarIdeia] = useRascunho(p.core_idea ?? "");
+  const [publico, setPublico, marcarPublico] = useRascunho(p.audience ?? "");
+  const [serie, setSerie, marcarSerie] = useRascunho(p.series ?? "");
+  const [direcao, setDirecao, marcarDirecao] = useRascunho(p.art_direction ?? "");
 
-  const sair = (campo: keyof CamposPeca, atual: string, salvo: string | null, minimo = 0) => {
+  const sair = (
+    campo: keyof CamposPeca,
+    atual: string,
+    salvo: string | null,
+    marcar: (v: string) => void,
+    minimo = 0,
+  ) => {
     const limpo = atual.trim();
     if (limpo === (salvo ?? "")) return;
     if (minimo > 0 && limpo.length < minimo) return;
+    marcar(limpo);
     aoSalvar({ [campo]: limpo || null } as CamposPeca);
   };
 
   return (
     <div className="flex flex-col gap-5">
-      <div onBlur={() => sair("titulo", titulo, p.title, 2)}>
+      <div onBlur={() => sair("titulo", titulo, p.title, marcarTitulo, 2)}>
         <CampoTexto rotulo="Título" valor={titulo} aoMudar={setTitulo} maxLength={120} />
       </div>
-      <div onBlur={() => sair("ideia", ideia, p.core_idea)}>
+      <div onBlur={() => sair("ideia", ideia, p.core_idea, marcarIdeia)}>
         <CampoArea
           rotulo="Ideia central"
           valor={ideia}
@@ -108,7 +108,7 @@ export function BriefingPeca({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div onBlur={() => sair("publico", publico, p.audience)}>
+        <div onBlur={() => sair("publico", publico, p.audience, marcarPublico)}>
           <CampoTexto
             rotulo="Público"
             valor={publico}
@@ -117,7 +117,7 @@ export function BriefingPeca({
             placeholder="Ex.: dono de clínica com agenda no WhatsApp"
           />
         </div>
-        <div onBlur={() => sair("serie", serie, p.series)}>
+        <div onBlur={() => sair("serie", serie, p.series, marcarSerie)}>
           <CampoTexto
             rotulo="Série (opcional)"
             valor={serie}
@@ -153,7 +153,7 @@ export function BriefingPeca({
             { id: "", rotulo: "Nenhum" },
             ...clientes.map((c) => ({ id: c.id, rotulo: c.empresa })),
           ]}
-          ajuda="Só Plamev e Junior Soares estão autorizados hoje. Nomes de pessoas de exemplo e valores escondidos."
+          ajuda="Só com autorização do cliente. Nomes de pessoas de exemplo e valores escondidos."
         />
         {p.client_id && (
           <label className="flex min-h-11 cursor-pointer items-center gap-3 text-[15px]">
@@ -168,7 +168,7 @@ export function BriefingPeca({
         )}
       </fieldset>
 
-      <div onBlur={() => sair("direcao_arte", direcao, p.art_direction)}>
+      <div onBlur={() => sair("direcao_arte", direcao, p.art_direction, marcarDirecao)}>
         <CampoArea
           rotulo="Direção de arte"
           valor={direcao}

@@ -45,6 +45,17 @@
 - **Calendário:** mês com as versões agendadas e publicadas, por canal, com os avisos de pilar repetido e de chamada direta; clicar abre a peça.
 - **Campanhas:** lista com período, objetivo e contagem por coluna; criar e editar em painel.
 
+## Decidido na revisão (29/10)
+Pontos que a implementação definiu além do texto acima; mudar qualquer um é ajuste pequeno.
+- **Texto acima do limite do canal:** aviso que não bloqueia (o contador fica vermelho).
+- **Mexer depois de aprovar desfaz a aprovação:** editar o texto, adicionar versão ou trocar cliente/autorização numa peça em Pronto volta para Aprovação (ou Refinamento, na versão nova) e tira as datas agendadas, com aviso na tela.
+- **Peça com uma versão já publicada:** pode ir e voltar entre criação e aprovação para terminar as outras; não volta ao planejamento e a versão publicada não muda nem sai.
+- **Trocar de cliente** zera a autorização.
+- **Termos evitados** também incluem white-label, high-ticket e ROI (lista descartada da skill de conteúdo).
+- **Ideia central** precisa de pelo menos 10 letras para valer como briefing.
+- **Resumo** traz também prazo vencido, agendadas na semana e publicadas sem resultados.
+- **Quadro no computador:** cada coluna mostra 12 peças e "Mostrar as N" (Publicado já vem cortado em 30 dias); a lista do celular é virtualizada.
+
 ## Critérios de aceite
 
 - [ ] Dado um dono com sessão forte, quando cria "Por que planilha trava" com Instagram (carrossel) e LinkedIn (documento), então a peça nasce em Ideia com 2 versões.

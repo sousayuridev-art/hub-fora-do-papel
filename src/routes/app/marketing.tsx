@@ -16,6 +16,7 @@ import { ListaProducao } from "@/components/marketing/ListaProducao";
 import { NovaPecaPainel } from "@/components/marketing/NovaPecaPainel";
 import { PecaPainel } from "@/components/marketing/PecaPainel";
 import { QuadroProducao } from "@/components/marketing/QuadroProducao";
+import { useAvisoDeErro } from "@/components/marketing/useAvisoDeErro";
 import { useMutacoesMarketing } from "@/components/marketing/useMutacoesMarketing";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
@@ -69,6 +70,13 @@ function CentralConteudo() {
     staleTime: 10 * 60_000,
   });
   const campanhas = useQuery({ queryKey: chavesMarketing.campanhas, queryFn: listarCampanhas });
+  useAvisoDeErro(resumo.isError, "Não conseguimos carregar as contagens.", resumo.refetch);
+  useAvisoDeErro(canais.isError, "Não conseguimos carregar os canais.", canais.refetch);
+  useAvisoDeErro(
+    campanhas.isError && aba !== "campanhas",
+    "Não conseguimos carregar as campanhas.",
+    campanhas.refetch,
+  );
   const m = useMutacoesMarketing();
 
   const [novaAberta, setNovaAberta] = useState(false);

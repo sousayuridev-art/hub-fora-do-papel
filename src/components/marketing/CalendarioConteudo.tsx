@@ -12,7 +12,6 @@ import {
   mesVizinho,
   nomeDoMes,
   rotuloFormato,
-  rotuloPilar,
   type ItemCalendario,
 } from "@/lib/marketing";
 import { cn } from "@/lib/utils";
@@ -80,8 +79,6 @@ export function CalendarioConteudo({
   }, [q.data]);
   const doMes = (q.data?.itens ?? []).filter((i) => i.dia.startsWith(mes));
   const comAviso = doMes.filter((i) => i.avisos.length > 0);
-  const pilares = new Map<string, number>();
-  for (const i of doMes) if (i.pilar) pilares.set(i.pilar, (pilares.get(i.pilar) ?? 0) + 1);
 
   return (
     <div className="flex flex-col gap-4">
@@ -106,12 +103,7 @@ export function CalendarioConteudo({
           </button>
         </div>
         <p className="text-[14px] text-hub-suave">
-          {doMes.length} {doMes.length === 1 ? "versão" : "versões"} no mês
-          {pilares.size > 0 &&
-            ` · ${[...pilares.entries()]
-              .sort((a, b) => b[1] - a[1])
-              .map(([p, n]) => `${rotuloPilar[p as keyof typeof rotuloPilar]} ${n}`)
-              .join(", ")}`}
+          Verde: publicada · Branco: agendada. O banco avisa pilar repetido e chamada demais.
         </p>
       </div>
 

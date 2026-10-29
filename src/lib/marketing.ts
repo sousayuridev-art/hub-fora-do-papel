@@ -269,7 +269,7 @@ export const rotuloPilar: Record<Pilar, string> = {
 export const ajudaPilar: Record<Pilar, string> = {
   problema: "A rotina que trava: WhatsApp de cada um, planilha, orçamento sem retorno.",
   escolha_honesta: "Ferramenta pronta ou sistema; quando não contratar.",
-  projetos_reais: "Plamev e Junior, com tela real e autorização.",
+  projetos_reais: "Cliente real, com tela real e autorização confirmada.",
   como_trabalhamos: "Etapas, aprovações, dados do cliente, projeto funcionando.",
   bastidores: "O Hub em uso, uma tela sendo construída, uma decisão explicada.",
   chamada_direta: "Convite para a conversa. No máximo 1 a cada 5 posts.",
@@ -552,6 +552,12 @@ export function pecaComCampos<T extends Peca>(p: T, c: CamposPeca): T {
   if (c.serie !== undefined) n.series = c.serie;
   if (c.direcao_arte !== undefined) n.art_direction = c.direcao_arte;
   if (c.prazo !== undefined) n.due_date = c.prazo;
+  if (c.campanha !== undefined) n.campaign_id = c.campanha;
+  if (c.cliente !== undefined) {
+    // Trocou de cliente: a autorização precisa ser marcada de novo (regra do banco).
+    if (c.cliente !== n.client_id && c.autorizacao === undefined) n.client_authorized = false;
+    n.client_id = c.cliente;
+  }
   if (c.autorizacao !== undefined) n.client_authorized = c.autorizacao;
   return n;
 }

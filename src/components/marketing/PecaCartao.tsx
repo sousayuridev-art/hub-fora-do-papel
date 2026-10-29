@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { diaMes } from "@/lib/formatar";
+import { dataLocal, diaMes } from "@/lib/formatar";
 import {
   contarAvisos,
   etapasMoviveis,
@@ -45,7 +45,9 @@ export function PecaCartao({
     .map((v) => v.scheduled_at)
     .filter((d): d is string => !!d)
     .sort()[0];
-  const topo = p.campanha?.nome ?? (p.pillar ? rotuloPilar[p.pillar] : "Sem pilar");
+  const topo = [p.pillar ? rotuloPilar[p.pillar] : "Sem pilar", p.campanha?.nome]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <li className="relative flex flex-col gap-1.5 rounded-xl border border-hub-borda bg-white p-3.5 pr-11 shadow-[0_1px_2px_rgba(14,16,19,0.04)] transition-colors hover:border-[#CFCFC8]">
@@ -86,7 +88,7 @@ export function PecaCartao({
             className={atrasada ? "text-[12.5px] text-sit-risco-t" : "text-[12.5px] text-hub-suave"}
           >
             {atrasada ? "Atrasada · " : "Prazo "}
-            {diaMes(p.due_date)}
+            {diaMes(dataLocal(p.due_date))}
           </span>
         )}
         {avisos.total > 0 && (

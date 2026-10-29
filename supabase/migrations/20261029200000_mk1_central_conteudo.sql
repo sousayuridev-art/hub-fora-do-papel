@@ -232,13 +232,17 @@ begin
 
   select string_agg(distinct lower(m[1]), ', ') into v_termos
     from regexp_matches(v_tudo, '\m(leads?|call|calls|deploy|pipeline|kickoff|onboarding|discovery|white-?label|high-ticket|ROI)\M', 'gi') m;
+  -- "CRM" sozinho: só vale entre parênteses, depois de "cadastro de clientes" (glossário).
+  if v_tudo ~ '(^|[^(])\mCRM\M' then
+    v_termos := concat_ws(', ', v_termos, 'CRM sem explicação');
+  end if;
   if v_termos is not null then
     v_avisos := v_avisos || jsonb_build_object('codigo', 'termo_evitado', 'bloqueia', false,
       'texto', 'Termos que o manual troca por português: ' || v_termos || '.');
   end if;
 
   if p_limite is not null and length(coalesce(p_texto, '')) > p_limite then
-    v_avisos := v_avisos || jsonb_build_object('codigo', 'texto_longo', 'bloqueia', true,
+    v_avisos := v_avisos || jsonb_build_object('codigo', 'texto_longo', 'bloqueia', false,
       'texto', 'O texto passa do limite do canal (' || p_limite || ' caracteres).');
   end if;
   return v_avisos;
@@ -250,8 +254,8 @@ create or replace function public._mkt_peca_do_dono(p_id uuid)
 returns public.mkt_pieces language plpgsql security definer set search_path = public as $$
 declare p public.mkt_pieces;
 begin
-  select * into p from public.mkt_pieces where id = p_id for update;
-  if p.id is null or p.tenant_id <> public._tenant_do_dono() then
+  select * into p from public.mkt_pieces where id = p_id and tenant_id = public._tenant_do_dono() for update;
+  if p.id is null then
     raise exception 'peca_inexistente' using errcode = 'P0002';
   end if;
   return p;
@@ -260,12 +264,14 @@ $$;
 
 create or replace function public._mkt_versao_do_dono(p_id uuid)
 returns public.mkt_versions language plpgsql security definer set search_path = public as $$
-declare v public.mkt_versions;
+declare v public.mkt_versions; v_peca uuid;
 begin
+  -- Trava a peça antes da versão (mesma ordem de mkt_peca_mover), para não haver impasse.
+  select piece_id into v_peca from public.mkt_versions where id = p_id and tenant_id = public._tenant_do_dono();
+  if v_peca is null then raise exception 'versao_inexistente' using errcode = 'P0002'; end if;
+  perform public._mkt_peca_do_dono(v_peca);
   select * into v from public.mkt_versions where id = p_id for update;
-  if v.id is null or v.tenant_id <> public._tenant_do_dono() then
-    raise exception 'versao_inexistente' using errcode = 'P0002';
-  end if;
+  if v.id is null then raise exception 'versao_inexistente' using errcode = 'P0002'; end if;
   return v;
 end;
 $$;
@@ -312,7 +318,7 @@ returns text[] language sql stable security definer set search_path = public as 
          then 'texto em todas as versões' end,
     case when exists (select 1 from public.mkt_versions v, jsonb_array_elements(v.warnings) a
                        where v.piece_id = p.id and (a ->> 'bloqueia')::boolean)
-         then 'resolver os avisos que bloqueiam (marcador ou texto longo)' end,
+         then 'preencher os marcadores do texto' end,
     case when p.client_id is not null and not p.client_authorized then 'autorização do cliente' end
   ], null);
 $$;
@@ -366,7 +372,7 @@ begin
 end;
 $$;
 
-revoke all on function public._mkt_coluna(text) from public, anon;
+revoke all on function public._mkt_coluna(text) from public, anon, authenticated;
 revoke all on function public._mkt_formato_valido(text, text) from public, anon, authenticated;
 revoke all on function public._mkt_avisos(text, text, jsonb, jsonb, integer) from public, anon, authenticated;
 revoke all on function public._mkt_peca_do_dono(uuid) from public, anon, authenticated;
@@ -504,7 +510,7 @@ $$;
 -- Briefing: só as chaves presentes mudam.
 create or replace function public.mkt_peca_editar(p_id uuid, p_campos jsonb)
 returns jsonb language plpgsql volatile security definer set search_path = public as $$
-declare p public.mkt_pieces := public._mkt_peca_do_dono(p_id); f jsonb := p_campos;
+declare p public.mkt_pieces := public._mkt_peca_do_dono(p_id); f jsonb := p_campos; v_cliente_antes uuid := p.client_id;
 begin
   if f is null or jsonb_typeof(f) <> 'object' then raise exception 'campos_invalidos' using errcode = '22023'; end if;
   if f ? 'titulo' then
@@ -533,6 +539,10 @@ begin
     elsif not exists (select 1 from public.clients where id = p.client_id and tenant_id = p.tenant_id) then
       raise exception 'cliente_inexistente' using errcode = 'P0002';
     end if;
+    -- Autorização é de um cliente: trocou de cliente, precisa confirmar de novo.
+    if p.client_id is distinct from v_cliente_antes and not f ? 'autorizacao' then
+      p.client_authorized := false;
+    end if;
   end if;
   if f ? 'autorizacao' then
     p.client_authorized := coalesce((f ->> 'autorizacao')::boolean, false);
@@ -544,6 +554,9 @@ begin
          front = p.front, audience = p.audience, series = p.series, art_direction = p.art_direction, due_date = p.due_date,
          campaign_id = p.campaign_id, client_id = p.client_id, client_authorized = p.client_authorized
    where id = p.id returning * into p;
+  if f ? 'cliente' or f ? 'autorizacao' then
+    p := public._mkt_reabrir_se_aprovada(p, 'Cliente ou autorização alterados depois da aprovação');
+  end if;
   return public._mkt_peca_json(p);
 exception
   when check_violation or invalid_datetime_format or datetime_field_overflow or invalid_text_representation then
@@ -560,7 +573,9 @@ begin
     raise exception 'etapa_invalida' using errcode = '22023';
   end if;
   if p.stage in ('publicado', 'analisado') then raise exception 'peca_publicada' using errcode = '22023'; end if;
-  if exists (select 1 from public.mkt_versions where piece_id = p.id and published_at is not null) then
+  -- Já saiu uma versão: a peça pode ir e voltar entre criação e aprovação, mas não volta ao planejamento.
+  if p_etapa in ('ideia', 'briefing')
+     and exists (select 1 from public.mkt_versions where piece_id = p.id and published_at is not null) then
     raise exception 'peca_publicada' using errcode = '22023';
   end if;
   if p_etapa in ('conceito', 'producao', 'refinamento') then

@@ -10,6 +10,7 @@ import { AcoesPeca } from "@/components/marketing/AcoesPeca";
 import { BriefingPeca } from "@/components/marketing/BriefingPeca";
 import { HistoricoPeca } from "@/components/marketing/HistoricoPeca";
 import { VersoesPeca, type AcoesVersao } from "@/components/marketing/VersoesPeca";
+import { useAvisoDeErro } from "@/components/marketing/useAvisoDeErro";
 import type { useMutacoesMarketing } from "@/components/marketing/useMutacoesMarketing";
 import {
   chavesMarketing,
@@ -58,6 +59,11 @@ export function PecaPainel({
     enabled: !!id,
     staleTime: 5 * 60_000,
   });
+  useAvisoDeErro(
+    clientes.isError,
+    "Não conseguimos carregar a lista de clientes.",
+    clientes.refetch,
+  );
   const [aba, setAba] = useState<Aba>("briefing");
   const p = detalhe.data;
   // Outra peça aberta: começa no que importa na etapa (aprovar olha as versões e a prévia).
@@ -126,6 +132,21 @@ export function PecaPainel({
         <p className="text-[14.5px] text-hub-suave">Carregando…</p>
       ) : (
         <div className="flex flex-col gap-5">
+          {detalhe.isError && (
+            <div
+              role="alert"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-sit-risco px-3 py-2 text-[14px] text-sit-risco-t"
+            >
+              Não conseguimos atualizar a peça; o que aparece pode estar desatualizado.
+              <button
+                type="button"
+                onClick={() => void detalhe.refetch()}
+                className="min-h-11 rounded-lg bg-white px-3 font-semibold text-hub-tinta"
+              >
+                Tentar de novo
+              </button>
+            </div>
+          )}
           {p.falta.length > 0 && (
             <div className="flex items-start gap-2 rounded-xl bg-sit-atencao px-3 py-2.5 text-[14px] text-sit-atencao-t">
               <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -164,6 +185,7 @@ export function PecaPainel({
           />
           {aba === "briefing" && (
             <BriefingPeca
+              key={p.id}
               p={p}
               campanhas={campanhas}
               clientes={clientes.data ?? []}

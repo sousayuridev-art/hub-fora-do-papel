@@ -36,6 +36,7 @@ import {
   type Peca,
   type PecaDetalhe,
   type Resultados,
+  type Versao,
 } from "@/lib/marketing";
 
 type Foto = [QueryKey, unknown][];
@@ -79,22 +80,47 @@ function recarregar(qc: QueryClient, id?: string) {
   if (id) void qc.invalidateQueries({ queryKey: chavesMarketing.detalhe(id) });
 }
 
-/** Ações de versão sem prévia otimista útil (o banco calcula etapa e avisos). */
+/**
+ * Ação sobre uma versão: muda na hora (prévia opcional), volta se o banco recusar, oferece
+ * "Tentar de novo" e depois grava o que o banco devolveu (etapa e avisos são dele).
+ */
 function useAcaoVersao<A extends { pecaId: string }>(
   fn: (a: A) => Promise<Peca>,
   mensagem: (p: Peca) => string,
+  previa?: (p: Peca, a: A) => Peca,
 ) {
   const qc = useQueryClient();
-  return useMutation({
+  const m = useMutation({
     mutationFn: fn,
+    onMutate: async (a: A) => {
+      if (!previa) return { foto: null };
+      await pararLeituras(qc);
+      const foto = fotografar(qc);
+      mudarPeca(qc, a.pecaId, (p) => ({ ...p, ...previa(p, a) }));
+      return { foto };
+    },
     onSuccess: (p) => {
       gravarPeca(qc, p);
       ok(mensagem(p));
     },
-    onError: (e) => erro(falhou(e)),
+    onError: (e, a, ctx) => {
+      if (ctx?.foto) restaurar(qc, ctx.foto);
+      erro(falhou(e), { tentarDeNovo: () => m.mutate(a) });
+    },
     onSettled: (_d, _e, a) => recarregar(qc, a.pecaId),
   });
+  return m;
 }
+
+/** Troca uma versão da peça (prévia otimista). */
+const naVersao = (p: Peca, id: string, fn: (v: Versao) => Versao | null): Peca => ({
+  ...p,
+  versoes: p.versoes.flatMap((v) => {
+    if (v.id !== id) return [v];
+    const n = fn(v);
+    return n ? [n] : [];
+  }),
+});
 
 /**
  * Ações da Central de conteúdo. O que a pessoa faz muda na hora, volta se o banco recusar
@@ -230,7 +256,11 @@ export function useMutacoesMarketing() {
       const antes = qc.getQueryData<PecaDetalhe>(chavesMarketing.detalhe(v.pecaId));
       gravarPeca(qc, p);
       if (antes?.stage === "pronto" && p.stage === "aprovacao")
-        ok("Texto alterado: a peça voltou para Aprovação.");
+        ok(
+          antes.versoes.some((v) => v.scheduled_at)
+            ? "Texto alterado: a peça voltou para Aprovação e as datas agendadas saíram."
+            : "Texto alterado: a peça voltou para Aprovação.",
+        );
     },
     onError: (e, v, ctx) => {
       if (ctx) restaurar(qc, ctx.foto);
@@ -247,10 +277,12 @@ export function useMutacoesMarketing() {
   const removerVersaoM = useAcaoVersao(
     (a: { pecaId: string; id: string }) => removerVersao(a.id),
     () => "Versão removida.",
+    (p, a) => naVersao(p, a.id, () => null),
   );
   const agendar = useAcaoVersao(
     (a: { pecaId: string; id: string; quando: string | null }) => agendarVersao(a.id, a.quando),
     () => "Agenda atualizada.",
+    (p, a) => naVersao(p, a.id, (v) => ({ ...v, scheduled_at: a.quando })),
   );
   const publicar = useAcaoVersao(
     (a: { pecaId: string; id: string; link: string; quando: string | null }) =>
@@ -259,11 +291,18 @@ export function useMutacoesMarketing() {
       p.stage === "publicado"
         ? "Todas as versões publicadas: a peça foi para Publicado."
         : "Versão marcada como publicada.",
+    (p, a) =>
+      naVersao(p, a.id, (v) => ({
+        ...v,
+        published_at: a.quando ?? new Date().toISOString(),
+        published_url: a.link,
+      })),
   );
   const resultados = useAcaoVersao(
     (a: { pecaId: string; id: string; r: Resultados }) => registrarResultados(a.id, a.r),
     (p) =>
       p.stage === "analisado" ? "Resultados completos: peça analisada." : "Resultados salvos.",
+    (p, a) => naVersao(p, a.id, (v) => ({ ...v, results: a.r })),
   );
 
   const campanha = useMutation({
@@ -276,7 +315,7 @@ export function useMutacoesMarketing() {
   const removerCampanhaM = useMutation({
     mutationFn: (id: string) => removerCampanha(id),
     onSuccess: (c) => ok(`Campanha “${c.name}” removida. As peças ficaram, sem campanha.`),
-    onError: (e) => erro(falhou(e)),
+    onError: (e, id) => erro(falhou(e), { tentarDeNovo: () => removerCampanhaM.mutate(id) }),
     onSettled: () => recarregar(qc),
   });
 
