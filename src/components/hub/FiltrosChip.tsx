@@ -8,7 +8,7 @@ export function FiltrosChip<T extends string>({
   aoEscolher,
 }: {
   rotulo: string;
-  opcoes: { id: T; rotulo: string; contagem?: number | undefined }[];
+  opcoes: { id: T; rotulo: string; contagem?: number | undefined; cor?: string | undefined }[];
   ativo: T;
   aoEscolher: (id: T) => void;
 }) {
@@ -31,6 +31,13 @@ export function FiltrosChip<T extends string>({
               : "text-hub-suave hover:text-hub-tinta max-sm:border max-sm:border-hub-borda max-sm:bg-white",
           )}
         >
+          {o.cor && (
+            <span
+              aria-hidden="true"
+              className="size-2 shrink-0 rounded-full"
+              style={{ background: o.cor }}
+            />
+          )}
           {o.rotulo}
           {o.contagem !== undefined && (
             <span

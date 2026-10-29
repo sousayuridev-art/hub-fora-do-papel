@@ -219,3 +219,6 @@ export function telefone(numero: string | null | undefined): string {
 /** Resultado com sinal: "+ R$ 6.420" ou "− R$ 300". */
 export const moedaComSinal = (cents: number) =>
   cents > 0 ? `+ ${moeda(cents)}` : cents < 0 ? `− ${moeda(-cents)}` : moeda(0);
+
+/** "1 proposta" / "3 propostas" */
+export const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;

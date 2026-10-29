@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { z } from "zod";
 
+import { AbasVendas } from "@/components/funil/AbasVendas";
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { ListaLateral } from "@/components/propostas/ListaLateral";
@@ -80,7 +81,7 @@ function Propostas() {
     <div className="flex flex-col gap-5">
       <CabecalhoPagina
         grupo={id ? undefined : "Vender"}
-        titulo="Propostas"
+        titulo={id ? "Propostas" : "Vendas"}
         voltarPara="/app/propostas"
         migalha={
           id ? (
@@ -107,6 +108,7 @@ function Propostas() {
             Nova proposta
           </button>
         }
+        abas={id ? undefined : <AbasVendas ativa="propostas" />}
       />
 
       {!id ? (

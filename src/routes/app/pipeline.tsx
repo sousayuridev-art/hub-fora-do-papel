@@ -6,7 +6,9 @@ import { z } from "zod";
 
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
+import { FaixaNumeros } from "@/components/hub/FaixaNumeros";
 import { FiltrosChip } from "@/components/hub/FiltrosChip";
+import { AbasVendas } from "@/components/funil/AbasVendas";
 import { FunilQuadro } from "@/components/funil/FunilQuadro";
 import { FunilCarregando } from "@/components/funil/FunilCarregando";
 import { NovoContatoPainel } from "@/components/funil/NovoContatoPainel";
@@ -16,7 +18,7 @@ import { ProximoPassoPainel } from "@/components/funil/ProximoPassoPainel";
 import type { AcaoCartao } from "@/components/funil/FunilCartao";
 import { useMutacoesFunil } from "@/components/funil/useMutacoesFunil";
 import { classeAcaoPrincipal } from "@/lib/estilos";
-import { moeda } from "@/lib/formatar";
+import { moeda, plural } from "@/lib/formatar";
 import {
   chavesFunil,
   filtrosFunil,
@@ -28,12 +30,18 @@ import {
 } from "@/lib/funil";
 
 const busca = z.object({
-  filtro: z.enum(["todos", "este_mes", "vencidos", "arquivados"]).optional().catch(undefined),
+  filtro: z
+    .enum(["todos", "novos", "adicionais", "vencidos", "este_mes", "fechados", "arquivados"])
+    .optional()
+    .catch(undefined),
 });
+
+/** "outubro" (nome do mês atual, para o número "Ganho em …"). */
+const mesAtual = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(new Date());
 
 export const Route = createFileRoute("/app/pipeline")({
   validateSearch: busca,
-  head: () => ({ meta: [{ title: "Funil de vendas · Hub Fora do Papel" }] }),
+  head: () => ({ meta: [{ title: "Vendas · Hub Fora do Papel" }] }),
   component: Funil,
 });
 
@@ -68,63 +76,73 @@ function Funil() {
   }
 
   const r = resumo.data;
+  const irPara = (id: FiltroFunil) =>
+    void navigate({
+      search: { filtro: id === "todos" || id === filtro ? undefined : id },
+      replace: true,
+    });
   return (
     <div className="flex flex-col gap-5">
       <CabecalhoPagina
         grupo="Vender"
-        titulo="Funil de vendas"
-        resumo={
-          r ? (
-            <>
-              <strong className="font-semibold text-hub-tinta">{r.ativos} contatos ativos</strong> ·{" "}
-              <strong className="font-semibold text-hub-tinta">
-                {moeda(r.em_negociacao_cents)}
-              </strong>{" "}
-              em diagnósticos e propostas
-            </>
-          ) : (
-            <span className="inline-block h-5 w-72 animate-pulse rounded bg-[#E4E4DF]" />
-          )
-        }
+        titulo="Vendas"
         acao={
           <button type="button" className={classeAcaoPrincipal} onClick={() => setNovo(true)}>
             <Plus className="size-4" aria-hidden="true" />
-            Novo contato
+            Nova oportunidade
           </button>
         }
+        abas={<AbasVendas ativa="oportunidades" />}
       />
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <FiltrosChip
-          rotulo="Filtrar oportunidades"
-          opcoes={filtrosFunil.map((f) => ({
-            id: f.id,
-            rotulo: f.rotulo,
-            contagem: r?.filtros[f.id],
-          }))}
-          ativo={filtro}
-          aoEscolher={(id) =>
-            void navigate({
-              search: { filtro: id === "todos" ? undefined : (id as FiltroFunil) },
-              replace: true,
-            })
-          }
+      {resumo.isError ? (
+        <EstadoErro
+          titulo="Não foi possível carregar os números"
+          aoTentarDeNovo={() => void resumo.refetch()}
         />
-        <ul
-          className="flex flex-wrap gap-x-4 gap-y-1 text-[13.5px] text-hub-suave"
-          aria-label="Legenda"
-        >
-          <li className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-sit-risco-t" aria-hidden="true" /> Passo vencido
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-[#E08A00]" aria-hidden="true" /> Para hoje
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-sit-ok-t" aria-hidden="true" /> Diagnóstico pago
-          </li>
-        </ul>
-      </div>
+      ) : (
+        <FaixaNumeros
+          itens={[
+            {
+              rotulo: "Em negociação",
+              valor: r ? moeda(r.em_negociacao_cents) : "…",
+              apoio: r ? plural(r.abertas, "oportunidade aberta", "oportunidades abertas") : "",
+            },
+            {
+              rotulo: "Propostas sem resposta",
+              valor: r ? r.propostas_sem_resposta : "…",
+              apoio: "há mais de 3 dias",
+              tom: r && r.propostas_sem_resposta > 0 ? "atencao" : undefined,
+            },
+            {
+              rotulo: `Ganho em ${mesAtual}`,
+              valor: r ? moeda(r.ganho_mes.soma_cents) : "…",
+              apoio: r
+                ? `${plural(r.ganho_mes.quantidade, "ganho", "ganhos")} · ${plural(r.perdidos_mes, "perdido", "perdidos")}`
+                : "",
+              aoClicar: () => irPara("fechados"),
+              ativo: filtro === "fechados",
+            },
+            {
+              rotulo: "Taxa de ganho",
+              valor: r ? (r.taxa_ganho_90 == null ? "—" : `${r.taxa_ganho_90}%`) : "…",
+              apoio: "nos últimos 90 dias",
+            },
+          ]}
+        />
+      )}
+
+      <FiltrosChip
+        rotulo="Filtrar oportunidades"
+        opcoes={filtrosFunil.map((f) => ({
+          id: f.id,
+          rotulo: f.rotulo,
+          cor: f.cor,
+          contagem: r?.filtros[f.id],
+        }))}
+        ativo={filtro}
+        aoEscolher={(id) => irPara(id)}
+      />
 
       {lista.isPending ? (
         <FunilCarregando />
@@ -135,14 +153,14 @@ function Funil() {
         />
       ) : lista.data.length === 0 && filtro === "todos" ? (
         <div className="flex flex-col items-start gap-3 rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-8">
-          <h2 className="font-titulo text-xl font-bold">O funil está vazio</h2>
+          <h2 className="font-titulo text-xl font-bold">Nenhuma oportunidade aberta</h2>
           <p className="max-w-lg text-[15px] text-hub-suave">
             Os pedidos de horário do site entram aqui sozinhos. Contatos do WhatsApp, Instagram ou
-            indicação você cria em "Novo contato".
+            indicação você cria em "Nova oportunidade".
           </p>
           <button type="button" className={classeAcaoPrincipal} onClick={() => setNovo(true)}>
             <Plus className="size-4" aria-hidden="true" />
-            Novo contato
+            Nova oportunidade
           </button>
         </div>
       ) : (
@@ -150,6 +168,7 @@ function Funil() {
           itens={lista.data}
           resumo={r}
           arquivados={filtro === "arquivados"}
+          fechados={filtro === "fechados"}
           aoAgir={agir}
           aoSoltar={(o, etapa) => {
             // Fechado à mão pede motivo; etapa aberta sem próximo passo pede o passo
