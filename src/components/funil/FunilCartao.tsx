@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, MoreHorizontal } from "lucide-react";
+import { CalendarClock, MoreHorizontal } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -8,20 +8,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Selo } from "@/components/hub/Selo";
-import { diaComHora, moeda, prazoRelativo } from "@/lib/formatar";
+import { Selo, SeloTipo, Sigla } from "@/components/hub/Selo";
+import { diaComHora, diaMes, moeda, prazoRelativo, sigla } from "@/lib/formatar";
 import {
   rotuloDiagnostico,
   rotuloEtapa,
   rotuloMotivo,
   rotuloOrigem,
+  situacaoProposta,
   type Oportunidade,
 } from "@/lib/funil";
 import { cn } from "@/lib/utils";
 
 export type AcaoCartao = "mover" | "passo" | "arquivar" | "desarquivar";
 
-/** Cartão do funil (proposta 2): empresa, pessoa · origem, valor, selos e próximo passo. */
+/** Fundo do rodapé conforme o prazo do próximo passo. */
+const fundoPrazo = {
+  risco: "bg-sit-risco",
+  atencao: "bg-[#FFF6E2]",
+  neutro: "bg-[#F7F7F4]",
+} as const;
+const textoPrazo = {
+  risco: "font-semibold text-sit-risco-t",
+  atencao: "font-semibold text-sit-atencao-t",
+  neutro: "text-[#4A4D54]",
+} as const;
+
+/**
+ * Cartão de Vendas (RD2-2): sigla com cor fixa, empresa, valor, selos (tipo, origem,
+ * diagnóstico, proposta) e o próximo passo no rodapé, colorido pelo prazo.
+ */
 export function FunilCartao({
   o,
   aoAgir,
@@ -35,7 +51,7 @@ export function FunilCartao({
     o.next_step_date && o.stage !== "fechado" && !o.archived_at
       ? prazoRelativo(o.next_step_date, o.hoje, o.next_step_has_time ? o.next_step_at : null)
       : null;
-  const vencidoEmProposta = o.vencido && o.stage === "proposta";
+  const proposta = situacaoProposta(o);
 
   return (
     <article
@@ -45,22 +61,25 @@ export function FunilCartao({
         e.dataTransfer.effectAllowed = "move";
       }}
       className={cn(
-        "group relative flex flex-col gap-2 rounded-xl border border-hub-borda bg-white p-3.5 shadow-[0_1px_2px_rgba(14,16,19,0.04)] transition-shadow hover:shadow-[0_6px_18px_-8px_rgba(14,16,19,0.18)]",
+        "group relative flex flex-col overflow-hidden rounded-xl border border-[rgba(14,16,19,0.07)] bg-white shadow-[0_1px_2px_rgba(14,16,19,0.05)] transition-shadow hover:shadow-[0_8px_20px_-10px_rgba(14,16,19,0.25)]",
         arrastavel && "cursor-grab active:cursor-grabbing",
-        vencidoEmProposta && "border-l-[3px] border-l-sit-risco-t",
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <Link
-          to="/app/clientes/$id"
-          params={{ id: o.client_id }}
-          className="min-w-0 text-[15px] font-semibold leading-snug text-hub-tinta after:absolute after:inset-0 after:content-[''] focus-visible:outline-2 focus-visible:outline-[#1E3FA8]"
-        >
-          {o.company_name}
-        </Link>
+      <div className="flex items-center gap-2.5 py-2 pl-3.5 pr-1.5">
+        <Sigla texto={sigla(o.company_name)} semente={o.company_name} />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <Link
+            to="/app/clientes/$id"
+            params={{ id: o.client_id }}
+            className="truncate text-[14.5px] font-semibold leading-snug text-hub-tinta after:absolute after:inset-0 after:content-[''] focus-visible:outline-2 focus-visible:outline-hub-tinta"
+          >
+            {o.company_name}
+          </Link>
+          <span className="truncate text-[12.5px] text-hub-suave">{o.contact_name}</span>
+        </span>
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="relative z-10 -mr-2 -mt-2 flex size-11 shrink-0 items-center justify-center rounded-lg text-hub-suave hover:bg-hub-selecao hover:text-hub-tinta"
+            className="relative z-10 flex size-11 shrink-0 items-center justify-center rounded-lg text-hub-suave hover:bg-hub-selecao hover:text-hub-tinta"
             aria-label={`Ações de ${o.company_name}`}
           >
             <MoreHorizontal className="size-4" aria-hidden="true" />
@@ -89,26 +108,27 @@ export function FunilCartao({
         </DropdownMenu>
       </div>
 
-      <p className="text-[13.5px] leading-snug text-hub-suave">
-        {o.contact_name} · {rotuloOrigem[o.origin]}
-      </p>
+      {o.value_cents != null && (
+        <p className="px-3.5 text-[15px] font-semibold tabular-nums">{moeda(o.value_cents)}</p>
+      )}
 
-      <p
-        className={cn(
-          "text-[15px] font-semibold",
-          o.value_cents == null && "font-normal text-hub-suave",
-        )}
-      >
-        {o.value_cents == null ? "Sem valor ainda" : moeda(o.value_cents)}
-      </p>
-
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5 px-3.5 pb-3 pt-2">
+        {o.adicional && <SeloTipo tipo="pedidos">Serviço adicional</SeloTipo>}
+        <Selo tom="neutro" ponto={false}>
+          {rotuloOrigem[o.origin]}
+        </Selo>
         {o.diagnostic_tier && (
           <Selo tom={o.diagnostic_paid ? "ok" : "atencao"}>
-            {rotuloDiagnostico[o.diagnostic_tier]} · {o.diagnostic_paid ? "pago" : "a pagar"}
+            Diagnóstico {rotuloDiagnostico[o.diagnostic_tier].toLowerCase()} ·{" "}
+            {o.diagnostic_paid ? "pago" : "a pagar"}
           </Selo>
         )}
-        {o.stage === "fechado" && o.closed_at && <Selo tom="ok">Fechado</Selo>}
+        {proposta && <Selo tom={proposta.tom}>{proposta.texto}</Selo>}
+        {proposta && o.proposta_versao && o.proposta_versao > 1 && (
+          <Selo tom="neutro" ponto={false}>
+            Versão {o.proposta_versao}
+          </Selo>
+        )}
         {o.archived_at && (
           <Selo tom="neutro">
             Arquivado{o.lost_reason ? ` · ${rotuloMotivo[o.lost_reason]}` : ""}
@@ -123,21 +143,28 @@ export function FunilCartao({
         {!o.whatsapp && !o.archived_at && <Selo tom="atencao">Sem WhatsApp</Selo>}
       </div>
 
-      {o.next_step && !o.archived_at && (
-        <div className="flex flex-col gap-1.5 border-t border-hub-borda pt-2">
-          <p className="flex gap-1.5 text-[13.5px] leading-snug text-hub-tinta">
-            <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-hub-suave" aria-hidden="true" />
-            {o.next_step}
-          </p>
+      {o.next_step && !o.archived_at && o.stage !== "fechado" && (
+        <div
+          className={cn(
+            "flex items-start justify-between gap-2 border-t border-[rgba(14,16,19,0.06)] px-3.5 py-2.5 text-[13px]",
+            fundoPrazo[prazo?.tom ?? "neutro"],
+          )}
+        >
+          <span className="min-w-0 leading-snug">{o.next_step}</span>
           {prazo && (
-            <span className="self-start">
-              <Selo tom={prazo.tom}>{prazo.texto}</Selo>
-            </span>
+            <span className={cn("shrink-0 text-right", textoPrazo[prazo.tom])}>{prazo.texto}</span>
           )}
         </div>
       )}
       {o.archived_at && (
-        <p className="text-[13px] text-hub-suave">Estava em {rotuloEtapa[o.stage]}</p>
+        <p className="border-t border-[rgba(14,16,19,0.06)] bg-[#F7F7F4] px-3.5 py-2.5 text-[13px] text-hub-suave">
+          Estava em {rotuloEtapa[o.stage]}
+        </p>
+      )}
+      {o.stage === "fechado" && o.closed_at && !o.archived_at && (
+        <p className="border-t border-[rgba(14,16,19,0.06)] bg-sit-ok px-3.5 py-2.5 text-[13px] font-medium text-sit-ok-t">
+          Fechado em {diaMes(o.closed_at)}
+        </p>
       )}
     </article>
   );

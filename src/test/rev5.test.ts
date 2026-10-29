@@ -27,3 +27,23 @@ describe("REV-5 · correções urgentes", () => {
     expect(tiposAceitos).not.toContain("image/svg+xml");
   });
 });
+
+describe("RD2-2 · situação da proposta no cartão", () => {
+  it("diz se a proposta foi vista e quando", async () => {
+    const { situacaoProposta } = await import("@/lib/funil");
+    const base = { hoje: "2026-10-29" };
+    expect(
+      situacaoProposta({ ...base, proposta_status: null, proposta_vista_em: null }),
+    ).toBeNull();
+    expect(
+      situacaoProposta({ ...base, proposta_status: "enviada", proposta_vista_em: null })?.texto,
+    ).toBe("Enviada · não aberta");
+    expect(
+      situacaoProposta({
+        ...base,
+        proposta_status: "enviada",
+        proposta_vista_em: "2026-10-27T15:00:00Z",
+      })?.texto,
+    ).toBe("Vista há 2 dias");
+  });
+});

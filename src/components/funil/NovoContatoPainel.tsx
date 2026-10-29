@@ -106,7 +106,7 @@ export function NovoContatoPainel({
     <PainelLateral
       aberto={aberto}
       aoMudar={aoMudar}
-      titulo="Novo contato"
+      titulo="Nova oportunidade"
       descricao="Entra no funil em Contato, com o próximo passo e a data."
       rodape={
         <>

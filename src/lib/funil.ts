@@ -20,7 +20,8 @@ export const rotuloFrente = Object.fromEntries(frentes.map((f) => [f.id, f.rotul
 >;
 export type MotivoPerda =
   "preco" | "prazo" | "escolheu_outro" | "sem_resposta" | "nao_era_o_momento" | "outro";
-export type FiltroFunil = "todos" | "este_mes" | "vencidos" | "arquivados";
+export type FiltroFunil =
+  "todos" | "novos" | "adicionais" | "vencidos" | "este_mes" | "fechados" | "arquivados";
 export type Situacao = "contato" | "negociacao" | "cliente" | "arquivado" | "sem_oportunidade";
 
 export const etapas: { id: Etapa; rotulo: string }[] = [
@@ -66,10 +67,14 @@ export const rotuloDiagnostico: Record<Diagnostico, string> = {
   ampliado: "Ampliado",
 };
 
-export const filtrosFunil: { id: FiltroFunil; rotulo: string }[] = [
-  { id: "todos", rotulo: "Todos" },
-  { id: "este_mes", rotulo: "Este mês" },
-  { id: "vencidos", rotulo: "Vencidos" },
+/** Filtros de Vendas (RD2-2). `cor` é o ponto ao lado do nome. */
+export const filtrosFunil: { id: FiltroFunil; rotulo: string; cor?: string }[] = [
+  { id: "todos", rotulo: "Todas" },
+  { id: "novos", rotulo: "Novo cliente", cor: "var(--color-tipo-vendas-p)" },
+  { id: "adicionais", rotulo: "Serviço adicional", cor: "var(--color-tipo-pedidos-p)" },
+  { id: "vencidos", rotulo: "Passo vencido", cor: "var(--color-sit-risco-t)" },
+  { id: "este_mes", rotulo: "Entraram este mês" },
+  { id: "fechados", rotulo: "Fechados" },
   { id: "arquivados", rotulo: "Arquivados" },
 ];
 
@@ -105,12 +110,24 @@ export type Oportunidade = {
   para_hoje: boolean;
   deste_mes: boolean;
   frente: Frente | null;
+  /** A empresa já fechou outra oportunidade antes (RD2-2). */
+  adicional: boolean;
+  proposta_status: "rascunho" | "enviada" | "aceita" | "recusada" | null;
+  proposta_versao: number | null;
+  proposta_enviada_em: string | null;
+  proposta_vista_em: string | null;
 };
 
 export type ResumoFunil = {
   ativos: number;
   vencidos: number;
   em_negociacao_cents: number;
+  abertas: number;
+  propostas_sem_resposta: number;
+  ganho_mes: { quantidade: number; soma_cents: number };
+  perdidos_mes: number;
+  /** null quando não houve ganho nem perda em 90 dias. */
+  taxa_ganho_90: number | null;
   filtros: Record<FiltroFunil, number>;
   etapas: Record<Etapa, { quantidade: number; soma_cents: number }>;
 };
@@ -184,8 +201,13 @@ export async function listarFunil(filtro: FiltroFunil): Promise<Oportunidade[]> 
   let consulta = supabase.from("v_funil").select("*");
   if (filtro === "arquivados") consulta = consulta.not("archived_at", "is", null);
   else consulta = consulta.is("archived_at", null);
+  // Fechado sai do quadro (RD2-2): só aparece no filtro "Fechados"
+  if (filtro === "fechados") consulta = consulta.eq("stage", "fechado");
+  else if (filtro !== "arquivados") consulta = consulta.neq("stage", "fechado");
   if (filtro === "vencidos") consulta = consulta.eq("vencido", true);
   if (filtro === "este_mes") consulta = consulta.eq("deste_mes", true);
+  if (filtro === "novos") consulta = consulta.eq("adicional", false);
+  if (filtro === "adicionais") consulta = consulta.eq("adicional", true);
   const { data, error } = await consulta
     .order("position", { ascending: false })
     .order("created_at", { ascending: false });
@@ -419,4 +441,31 @@ export function mensagemDoFunil(e: unknown): string | null {
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;
+}
+
+/**
+ * Situação da proposta no cartão de Vendas (RD2-2), em frase curta.
+ * "Vista há N dias" conta pelo dia do fuso da empresa (`hoje` vem do banco).
+ */
+export function situacaoProposta(
+  o: Pick<Oportunidade, "proposta_status" | "proposta_vista_em" | "hoje">,
+): { texto: string; tom: "neutro" | "info" | "atencao" | "risco" | "ok" } | null {
+  switch (o.proposta_status) {
+    case null:
+      return null;
+    case "rascunho":
+      return { texto: "Proposta em rascunho", tom: "neutro" };
+    case "aceita":
+      return { texto: "Proposta aceita", tom: "ok" };
+    case "recusada":
+      return { texto: "Proposta recusada", tom: "risco" };
+    case "enviada": {
+      if (!o.proposta_vista_em) return { texto: "Enviada · não aberta", tom: "neutro" };
+      const vista = new Date(o.proposta_vista_em.slice(0, 10) + "T12:00:00");
+      const hoje = new Date(o.hoje + "T12:00:00");
+      const dias = Math.max(0, Math.round((hoje.getTime() - vista.getTime()) / 86_400_000));
+      const quando = dias === 0 ? "hoje" : dias === 1 ? "ontem" : `há ${dias} dias`;
+      return { texto: `Vista ${quando}`, tom: "info" };
+    }
+  }
 }

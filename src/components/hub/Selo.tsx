@@ -85,13 +85,21 @@ const tonsSigla = [
   "bg-sit-atencao text-sit-atencao-t",
   "bg-sit-ok text-sit-ok-t",
   "bg-tipo-pedidos text-tipo-pedidos-t",
-  "bg-tipo-dinheiro text-tipo-dinheiro-t",
+  "bg-[#E8EEF3] text-[#2A4A63]",
 ] as const;
 
 /** Mesmo nome, mesma cor, em qualquer tela. */
 export function corDaSigla(nome: string): string {
-  let h = 0;
-  for (const c of nome.trim().toLowerCase()) h = (h * 31 + (c.codePointAt(0) ?? 0)) >>> 0;
+  // FNV-1a: nomes parecidos ("Loja Exemplo", "Loja Modelo") caem em cores diferentes
+  let h = 0x811c9dc5;
+  for (const c of nome.trim().toLowerCase()) {
+    h ^= c.codePointAt(0) ?? 0;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  // Mistura final: espalha nomes que só mudam no começo ("Loja Exemplo", "Ótica Exemplo")
+  h = (h ^ (h >>> 16)) >>> 0;
+  h = Math.imul(h, 0x45d9f3b) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
   return tonsSigla[h % tonsSigla.length] ?? tonsSigla[0];
 }
 

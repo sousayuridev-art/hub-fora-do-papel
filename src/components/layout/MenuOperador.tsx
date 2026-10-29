@@ -20,6 +20,9 @@ function useContador(tipo: ItemMenu["contador"]): number | null {
   return tipo === "tarefas_atrasadas" ? (q.data?.atrasadas ?? null) : null;
 }
 
+const classeAtivo =
+  "!bg-menu-ativo !text-hub-tinta font-semibold shadow-[0_6px_16px_-8px_rgb(255_176_32_/_0.7)]";
+
 const classeItem =
   "group flex min-h-11 items-center gap-3 rounded-xl px-3 text-[14.5px] font-medium text-menu-texto transition-colors hover:bg-menu-hover hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB020]";
 
@@ -34,60 +37,63 @@ function LinkMenu({
 }) {
   const Icone = item.icone;
   const contador = useContador(item.contador);
+  const caminho = useRouterState({ select: (r) => r.location.pathname });
+  // Rotas que pertencem a este item sem estar no endereço dele (ex.: Propostas em Vendas, RD2-2)
+  const extra = item.tambem?.some((p) => caminho === p || caminho.startsWith(`${p}/`)) ?? false;
   return (
     <Link
       to={item.para}
       activeOptions={{ exact: item.exato ?? false }}
       onClick={aoNavegar}
-      className={cn(classeItem, recolhido && "relative justify-center px-0")}
+      className={cn(classeItem, recolhido && "relative justify-center px-0", extra && classeAtivo)}
       title={recolhido ? item.rotulo : undefined}
       aria-label={recolhido ? item.rotulo : undefined}
-      activeProps={{
-        className:
-          "!bg-menu-ativo !text-hub-tinta font-semibold shadow-[0_6px_16px_-8px_rgb(255_176_32_/_0.7)]",
-        "aria-current": "page",
-      }}
+      aria-current={extra ? "page" : undefined}
+      activeProps={{ className: classeAtivo, "aria-current": "page" }}
     >
-      {({ isActive }) => (
-        <>
-          <Icone
-            className={`size-5 shrink-0 ${isActive ? "text-menu-icone" : "text-[#B4B8BF] group-hover:text-white"}`}
-            strokeWidth={isActive ? 2.1 : 1.8}
-            aria-hidden="true"
-          />
-          {!recolhido && <span className="flex-1 truncate">{item.rotulo}</span>}
-          {contador && recolhido ? (
-            <span
-              className="absolute right-1.5 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#FFB020] px-1 text-[11px] font-bold tabular-nums text-hub-tinta"
-              aria-label={`${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`}
-            >
-              {contador}
-            </span>
-          ) : contador ? (
-            <span
-              className={
-                isActive
-                  ? "flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-hub-tinta px-1.5 text-[12.5px] font-semibold tabular-nums text-white"
-                  : "flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#FFB020]/15 px-1.5 text-[12.5px] font-semibold tabular-nums text-[#FFB020]"
-              }
-              aria-label={`${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`}
-            >
-              {contador}
-            </span>
-          ) : null}
-          {item.emBreve && !recolhido && (
-            <span
-              className={
-                isActive
-                  ? "rounded-full bg-hub-tinta/10 px-2 py-0.5 text-[12.5px] font-medium text-hub-tinta"
-                  : "rounded-full bg-white/8 px-2 py-0.5 text-[12.5px] font-medium text-[#A9ADB5]"
-              }
-            >
-              Em breve
-            </span>
-          )}
-        </>
-      )}
+      {({ isActive: ativoPeloEndereco }) => {
+        const isActive = ativoPeloEndereco || extra;
+        return (
+          <>
+            <Icone
+              className={`size-5 shrink-0 ${isActive ? "text-menu-icone" : "text-[#B4B8BF] group-hover:text-white"}`}
+              strokeWidth={isActive ? 2.1 : 1.8}
+              aria-hidden="true"
+            />
+            {!recolhido && <span className="flex-1 truncate">{item.rotulo}</span>}
+            {contador && recolhido ? (
+              <span
+                className="absolute right-1.5 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#FFB020] px-1 text-[11px] font-bold tabular-nums text-hub-tinta"
+                aria-label={`${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`}
+              >
+                {contador}
+              </span>
+            ) : contador ? (
+              <span
+                className={
+                  isActive
+                    ? "flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-hub-tinta px-1.5 text-[12.5px] font-semibold tabular-nums text-white"
+                    : "flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#FFB020]/15 px-1.5 text-[12.5px] font-semibold tabular-nums text-[#FFB020]"
+                }
+                aria-label={`${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`}
+              >
+                {contador}
+              </span>
+            ) : null}
+            {item.emBreve && !recolhido && (
+              <span
+                className={
+                  isActive
+                    ? "rounded-full bg-hub-tinta/10 px-2 py-0.5 text-[12.5px] font-medium text-hub-tinta"
+                    : "rounded-full bg-white/8 px-2 py-0.5 text-[12.5px] font-medium text-[#A9ADB5]"
+                }
+              >
+                Em breve
+              </span>
+            )}
+          </>
+        );
+      }}
     </Link>
   );
 }
