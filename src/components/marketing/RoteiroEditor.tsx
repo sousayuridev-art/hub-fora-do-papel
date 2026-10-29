@@ -3,6 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { classeEntrada } from "@/components/hub/Campo";
 import type { Cena } from "@/lib/marketing";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 /**
  * Roteiro em tabela Tempo · Fala · Na tela (skill de conteúdo): blocos de até 5 s, algo muda
@@ -78,7 +79,7 @@ export function RoteiroEditor({
         <button
           type="button"
           onClick={() => aoMudar([...cenas, { tempo: proximoTempo(), fala: "", na_tela: "" }])}
-          className="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-2 text-[14px] font-medium text-[#1E3FA8] hover:bg-hub-fundo"
+          className={`${classeAcaoTexto} gap-2 self-start`}
         >
           <Plus className="size-4" aria-hidden="true" /> Adicionar bloco
         </button>

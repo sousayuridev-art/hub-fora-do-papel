@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { diaComHora } from "@/lib/formatar";
 import { chavesReunioes, reunioesParaLigar, type Reuniao } from "@/lib/reunioes";
 import { useVincularReuniao } from "@/components/reunioes/useVincularReuniao";
+import { classeAcaoTexto, classeLinkTexto } from "@/lib/estilos";
 
 /**
  * "Ligue estas reuniões a um cliente" (card RD-4): reuniões sem cliente com o cliente sugerido
@@ -23,7 +24,11 @@ export function LigarReunioes({
     return (
       <p className="rounded-2xl border border-hub-borda bg-white p-4 text-[14px] text-sit-risco-t">
         Não foi possível ver as reuniões sem cliente.{" "}
-        <button type="button" className="min-h-11 underline" onClick={() => void q.refetch()}>
+        <button
+          type="button"
+          className={`${classeLinkTexto} min-h-11`}
+          onClick={() => void q.refetch()}
+        >
           Tentar de novo
         </button>
       </p>
@@ -88,7 +93,7 @@ export function LigarReunioes({
                   onClick={() => aoEscolher(r)}
                   className={
                     s
-                      ? "inline-flex h-11 items-center px-3 text-[14px] font-medium text-[#1E3FA8] underline underline-offset-4"
+                      ? classeAcaoTexto
                       : "inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-[#DADAD3] bg-white px-4 text-[14px] font-medium hover:bg-hub-selecao sm:flex-none"
                   }
                 >
@@ -100,11 +105,7 @@ export function LigarReunioes({
         })}
       </ul>
       {total > itens.length && (
-        <button
-          type="button"
-          onClick={aoVerTodas}
-          className="inline-flex min-h-11 items-center self-start text-[14px] font-medium text-[#1E3FA8] underline underline-offset-4"
-        >
+        <button type="button" onClick={aoVerTodas} className={`${classeAcaoTexto} self-start`}>
           Ver as {total} reuniões sem cliente
         </button>
       )}

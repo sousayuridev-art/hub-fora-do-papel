@@ -11,7 +11,7 @@ import { FiltrosChip } from "@/components/hub/FiltrosChip";
 import { ClientesTabela } from "@/components/clientes/ClientesTabela";
 import { NovoContatoPainel } from "@/components/funil/NovoContatoPainel";
 import { Input } from "@/components/ui/input";
-import { classeAcaoPrincipal } from "@/lib/estilos";
+import { classeAcaoPrincipal, classeLinkTexto } from "@/lib/estilos";
 import { moeda } from "@/lib/formatar";
 import {
   filtrosClientes,
@@ -241,7 +241,7 @@ function Clientes() {
             <button
               type="button"
               onClick={() => filtrar("todos")}
-              className="ml-1 inline-flex min-h-11 items-center font-medium text-[#1E3FA8] underline underline-offset-4"
+              className={`${classeLinkTexto} ml-1 inline-flex min-h-11 items-center`}
             >
               Ver todos
             </button>

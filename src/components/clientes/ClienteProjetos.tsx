@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Selo } from "@/components/hub/Selo";
 import { dataLocal, diaMes } from "@/lib/formatar";
 import { chavesProjetos, projetosDoCliente, rotuloProjeto } from "@/lib/projetos";
+import { classeLinkTexto } from "@/lib/estilos";
 
 /** Projetos desta ficha. Some quando o cliente ainda não tem projeto. */
 export function ClienteProjetos({ clienteId }: { clienteId: string }) {
@@ -25,7 +26,7 @@ export function ClienteProjetos({ clienteId }: { clienteId: string }) {
           Não foi possível carregar os projetos.{" "}
           <button
             type="button"
-            className="min-h-11 font-medium underline"
+            className={`${classeLinkTexto} min-h-11`}
             onClick={() => void q.refetch()}
           >
             Tentar de novo

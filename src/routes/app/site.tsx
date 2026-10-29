@@ -50,7 +50,7 @@ const busca = z.object({
  */
 export const Route = createFileRoute("/app/site")({
   validateSearch: busca,
-  head: () => ({ meta: [{ title: "Conteúdo do site · Hub Fora do Papel" }] }),
+  head: () => ({ meta: [{ title: "Sites · Hub Fora do Papel" }] }),
   component: ConteudoDoSite,
 });
 
@@ -116,8 +116,8 @@ function ConteudoDoSite() {
   return (
     <div className="flex flex-col gap-6">
       <CabecalhoPagina
-        grupo="Vender"
-        titulo="Conteúdo do site"
+        grupo="Entregar"
+        titulo="Sites"
         resumo={
           atual ? (
             qSites.data && qSites.data.length > 1 ? (

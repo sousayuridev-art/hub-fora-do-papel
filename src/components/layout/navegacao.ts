@@ -66,8 +66,6 @@ export const menuOperador: GrupoMenu[] = [
       { rotulo: "Reuniões", para: "/app/reunioes", icone: Video },
       { rotulo: "Propostas", para: "/app/propostas", icone: FileText },
       { rotulo: "Tráfego pago", para: "/app/trafego", icone: Megaphone },
-      // CMS-2: artigos e imagens do site (só o dono; a área /app já exige o papel)
-      { rotulo: "Conteúdo do site", para: "/app/site", icone: Globe },
     ],
   },
   {
@@ -80,11 +78,9 @@ export const menuOperador: GrupoMenu[] = [
     itens: [
       { rotulo: "Projetos", para: "/app/projetos", icone: FolderKanban },
       { rotulo: "Pedidos de ajuste", para: "/app/pedidos", icone: Inbox },
+      // RD2-1: o conteúdo do site da Fora do Papel fica em "Sites" (CMS-2; os sites dos clientes entram no RD2-5)
+      { rotulo: "Sites", para: "/app/site", icone: Globe },
     ],
-  },
-  {
-    titulo: "Biblioteca",
-    itens: [{ rotulo: "Materiais", para: "/app/materiais", icone: Library }],
   },
   {
     titulo: "Gestão",
@@ -92,6 +88,10 @@ export const menuOperador: GrupoMenu[] = [
       { rotulo: "Financeiro", para: "/app/financeiro", icone: Wallet },
       { rotulo: "Relatórios", para: "/app/relatorios", icone: BarChart3 },
     ],
+  },
+  {
+    titulo: "Biblioteca",
+    itens: [{ rotulo: "Materiais", para: "/app/materiais", icone: Library }],
   },
 ];
 

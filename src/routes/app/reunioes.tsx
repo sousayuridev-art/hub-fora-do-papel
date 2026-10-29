@@ -12,6 +12,7 @@ import { LigarReunioes } from "@/components/reunioes/LigarReunioes";
 import { ReuniaoPainel } from "@/components/reunioes/ReuniaoPainel";
 import { ReunioesLista } from "@/components/reunioes/ReunioesLista";
 import { buscarReunioes, chavesReunioes, type FiltroReunioes, type Reuniao } from "@/lib/reunioes";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const busca = z.object({
   filtro: z.enum(["todas", "sem_cliente", "sem_transcricao"]).optional().catch(undefined),
@@ -102,8 +103,8 @@ function Reunioes() {
                 Nenhuma reunião ainda. Elas aparecem aqui depois que o Google estiver ligado e a
                 reunião tiver transcrição.
               </p>
-              <Link to="/app/configuracoes" className="font-medium text-[#1E3FA8] underline">
-                Ver a ligação com o Google
+              <Link to="/app/configuracoes" className={classeAcaoTexto}>
+                Ver a ligação com o Google ›
               </Link>
             </>
           ) : (

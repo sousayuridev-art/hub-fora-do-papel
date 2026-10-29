@@ -8,6 +8,17 @@ export const classeAcaoPrincipal =
 export const classeBotaoSecundario =
   "inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[#DADAD3] bg-white px-4 text-[15px] font-medium text-hub-tinta transition-colors hover:bg-hub-selecao focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hub-tinta";
 
+/**
+ * Ação de texto (RD2-1): sem link azul sublinhado. Texto na cor da tinta sobre fundo neutro suave,
+ * 44 px de toque. Use "›" no fim quando leva a outra tela e "⌄" quando abre algo ali.
+ */
+export const classeAcaoTexto =
+  "inline-flex min-h-11 items-center gap-1 rounded-lg bg-sit-neutro px-3 text-[14px] font-medium text-hub-tinta transition-colors hover:bg-[#E6E6DF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hub-tinta md:min-h-9";
+
+/** Link dentro de uma frase (RD2-1): negrito na cor da tinta, sem sublinhado. */
+export const classeLinkTexto =
+  "font-semibold text-hub-tinta transition-colors hover:text-[#4A4D54] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hub-tinta";
+
 /** Colunas da lista da Central de Tarefas no computador (círculo, tarefa, situação, prioridade, prazo). */
 export const gradeListaTarefas = "md:grid-cols-[44px_minmax(0,1fr)_130px_90px_110px]";
 

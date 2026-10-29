@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { CampoEscolha } from "@/components/hub/Campo";
 import { SiglaCanal } from "@/components/marketing/SiglaCanal";
 import { VersaoEditor } from "@/components/marketing/VersaoEditor";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import {
   formatosDe,
   rotuloFormato,
@@ -89,7 +89,7 @@ export function VersoesPeca({
           <button
             type="button"
             onClick={() => abrirNovo(null)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-[14px] font-medium text-[#1E3FA8] hover:bg-hub-fundo"
+            className={`${classeAcaoTexto} gap-2`}
           >
             <Plus className="size-4" aria-hidden="true" /> Versão
           </button>

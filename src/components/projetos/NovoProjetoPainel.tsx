@@ -7,6 +7,7 @@ import { CampoDinheiro } from "@/components/hub/CampoDinheiro";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { chavesClientes, listarClientes } from "@/lib/funil";
+import { classeLinkTexto } from "@/lib/estilos";
 
 export type ProjetoNovo = {
   clienteId: string;
@@ -88,7 +89,7 @@ export function NovoProjetoPainel({
             Não foi possível carregar os clientes.{" "}
             <button
               type="button"
-              className="min-h-11 underline"
+              className={`${classeLinkTexto} min-h-11`}
               onClick={() => void clientes.refetch()}
             >
               Tentar de novo

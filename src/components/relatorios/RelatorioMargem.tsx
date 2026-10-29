@@ -63,7 +63,9 @@ export function RelatorioMargem({ m }: { m: Relatorio["margem"] }) {
                   params={{ id: p.id }}
                   className="group flex min-h-11 min-w-0 flex-col justify-center"
                 >
-                  <span className="truncate font-semibold group-hover:underline">{p.nome}</span>
+                  <span className="truncate font-semibold group-hover:text-[#4A4D54]">
+                    {p.nome}
+                  </span>
                   <span className="truncate text-[12.5px] text-hub-suave">{p.empresa}</span>
                 </Link>
                 <span

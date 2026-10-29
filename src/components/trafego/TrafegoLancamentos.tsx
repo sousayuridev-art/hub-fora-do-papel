@@ -12,6 +12,7 @@ import {
   type Lancamento,
   type Periodo,
 } from "@/lib/trafego";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
 
@@ -126,7 +127,7 @@ export function TrafegoLancamentos({
                 type="button"
                 disabled={pagina === 0}
                 onClick={() => setPagina((n) => Math.max(0, n - 1))}
-                className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-[14px] font-medium text-[#1E3FA8] hover:bg-sit-info disabled:text-hub-suave disabled:hover:bg-transparent"
+                className={`${classeAcaoTexto} gap-1 disabled:text-hub-suave disabled:hover:bg-transparent`}
               >
                 <ChevronLeft className="size-4" aria-hidden="true" /> Mais novos
               </button>
@@ -137,7 +138,7 @@ export function TrafegoLancamentos({
                 type="button"
                 disabled={pagina + 1 >= paginas}
                 onClick={() => setPagina((n) => n + 1)}
-                className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-[14px] font-medium text-[#1E3FA8] hover:bg-sit-info disabled:text-hub-suave disabled:hover:bg-transparent"
+                className={`${classeAcaoTexto} gap-1 disabled:text-hub-suave disabled:hover:bg-transparent`}
               >
                 Mais antigos <ChevronRight className="size-4" aria-hidden="true" />
               </button>

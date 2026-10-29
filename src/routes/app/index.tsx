@@ -14,7 +14,7 @@ import {
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { Selo } from "@/components/hub/Selo";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { PainelEntregas } from "@/components/painel/PainelEntregas";
 import { PainelCapacidade } from "@/components/painel/PainelCapacidade";
 import { PainelFila } from "@/components/painel/PainelFila";
@@ -161,10 +161,7 @@ function Painel() {
               <h2 id="titulo-hoje" className="font-titulo text-xl font-bold">
                 Funil: próximos passos
               </h2>
-              <Link
-                to="/app/pipeline"
-                className="inline-flex min-h-11 items-center gap-1 text-[14.5px] font-medium text-[#1E3FA8]"
-              >
+              <Link to="/app/pipeline" className={`${classeAcaoTexto} gap-1`}>
                 Abrir o funil <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
             </div>
@@ -191,7 +188,7 @@ function Painel() {
                         <Link
                           to="/app/clientes/$id"
                           params={{ id: i.client_id }}
-                          className="-my-2.5 inline-block self-start py-2.5 font-semibold hover:underline"
+                          className="-my-2.5 inline-block self-start py-2.5 font-semibold hover:text-[#4A4D54]"
                         >
                           {i.empresa}
                         </Link>

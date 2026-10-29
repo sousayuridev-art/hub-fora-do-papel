@@ -5,7 +5,12 @@ import { Check, RotateCcw } from "lucide-react";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { Segmentos } from "@/components/tarefas/Segmentos";
 import { useMutacoesTarefa } from "@/components/tarefas/useMutacoesTarefa";
-import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
+import {
+  classeAcaoPrincipal,
+  classeAcaoTexto,
+  classeBotaoSecundario,
+  classeLinkTexto,
+} from "@/lib/estilos";
 import { diaMes, hora, isoDoDia } from "@/lib/formatar";
 import type { PrioridadeTarefa, SituacaoTarefa } from "@/lib/projetos";
 import {
@@ -101,7 +106,7 @@ export function TarefaPainel({
                 m.remover(t);
                 aoFechar();
               }}
-              className="inline-flex min-h-11 items-center justify-center px-2 text-[14.5px] font-medium text-sit-risco-t underline-offset-2 hover:underline"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-[14.5px] font-medium text-sit-risco-t hover:bg-sit-risco"
             >
               Remover
             </button>
@@ -162,9 +167,9 @@ export function TarefaPainel({
                   to="/app/projetos/$id"
                   params={{ id: t.projeto.id }}
                   search={{ tarefa: t.id }}
-                  className="inline-flex min-h-11 shrink-0 items-center px-1 text-[14px] font-medium text-[#1E3FA8] underline underline-offset-2"
+                  className={`${classeAcaoTexto} shrink-0`}
                 >
-                  Abrir projeto
+                  Abrir projeto ›
                 </Link>
               )}
             </div>
@@ -301,7 +306,7 @@ export function TarefaPainel({
                   <Link
                     to="/app/pedidos"
                     search={{ pedido: t.pedido.id }}
-                    className="inline-flex min-h-11 items-center text-[#1E3FA8] underline underline-offset-2"
+                    className={`${classeLinkTexto} inline-flex min-h-11 items-center`}
                   >
                     <span className="truncate">
                       {t.pedido.codigo} · {t.pedido.titulo}

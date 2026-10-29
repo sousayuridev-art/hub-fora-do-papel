@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { dataLocal, diaMes, moeda } from "@/lib/formatar";
 import { mensagemAdicional, mensagemEntrega, mensagemLembrete } from "@/lib/mensagens";
 import { diasDesde, type DetalheProjeto } from "@/lib/projetos";
@@ -120,7 +120,7 @@ export function AguardandoCliente({ d, ...a }: { d: DetalheProjeto } & Acoes) {
               <button
                 type="button"
                 onClick={() => a.aoReenviar(x.title, x.phase_id)}
-                className="inline-flex min-h-11 items-center self-start font-semibold underline"
+                className={`${classeAcaoTexto} self-start`}
               >
                 Enviar a nova versão
               </button>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { CampoEscolha } from "@/components/hub/Campo";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { chavesClientes, listarClientes } from "@/lib/funil";
 import { chavesProjetos, projetosDoCliente } from "@/lib/projetos";
 import type { ReuniaoAberta } from "@/lib/reunioes";
@@ -84,7 +84,7 @@ export function VinculoReuniao({ r }: { r: ReuniaoAberta }) {
         {r.cliente && (
           <button
             type="button"
-            className="inline-flex h-11 items-center justify-center px-2 text-[15px] font-medium text-hub-suave underline underline-offset-4 hover:text-hub-tinta"
+            className={`${classeAcaoTexto}`}
             disabled={vincular.isPending}
             onClick={() => {
               setCliente("");

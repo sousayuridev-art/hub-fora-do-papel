@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { CampoTexto } from "@/components/hub/Campo";
 import { CampoNumero } from "@/components/hub/CampoNumero";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeBotaoSecundario, classeLinkTexto } from "@/lib/estilos";
 import {
   chavesFinanceiro,
   lerRecebimento,
@@ -61,7 +61,11 @@ export function SecaoRecebimento() {
       {q.isError ? (
         <p className="text-[14px] text-sit-risco-t">
           Não foi possível carregar.{" "}
-          <button type="button" className="min-h-11 underline" onClick={() => void q.refetch()}>
+          <button
+            type="button"
+            className={`${classeLinkTexto} min-h-11`}
+            onClick={() => void q.refetch()}
+          >
             Tentar de novo
           </button>
         </p>

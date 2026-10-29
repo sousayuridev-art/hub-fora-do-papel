@@ -177,8 +177,24 @@
   --color-coluna: #ecece6;
   /* Redesenho (22/10): título das páginas em azul-marinho; séries de gráfico validadas para daltonismo */
   --color-titulo: #1b2b5c;
-  --color-serie-1: #2f55d4;
-  --color-serie-2: #c27c0e;
+  /* RD2-1: ordem fixa dos gráficos (azul, laranja, verde, violeta), conferida para daltonismo */
+  --color-serie-1: #2448c9;
+  --color-serie-2: #e07a1f;
+  --color-serie-3: #14946a;
+  --color-serie-4: #6250d6;
+  /* RD2-1: cor por tipo, igual em todas as telas (fundo, texto, ponto) */
+  --color-tipo-vendas: #eef2fd;
+  --color-tipo-vendas-t: #1e3fa8;
+  --color-tipo-vendas-p: #2448c9;
+  --color-tipo-entrega: #eaf6f0;
+  --color-tipo-entrega-t: #145a37;
+  --color-tipo-entrega-p: #14946a;
+  --color-tipo-pedidos: #f1effc;
+  --color-tipo-pedidos-t: #4a3aa7;
+  --color-tipo-pedidos-p: #6250d6;
+  --color-tipo-dinheiro: #fdf1e6;
+  --color-tipo-dinheiro-t: #8a4210;
+  --color-tipo-dinheiro-p: #e07a1f;
   /* HUB-VIS-2: uma família só (Poppins, como a referência); Bricolage só no nome da marca */
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-titulo: "Poppins", ui-sans-serif, system-ui, sans-serif;

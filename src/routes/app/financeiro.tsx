@@ -21,7 +21,12 @@ import { NovaMensalidadePainel } from "@/components/financeiro/NovaMensalidadePa
 import { useMutacoesFinanceiro } from "@/components/financeiro/useMutacoesFinanceiro";
 import { useSession } from "@/hooks/useSession";
 import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
-import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
+import {
+  classeAcaoPrincipal,
+  classeAcaoTexto,
+  classeBotaoSecundario,
+  classeLinkTexto,
+} from "@/lib/estilos";
 import { moeda } from "@/lib/formatar";
 import {
   chavesFinanceiro,
@@ -289,7 +294,7 @@ function Financeiro() {
                   )}
                   <button
                     type="button"
-                    className="inline-flex min-h-11 items-center font-medium text-[#1E3FA8] underline"
+                    className={`${classeAcaoTexto}`}
                     onClick={() => irPara({ cliente: undefined, filtro: undefined })}
                   >
                     Ver todas
@@ -349,7 +354,7 @@ function Financeiro() {
             {d.regras.juros_pct}% ao mês) aparecem só como referência.{" "}
             <Link
               to="/app/configuracoes"
-              className="inline-flex min-h-11 items-center underline sm:min-h-0"
+              className={`${classeLinkTexto} inline-flex min-h-11 items-center sm:min-h-0`}
             >
               Chave Pix e regras em Configurações
             </Link>

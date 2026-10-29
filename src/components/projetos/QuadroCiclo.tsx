@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
 import { QuadroTarefas } from "@/components/tarefas/QuadroTarefas";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import type { SituacaoTarefa, Tarefa } from "@/lib/projetos";
 import { estaAtrasada } from "@/lib/tarefas";
 import { cn } from "@/lib/utils";
@@ -79,12 +79,8 @@ export function QuadroCiclo({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2 max-sm:justify-between">
-          <Link
-            to="/app/tarefas"
-            search={{ projeto: projetoId }}
-            className="inline-flex min-h-11 items-center px-2 text-[14.5px] font-medium text-[#1E3FA8] underline-offset-2 hover:underline"
-          >
-            Ver na Central
+          <Link to="/app/tarefas" search={{ projeto: projetoId }} className={`${classeAcaoTexto}`}>
+            Ver na Central ›
           </Link>
           <button type="button" className={classeBotaoSecundario} onClick={aoNovaTarefa}>
             <Plus className="size-4" aria-hidden="true" /> Nova tarefa

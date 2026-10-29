@@ -6,6 +6,7 @@ import { Cartao } from "@/components/trafego/Cartao";
 import { moeda } from "@/lib/formatar";
 import { funilDoTrafego, type PainelTrafego } from "@/lib/trafego";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const verbo: Record<string, string> = {
   Cliques: "viraram contato",
@@ -100,10 +101,7 @@ export function TrafegoFunil({ p, etiqueta }: { p: PainelTrafego; etiqueta: stri
             <b className="font-semibold text-hub-tinta">{moeda(i.valor_fechado_cents)}</b>
           </span>
         </span>
-        <Link
-          to="/app/clientes"
-          className="inline-flex min-h-11 items-center gap-1 font-medium text-[#1E3FA8]"
-        >
+        <Link to="/app/clientes" className={`${classeAcaoTexto} gap-1`}>
           Ver esses contatos <ArrowRight className="size-4" aria-hidden="true" />
         </Link>
       </p>

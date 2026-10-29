@@ -85,11 +85,7 @@ function Propostas() {
         migalha={
           id ? (
             <nav aria-label="Trilha" className="flex min-w-0 items-center">
-              <Link
-                to="/app/propostas"
-                search={{}}
-                className="shrink-0 hover:text-hub-tinta hover:underline"
-              >
+              <Link to="/app/propostas" search={{}} className="shrink-0 hover:text-hub-tinta">
                 Propostas
               </Link>
               <span aria-hidden="true" className="shrink-0">

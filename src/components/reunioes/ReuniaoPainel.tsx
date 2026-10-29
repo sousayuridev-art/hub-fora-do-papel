@@ -13,6 +13,7 @@ import {
   rotuloSituacao,
   type Reuniao,
 } from "@/lib/reunioes";
+import { classeLinkTexto } from "@/lib/estilos";
 
 /** Painel da reunião: dados, vínculo com o cliente e transcrição (card RE-1). */
 export function ReuniaoPainel({
@@ -68,7 +69,7 @@ export function ReuniaoPainel({
                   to="/app/clientes/$id"
                   params={{ id: dados.cliente.id }}
                   search={{ aba: "reunioes" }}
-                  className="font-semibold text-hub-tinta underline underline-offset-4"
+                  className={`${classeLinkTexto}`}
                 >
                   {dados.cliente.nome}
                 </Link>

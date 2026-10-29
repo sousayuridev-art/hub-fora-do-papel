@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeBotaoSecundario, classeLinkTexto } from "@/lib/estilos";
 import { dataLocal, diaMes, linkWhatsapp, moeda } from "@/lib/formatar";
 import { faseAtual, rotuloProjeto, type DetalheProjeto } from "@/lib/projetos";
 
@@ -51,7 +51,7 @@ export function ProjetoCabecalho({
         <nav aria-label="Caminho" className="flex min-w-0 items-center gap-1">
           <Link
             to="/app/projetos"
-            className="-my-3 inline-flex min-h-11 items-center text-[#1E3FA8] underline underline-offset-2 hover:text-hub-tinta"
+            className="-my-3 inline-flex min-h-11 items-center font-medium text-hub-suave hover:text-hub-tinta"
           >
             Projetos
           </Link>
@@ -87,7 +87,7 @@ export function ProjetoCabecalho({
             <Link
               to="/app/clientes/$id"
               params={{ id: d.cliente.id }}
-              className="text-hub-tinta underline-offset-2 hover:underline"
+              className={`${classeLinkTexto}`}
             >
               {d.cliente.empresa}
             </Link>

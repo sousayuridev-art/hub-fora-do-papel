@@ -93,7 +93,7 @@ export function ClientesTabela({ itens }: { itens: ClienteLinha[] }) {
                 )}
               >
                 <span className="col-span-2 flex min-w-0 items-center gap-3 lg:col-span-1">
-                  <Sigla texto={sigla(c.company_name)} escuro={c.situacao === "cliente"} />
+                  <Sigla texto={sigla(c.company_name)} semente={c.company_name} />
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate font-semibold">{c.company_name}</span>
                     <span className="truncate text-[13.5px] text-hub-suave">{c.contact_name}</span>

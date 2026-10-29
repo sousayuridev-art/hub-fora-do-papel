@@ -8,6 +8,7 @@ import {
   type Campanha,
   type SituacaoCampanha,
 } from "@/lib/marketing";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const tomDa: Record<SituacaoCampanha, Tom> = {
   planejada: "neutro",
@@ -74,11 +75,7 @@ export function CampanhasLista({
             ))}
           </dl>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => aoVerPecas(c)}
-              className="inline-flex min-h-11 items-center rounded-lg px-2 text-[14px] font-medium text-[#1E3FA8] hover:bg-hub-fundo"
-            >
+            <button type="button" onClick={() => aoVerPecas(c)} className={`${classeAcaoTexto}`}>
               Ver as {c.pecas.total} peças
             </button>
             <button

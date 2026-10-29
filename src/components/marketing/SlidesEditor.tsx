@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { classeEntrada } from "@/components/hub/Campo";
 import type { Slide } from "@/lib/marketing";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 /**
  * Slides do carrossel ou do documento: o primeiro com o problema, uma ideia por slide,
@@ -101,7 +102,7 @@ export function SlidesEditor({
         <button
           type="button"
           onClick={() => aoMudar([...slides, { titulo: "", texto: "" }])}
-          className="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-2 text-[14px] font-medium text-[#1E3FA8] hover:bg-hub-fundo"
+          className={`${classeAcaoTexto} gap-2 self-start`}
         >
           <Plus className="size-4" aria-hidden="true" /> Adicionar slide
         </button>

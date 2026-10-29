@@ -6,6 +6,7 @@ import { EstadoErro } from "@/components/hub/EstadoErro";
 import { TarefaLinha } from "@/components/tarefas/TarefaLinha";
 import { naoRemovida, useMutacoesTarefa } from "@/components/tarefas/useMutacoesTarefa";
 import { chavesTarefas, listarTarefas, type TarefaVista } from "@/lib/tarefas";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 /** Quantas tarefas o bloco mostra antes de mandar para a Central. */
 const LIMITE = 6;
@@ -55,7 +56,7 @@ export function PainelTarefas() {
         <Link
           to="/app/tarefas"
           search={{ prazo: nAtrasadas > 0 ? "atrasadas" : "hoje" }}
-          className="inline-flex min-h-11 shrink-0 items-center gap-1 text-[14.5px] font-medium text-[#1E3FA8]"
+          className={`${classeAcaoTexto} shrink-0 gap-1`}
         >
           Abrir a Central <ArrowRight className="size-4" aria-hidden="true" />
         </Link>

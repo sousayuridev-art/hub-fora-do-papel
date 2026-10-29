@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 
 import { ColunaQuadro, Quadro } from "@/components/hub/Quadro";
-import { corColuna } from "@/lib/estilos";
+import { classeAcaoTexto, corColuna } from "@/lib/estilos";
 import { TarefaCartao } from "@/components/projetos/TarefaCartao";
 import type { SituacaoTarefa, Tarefa } from "@/lib/projetos";
 import { rotuloSituacao } from "@/lib/tarefas";
@@ -63,7 +63,7 @@ export function QuadroTarefas<T extends Tarefa>({
                   type="button"
                   onClick={() => setVerProntas((v) => !v)}
                   aria-expanded={verProntas}
-                  className="inline-flex min-h-11 items-center self-start px-0.5 text-[14px] font-medium text-[#1E3FA8] underline-offset-2 hover:underline"
+                  className={`${classeAcaoTexto} self-start`}
                 >
                   {verProntas
                     ? "Recolher"

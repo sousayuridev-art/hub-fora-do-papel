@@ -5,6 +5,7 @@ import { Selo, type Tom } from "@/components/hub/Selo";
 import { diaMes, moeda } from "@/lib/formatar";
 import { supabase } from "@/lib/supabase";
 import type { PropostaLinha } from "@/lib/propostas";
+import { classeLinkTexto } from "@/lib/estilos";
 
 const situacoes: Record<PropostaLinha["situacao"], { texto: string; tom: Tom }> = {
   rascunho: { texto: "Rascunho", tom: "neutro" },
@@ -43,7 +44,7 @@ export function ClientePropostas({ clienteId }: { clienteId: string }) {
           Não foi possível carregar as propostas.{" "}
           <button
             type="button"
-            className="min-h-11 font-medium underline"
+            className={`${classeLinkTexto} min-h-11`}
             onClick={() => void lista.refetch()}
           >
             Tentar de novo

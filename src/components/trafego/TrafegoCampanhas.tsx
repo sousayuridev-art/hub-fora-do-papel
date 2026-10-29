@@ -4,6 +4,7 @@ import { Selo } from "@/components/hub/Selo";
 import { Ajuda } from "@/components/trafego/Ajuda";
 import { moeda } from "@/lib/formatar";
 import { rotuloPlataforma, type CampanhaPainel, type PainelTrafego } from "@/lib/trafego";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const corPlataforma = { meta: "bg-serie-1", google: "bg-serie-2" } as const;
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
@@ -26,11 +27,7 @@ export function TrafegoCampanhas({
 }) {
   const sem = p.sem_campanha;
   const novaCampanha = (
-    <button
-      type="button"
-      onClick={aoNova}
-      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-[14px] font-medium text-[#1E3FA8] hover:bg-sit-info"
-    >
+    <button type="button" onClick={aoNova} className={`${classeAcaoTexto} gap-1.5`}>
       <Plus className="size-4" aria-hidden="true" /> Nova campanha
     </button>
   );
@@ -117,7 +114,7 @@ export function TrafegoCampanhas({
                     <button
                       type="button"
                       onClick={() => aoLancar(c)}
-                      className="min-h-11 rounded-lg px-2.5 text-[13.5px] font-medium text-[#1E3FA8] hover:bg-sit-info"
+                      className={`${classeAcaoTexto}`}
                     >
                       Lançar valor
                       <span className="sr-only"> em {c.nome}</span>
@@ -173,7 +170,7 @@ export function TrafegoCampanhas({
                     type="button"
                     aria-label={`Lançar valor em ${c.nome}`}
                     onClick={() => aoLancar(c)}
-                    className="mr-1 flex size-11 shrink-0 items-center justify-center rounded-lg text-[#1E3FA8] hover:bg-sit-info"
+                    className="mr-1 flex size-11 shrink-0 items-center justify-center rounded-lg text-hub-tinta hover:bg-hub-selecao"
                   >
                     <Plus className="size-5" aria-hidden="true" />
                   </button>

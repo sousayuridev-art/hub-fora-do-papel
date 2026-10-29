@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 
 import { ModuloLinha, type AcaoModulo } from "@/components/projetos/ModuloLinha";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { diaMes } from "@/lib/formatar";
 import type { DetalheProjeto, Modulo } from "@/lib/projetos";
 
@@ -58,7 +58,7 @@ export function ProjetoModulos({
         <button
           type="button"
           onClick={aoVoltarParaFases}
-          className="self-start text-[14px] text-hub-suave underline underline-offset-4 hover:text-hub-tinta"
+          className={`${classeAcaoTexto} self-start`}
         >
           Este projeto não é por módulos? Voltar para fases
         </button>

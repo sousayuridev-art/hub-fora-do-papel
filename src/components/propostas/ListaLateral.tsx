@@ -11,6 +11,7 @@ import {
   type ResumoPropostas,
 } from "@/lib/propostas";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const vazio: Record<AbaPropostas, string> = {
   rascunho: "Nenhum rascunho.",
@@ -87,11 +88,7 @@ export function ListaLateral({
       className="sticky top-6 flex w-[288px] shrink-0 flex-col gap-3 self-start rounded-2xl border border-hub-borda bg-white p-3 max-lg:hidden"
     >
       <div className="flex items-center justify-between gap-2">
-        <Link
-          to="/app/propostas"
-          search={{}}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg px-1 text-[14px] font-medium text-hub-tinta hover:underline"
-        >
+        <Link to="/app/propostas" search={{}} className={`${classeAcaoTexto}`}>
           <LayoutGrid className="size-4 text-hub-suave" aria-hidden="true" />
           Todas as propostas
         </Link>

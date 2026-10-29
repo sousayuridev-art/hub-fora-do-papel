@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Gauge } from "lucide-react";
 
 import type { Capacidade } from "@/lib/painel";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const horas = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} h`;
 
@@ -22,10 +23,7 @@ export function PainelCapacidade({ c }: { c: Capacidade }) {
           </span>
           Capacidade do mês
         </h2>
-        <Link
-          to="/app/configuracoes"
-          className="inline-flex min-h-11 items-center text-[14px] font-medium text-[#1E3FA8]"
-        >
+        <Link to="/app/configuracoes" className={`${classeAcaoTexto}`}>
           {horas(c.capacidade_h)} por mês
         </Link>
       </div>

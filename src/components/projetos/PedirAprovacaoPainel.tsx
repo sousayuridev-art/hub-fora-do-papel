@@ -5,6 +5,7 @@ import { BotoesPainel } from "@/components/hub/BotoesPainel";
 import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import type { Fase } from "@/lib/projetos";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 export type AprovacaoNova = {
   titulo: string;
@@ -128,7 +129,7 @@ export function PedirAprovacaoPainel({
             <button
               type="button"
               onClick={() => setItens([...itens, ""])}
-              className="inline-flex min-h-11 items-center gap-1.5 self-start text-[14.5px] font-medium text-[#1E3FA8]"
+              className={`${classeAcaoTexto} gap-1.5 self-start`}
             >
               <Plus className="size-4" aria-hidden="true" /> Mais um item
             </button>
@@ -164,7 +165,7 @@ export function PedirAprovacaoPainel({
               aoConcluirSemAprovacao(fase);
               aoMudar(false);
             }}
-            className="inline-flex min-h-11 items-center self-start text-[14px] font-medium text-hub-suave underline"
+            className={`${classeAcaoTexto} self-start`}
           >
             Esta fase é interna: concluir sem pedir aprovação
           </button>

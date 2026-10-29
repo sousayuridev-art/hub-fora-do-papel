@@ -8,7 +8,7 @@ import { PainelLateral } from "@/components/hub/PainelLateral";
 import { Selo } from "@/components/hub/Selo";
 import { Button } from "@/components/ui/button";
 import { mensagemCobranca, mensagemRecibo } from "@/lib/mensagens";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { dataLocal, diaMes, isoDoDia, linkWhatsapp, moeda } from "@/lib/formatar";
 import {
   rotuloForma,
@@ -197,17 +197,17 @@ export function CobrancaPainel({
           <Link
             to="/app/clientes/$id"
             params={{ id: c.client_id }}
-            className="inline-flex min-h-11 items-center text-[14.5px] font-medium text-[#1E3FA8] underline"
+            className={`${classeAcaoTexto}`}
           >
-            Ficha de {c.empresa}
+            Ficha de {c.empresa} ›
           </Link>
           {c.project_id && (
             <Link
               to="/app/projetos/$id"
               params={{ id: c.project_id }}
-              className="inline-flex min-h-11 items-center text-[14.5px] font-medium text-[#1E3FA8] underline"
+              className={`${classeAcaoTexto}`}
             >
-              Abrir o projeto
+              Abrir o projeto ›
             </Link>
           )}
         </div>

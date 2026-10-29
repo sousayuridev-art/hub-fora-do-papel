@@ -124,7 +124,7 @@ function Gestor() {
           type="button"
           disabled={!emailOk || recuperar.isPending}
           onClick={() => recuperar.mutate()}
-          className="min-h-11 self-start text-sm font-medium text-[#3A3F47] underline underline-offset-4 disabled:opacity-50"
+          className="min-h-11 self-start rounded-lg bg-sit-neutro px-3 text-sm font-medium text-hub-tinta hover:bg-[#E6E6DF] disabled:opacity-50"
         >
           Esqueci a senha
         </button>

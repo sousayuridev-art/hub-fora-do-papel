@@ -17,6 +17,7 @@ import {
   type PedidoLinha,
 } from "@/lib/pedidos";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 export type AcoesPedido = {
   aoClassificar: (p: PedidoLinha, c: Classificacao, horas: number, nota: string) => void;
@@ -169,9 +170,9 @@ export function PedidoPainel({
             <Link
               to="/app/projetos/$id"
               params={{ id: p.project_id }}
-              className="inline-flex min-h-11 items-center self-start text-[14.5px] font-medium text-[#1E3FA8] underline"
+              className={`${classeAcaoTexto} self-start`}
             >
-              Abrir o projeto
+              Abrir o projeto ›
             </Link>
           )}
 

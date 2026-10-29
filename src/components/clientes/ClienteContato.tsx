@@ -24,7 +24,7 @@ export function ClienteContato({ c, aoEditar }: { c: ClienteLinha; aoEditar?: ()
         Contato principal
       </h2>
       <div className="flex items-center gap-3 border-b border-hub-borda px-5 py-4">
-        <Sigla texto={sigla(c.contact_name)} />
+        <Sigla texto={sigla(c.contact_name)} semente={c.contact_name} />
         <div className="flex min-w-0 flex-col">
           <span className="truncate font-semibold">{c.contact_name}</span>
           {c.contact_role && (
@@ -51,7 +51,7 @@ export function ClienteContato({ c, aoEditar }: { c: ClienteLinha; aoEditar?: ()
         <button
           type="button"
           onClick={aoEditar}
-          className="inline-flex min-h-11 items-center border-t border-hub-borda px-5 text-[14.5px] font-medium text-[#1E3FA8] underline underline-offset-4 w-full"
+          className="inline-flex min-h-11 w-full items-center justify-between border-t border-hub-borda px-5 text-[14.5px] font-medium text-hub-tinta hover:bg-hub-selecao"
         >
           Editar ficha
         </button>

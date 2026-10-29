@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { ColunaQuadro, Quadro } from "@/components/hub/Quadro";
 import { PecaCartao } from "@/components/marketing/PecaCartao";
-import { corColuna } from "@/lib/estilos";
+import { classeAcaoTexto, corColuna } from "@/lib/estilos";
 import { colunas, type Coluna, type Etapa, type Peca } from "@/lib/marketing";
 
 const corDa: Record<Coluna, string> = {
@@ -55,9 +55,9 @@ export function QuadroProducao({
                   type="button"
                   aria-expanded={todas}
                   onClick={() => setAbertas((a) => ({ ...a, [c.id]: !todas }))}
-                  className="inline-flex min-h-11 items-center self-start px-0.5 text-[14px] font-medium text-[#1E3FA8] underline-offset-2 hover:underline"
+                  className={`${classeAcaoTexto} self-start`}
                 >
-                  {todas ? "Recolher" : `Mostrar as ${daColuna.length}`}
+                  {todas ? "Recolher" : `Mostrar as ${daColuna.length} ⌄`}
                 </button>
               ) : undefined
             }

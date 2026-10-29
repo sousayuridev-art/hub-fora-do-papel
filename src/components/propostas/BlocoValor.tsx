@@ -9,6 +9,7 @@ import type { PropsBloco } from "@/components/propostas/tipos";
 import { diaMes, moeda } from "@/lib/formatar";
 import { rotuloDiagnostico } from "@/lib/funil";
 import type { Calculo } from "@/lib/propostas";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 /** "Como chegamos ao valor": complexidade, contingência, diagnóstico e desconto. */
 export function BlocoValor({ d, alterar, bloqueado, c }: PropsBloco & { c: Calculo }) {
@@ -19,10 +20,7 @@ export function BlocoValor({ d, alterar, bloqueado, c }: PropsBloco & { c: Calcu
       texto={`Horas × ${moeda(c.hora_cents)} × complexidade, mais contingência, arredondado para cima a cada R$ 500.`}
       acao={
         // Antes era um botão no topo da tela (RD-5): o preço por hora e os planos moram em Configurações
-        <Link
-          to="/app/configuracoes"
-          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-1 text-[14px] font-medium text-sit-info-t hover:text-hub-tinta hover:underline"
-        >
+        <Link to="/app/configuracoes" className={`${classeAcaoTexto} shrink-0`}>
           <SlidersHorizontal className="size-4" aria-hidden="true" />
           Preços
         </Link>

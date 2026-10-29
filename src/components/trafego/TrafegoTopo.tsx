@@ -12,6 +12,7 @@ import {
   type Variacao,
 } from "@/lib/trafego";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const nomeMes = new Intl.DateTimeFormat("pt-BR", { month: "long" });
 const corRitmo = {
@@ -60,11 +61,7 @@ function Orcamento({
             {moeda(r.porDiaCents)} por dia.
           </Ajuda>
         </span>
-        <button
-          type="button"
-          onClick={aoAjustar}
-          className="-my-2.5 min-h-11 rounded-lg px-2 text-[14px] font-medium text-[#1E3FA8] hover:bg-sit-info"
-        >
+        <button type="button" onClick={aoAjustar} className={`${classeAcaoTexto} -my-2.5`}>
           Ajustar
         </button>
       </span>

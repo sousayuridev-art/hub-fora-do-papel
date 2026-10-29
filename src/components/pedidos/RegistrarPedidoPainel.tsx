@@ -6,6 +6,7 @@ import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { chavesClientes, listarClientes } from "@/lib/funil";
 import type { OrigemDoHub } from "@/lib/pedidos";
+import { classeLinkTexto } from "@/lib/estilos";
 
 export type PedidoNovo = {
   clienteId: string;
@@ -83,7 +84,7 @@ export function RegistrarPedidoPainel({
             Não foi possível carregar os clientes.{" "}
             <button
               type="button"
-              className="min-h-11 underline"
+              className={`${classeLinkTexto} min-h-11`}
               onClick={() => void clientes.refetch()}
             >
               Tentar de novo

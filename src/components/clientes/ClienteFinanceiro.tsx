@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { chavesFinanceiro, financeiroDoCliente } from "@/lib/financeiro";
 import { dataLocal, diaMes, moeda } from "@/lib/formatar";
+import { classeAcaoTexto, classeLinkTexto } from "@/lib/estilos";
 
 /** Resumo do financeiro na ficha: pago, a receber, em atraso e próxima cobrança. */
 export function ClienteFinanceiro({ clienteId }: { clienteId: string }) {
@@ -16,7 +17,11 @@ export function ClienteFinanceiro({ clienteId }: { clienteId: string }) {
     return (
       <p className="rounded-2xl border border-hub-borda bg-white p-5 text-[14px] text-sit-risco-t">
         Não foi possível carregar o financeiro.{" "}
-        <button type="button" className="min-h-11 underline" onClick={() => void q.refetch()}>
+        <button
+          type="button"
+          className={`${classeLinkTexto} min-h-11`}
+          onClick={() => void q.refetch()}
+        >
           Tentar de novo
         </button>
       </p>
@@ -62,9 +67,9 @@ export function ClienteFinanceiro({ clienteId }: { clienteId: string }) {
       <Link
         to="/app/financeiro"
         search={{ cliente: clienteId }}
-        className="inline-flex min-h-11 items-center self-start text-[14.5px] font-medium text-[#1E3FA8] underline"
+        className={`${classeAcaoTexto} self-start`}
       >
-        Abrir o financeiro
+        Abrir o financeiro ›
       </Link>
     </section>
   );

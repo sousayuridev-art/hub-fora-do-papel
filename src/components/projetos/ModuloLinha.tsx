@@ -2,7 +2,7 @@ import { ExternalLink } from "lucide-react";
 
 import { Selo, type Tom } from "@/components/hub/Selo";
 import type { ModoModulo } from "@/components/projetos/ModuloPainel";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario, classeLinkTexto } from "@/lib/estilos";
 import { diaMes } from "@/lib/formatar";
 import { rotuloModulo, type Modulo, type SituacaoModulo } from "@/lib/projetos";
 
@@ -141,7 +141,7 @@ export function ModuloLinha({
               href={m.link_testes}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-8 items-center gap-1 underline underline-offset-4"
+              className={`${classeLinkTexto} min-h-8`}
             >
               Link de testes <ExternalLink className="size-3.5" aria-hidden="true" />
             </a>
@@ -151,7 +151,7 @@ export function ModuloLinha({
               href={m.link_producao}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-8 items-center gap-1 underline underline-offset-4"
+              className={`${classeLinkTexto} min-h-8`}
             >
               No ar <ExternalLink className="size-3.5" aria-hidden="true" />
             </a>
@@ -165,7 +165,7 @@ export function ModuloLinha({
             type="button"
             disabled={ocupado}
             onClick={() => aoAgir(m, b.acao)}
-            className="inline-flex h-11 items-center justify-center px-2 text-[14.5px] font-medium text-hub-suave underline-offset-4 hover:text-hub-tinta hover:underline disabled:opacity-50"
+            className={`${classeAcaoTexto} disabled:opacity-50`}
           >
             {b.rotulo}
           </button>

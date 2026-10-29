@@ -25,6 +25,7 @@ import {
   type Versao,
 } from "@/lib/marketing";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 /** Forma única de roteiro e slides para comparar com o banco (que reordena as chaves). */
 const roteiroEmTexto = (c: Cena[]) => JSON.stringify(c.map((x) => [x.tempo, x.fala, x.na_tela]));
@@ -120,7 +121,7 @@ export function VersaoEditor({
                 type="button"
                 onClick={aoDuplicar}
                 disabled={ocupado}
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-[14px] font-medium text-[#1E3FA8] hover:bg-hub-fundo"
+                className={`${classeAcaoTexto} gap-2`}
               >
                 <Copy className="size-4" aria-hidden="true" /> Usar como base
               </button>

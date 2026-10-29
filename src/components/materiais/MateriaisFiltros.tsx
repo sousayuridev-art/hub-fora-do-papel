@@ -1,7 +1,7 @@
 import { SlidersHorizontal } from "lucide-react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { cn } from "@/lib/utils";
 
 export type OrigemMaterial = "todas" | "nosso" | "cliente";
@@ -88,7 +88,7 @@ export function MateriaisFiltros({
               aoCliente(undefined);
               aoOrigem("todas");
             }}
-            className="inline-flex min-h-11 items-center self-start text-[14px] font-medium text-[#1E3FA8] underline underline-offset-4"
+            className={`${classeAcaoTexto} self-start`}
           >
             Limpar filtros
           </button>

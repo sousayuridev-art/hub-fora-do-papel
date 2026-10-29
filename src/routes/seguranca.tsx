@@ -30,6 +30,7 @@ import {
 } from "@/lib/seguranca";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto, classeLinkTexto } from "@/lib/estilos";
 
 const busca = z.object({
   volta: caminhoInterno,
@@ -75,7 +76,7 @@ function Seguranca() {
             <button
               type="button"
               onClick={() => void navigate({ href: volta ?? "/app" })}
-              className="min-h-11 text-[15px] font-medium underline underline-offset-4"
+              className={`${classeAcaoTexto}`}
             >
               Ir para o Hub
             </button>
@@ -100,7 +101,7 @@ function Seguranca() {
         <button
           type="button"
           onClick={() => void supabase.auth.signOut().then(() => window.location.assign("/gestor"))}
-          className="min-h-11 self-start text-[14px] text-hub-suave underline underline-offset-4"
+          className={`${classeAcaoTexto} self-start`}
         >
           Sair
         </button>
@@ -198,7 +199,7 @@ function SecaoApp({
                     type="button"
                     disabled={remover.isPending}
                     onClick={() => remover.mutate(a.id)}
-                    className="min-h-11 px-2 text-[14px] text-hub-suave underline underline-offset-4 hover:text-hub-tinta"
+                    className={`${classeAcaoTexto}`}
                   >
                     Remover
                   </button>
@@ -384,7 +385,7 @@ function SecaoSenha({ destaque }: { destaque: boolean }) {
       <p className="text-[13px] text-hub-suave">
         Esqueceu a senha? Na área do gestor, use "Esqueci a senha": o link chega no e-mail e pede o
         código do app.{" "}
-        <Link to="/gestor" className="underline">
+        <Link to="/gestor" className={classeLinkTexto}>
           Ir para a área do gestor
         </Link>
       </p>

@@ -54,7 +54,7 @@ export function FunilCartao({
         <Link
           to="/app/clientes/$id"
           params={{ id: o.client_id }}
-          className="min-w-0 text-[15px] font-semibold leading-snug text-hub-tinta after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-2 focus-visible:outline-[#1E3FA8]"
+          className="min-w-0 text-[15px] font-semibold leading-snug text-hub-tinta after:absolute after:inset-0 after:content-[''] focus-visible:outline-2 focus-visible:outline-[#1E3FA8]"
         >
           {o.company_name}
         </Link>

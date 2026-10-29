@@ -11,6 +11,7 @@ import {
   type PrazoFiltro,
   type ResumoTarefas,
 } from "@/lib/tarefas";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 export type Opcao = { id: string; rotulo: string };
 export type OpcoesFiltro = { clientes: Opcao[]; projetos: Opcao[] };
@@ -108,7 +109,7 @@ export function FiltrosTarefas({
                 prazo: undefined,
               })
             }
-            className="inline-flex h-10 items-center px-2 text-[14px] font-medium text-[#1E3FA8] underline-offset-2 hover:underline"
+            className={`${classeAcaoTexto}`}
           >
             Limpar
           </button>

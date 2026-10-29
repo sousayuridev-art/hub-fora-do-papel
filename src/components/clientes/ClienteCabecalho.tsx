@@ -47,7 +47,7 @@ export function ClienteCabecalho({
       abas={abas}
       migalha={
         <nav aria-label="Trilha">
-          <Link to="/app/clientes" className="hover:text-hub-tinta hover:underline">
+          <Link to="/app/clientes" className="hover:text-hub-tinta">
             Clientes
           </Link>
           <span aria-hidden="true"> › </span>

@@ -2,6 +2,7 @@ import { Plus, X } from "lucide-react";
 
 import { BlocoEditor } from "@/components/propostas/BlocoEditor";
 import type { PropsBloco } from "@/components/propostas/tipos";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 /** Como vamos trabalhar: fases (nome e quando) e a data prevista de lançamento. */
 export function BlocoFases({ d, alterar, bloqueado }: PropsBloco) {
@@ -67,7 +68,7 @@ export function BlocoFases({ d, alterar, bloqueado }: PropsBloco) {
           <button
             type="button"
             onClick={() => alterar({ fases: [...d.fases, { nome: "Nova fase", quando: "" }] })}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-[14px] font-medium text-[#1E3FA8] hover:bg-sit-info"
+            className={`${classeAcaoTexto} gap-1.5`}
           >
             <Plus className="size-4" aria-hidden="true" /> Adicionar fase
           </button>

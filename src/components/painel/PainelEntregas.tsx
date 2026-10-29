@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Selo } from "@/components/hub/Selo";
 import { chavesEntregas, entregasDoPainel } from "@/lib/painel";
+import { classeAcaoTexto, classeLinkTexto } from "@/lib/estilos";
 
 /** Entregas que pedem atenção: lançamento atrasado, horas, aprovação parada, ajuste pedido. */
 export function PainelEntregas() {
@@ -16,7 +17,7 @@ export function PainelEntregas() {
         Não foi possível carregar as entregas.{" "}
         <button
           type="button"
-          className="min-h-11 font-medium underline"
+          className={`${classeLinkTexto} min-h-11`}
           onClick={() => void q.refetch()}
         >
           Tentar de novo
@@ -29,10 +30,7 @@ export function PainelEntregas() {
         <h2 id="entregas-t" className="font-titulo text-xl font-bold">
           Entregas que pedem atenção
         </h2>
-        <Link
-          to="/app/projetos"
-          className="inline-flex min-h-11 items-center gap-1 text-[14.5px] font-medium text-[#1E3FA8]"
-        >
+        <Link to="/app/projetos" className={`${classeAcaoTexto} gap-1`}>
           Ver projetos <ArrowRight className="size-4" aria-hidden="true" />
         </Link>
       </div>

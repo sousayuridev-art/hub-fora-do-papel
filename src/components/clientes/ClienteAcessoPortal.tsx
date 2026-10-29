@@ -15,7 +15,7 @@ import {
   type PerfilPortal,
 } from "@/lib/acessoPortal";
 import { EscolhaPerfil } from "@/components/clientes/EscolhaPerfil";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario, classeLinkTexto } from "@/lib/estilos";
 import { diaMes } from "@/lib/formatar";
 import { mensagemConvite } from "@/lib/mensagens";
 import { EnviarParaPainel } from "@/components/hub/EnviarParaPainel";
@@ -158,7 +158,11 @@ export function ClienteAcessoPortal({
       {dados.isError ? (
         <p className="text-[14px] text-sit-risco-t">
           Não foi possível carregar os acessos.{" "}
-          <button type="button" className="min-h-11 underline" onClick={() => void dados.refetch()}>
+          <button
+            type="button"
+            className={`${classeLinkTexto} min-h-11`}
+            onClick={() => void dados.refetch()}
+          >
             Tentar de novo
           </button>
         </p>
@@ -205,7 +209,7 @@ export function ClienteAcessoPortal({
               ) : (
                 <button
                   type="button"
-                  className="min-h-11 rounded-lg px-3 text-[14px] font-medium underline"
+                  className={`${classeAcaoTexto}`}
                   onClick={() => setConfirmar(p.user_id)}
                 >
                   Tirar acesso
@@ -300,7 +304,7 @@ export function ClienteAcessoPortal({
       </form>
       <button
         type="button"
-        className="inline-flex min-h-11 items-center gap-2 self-start text-[14px] font-medium text-[#1E3FA8]"
+        className={`${classeAcaoTexto} gap-2 self-start`}
         onClick={() => {
           void navigator.clipboard
             ?.writeText(endereco)

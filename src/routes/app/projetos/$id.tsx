@@ -38,6 +38,7 @@ import { naoRemovida } from "@/components/tarefas/useMutacoesTarefa";
 import { chavesProjetos, detalheProjeto, faseAtual } from "@/lib/projetos";
 import { daTarefaDoProjeto } from "@/lib/tarefas";
 import { diaMes } from "@/lib/formatar";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const abas = ["andamento", "pedidos", "horas", "encerramento", "linha"] as const;
 type Aba = (typeof abas)[number];
@@ -81,11 +82,8 @@ function Projeto() {
     return sumiu ? (
       <div className="flex flex-col items-start gap-3">
         <h1 className="font-titulo text-2xl font-bold">Projeto não encontrado</h1>
-        <Link
-          to="/app/projetos"
-          className="inline-flex min-h-11 items-center font-medium text-[#1E3FA8] underline"
-        >
-          Voltar para Projetos
+        <Link to="/app/projetos" className={`${classeAcaoTexto}`}>
+          Voltar para Projetos ›
         </Link>
       </div>
     ) : (

@@ -172,7 +172,7 @@ export function PropostaEditor({ detalhe }: { detalhe: DetalheProposta }) {
               <Link
                 to="/app/clientes/$id"
                 params={{ id: detalhe.cliente.id }}
-                className="hover:underline"
+                className="hover:text-[#4A4D54]"
               >
                 {detalhe.cliente.empresa}
               </Link>

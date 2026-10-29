@@ -7,6 +7,7 @@ import { PainelLateral } from "@/components/hub/PainelLateral";
 import { moeda } from "@/lib/formatar";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import { cancelarProjeto, chavesProjetos, previaCancelamento } from "@/lib/projetos";
+import { classeLinkTexto } from "@/lib/estilos";
 
 /** Cancelar projeto (REV-3): mostra antes tudo o que será cancelado junto. Não dá para desfazer. */
 export function CancelarProjetoPainel({
@@ -86,7 +87,7 @@ export function CancelarProjetoPainel({
             Não foi possível conferir o que está aberto.{" "}
             <button
               type="button"
-              className="min-h-11 underline"
+              className={`${classeLinkTexto} min-h-11`}
               onClick={() => void previa.refetch()}
             >
               Tentar de novo

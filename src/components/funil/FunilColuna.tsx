@@ -4,6 +4,7 @@ import { FunilCartao, type AcaoCartao } from "@/components/funil/FunilCartao";
 import { moeda } from "@/lib/formatar";
 import type { Etapa, Oportunidade } from "@/lib/funil";
 import { cn } from "@/lib/utils";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const LIMITE = 50;
 
@@ -90,11 +91,7 @@ export function FunilColuna({
         </p>
       )}
       {!todos && itens.length > LIMITE && (
-        <button
-          type="button"
-          onClick={() => setTodos(true)}
-          className="min-h-11 rounded-xl text-[14px] font-medium text-[#1E3FA8] hover:bg-white"
-        >
+        <button type="button" onClick={() => setTodos(true)} className={`${classeAcaoTexto}`}>
           Ver todos ({itens.length})
         </button>
       )}

@@ -10,6 +10,7 @@ import {
   type Objetivo,
   type Pilar,
 } from "@/lib/marketing";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 /** Filtros da produção (campanha, canal, pilar e objetivo), todos no endereço. */
 export function FiltrosMarketing({
@@ -80,7 +81,7 @@ export function FiltrosMarketing({
               objetivo: undefined,
             })
           }
-          className="col-span-2 inline-flex min-h-11 items-center gap-1.5 self-end rounded-lg px-2 text-[14px] font-medium text-[#1E3FA8] hover:bg-white"
+          className={`${classeAcaoTexto} col-span-2 gap-1.5 self-end`}
         >
           <X className="size-4" aria-hidden="true" /> Limpar filtros
         </button>

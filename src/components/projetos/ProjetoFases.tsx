@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 
 import { LinhaFases } from "@/components/projetos/LinhaFases";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { dataLocal, diaMes } from "@/lib/formatar";
 import { faseAtual, type DetalheProjeto } from "@/lib/projetos";
 
@@ -60,7 +60,7 @@ export function ProjetoFases({
         <button
           type="button"
           onClick={aoMudarParaModulos}
-          className="self-start text-[14px] text-hub-suave underline underline-offset-4 hover:text-hub-tinta"
+          className={`${classeAcaoTexto} self-start`}
         >
           Sistema sob medida? Entregar por módulos
         </button>

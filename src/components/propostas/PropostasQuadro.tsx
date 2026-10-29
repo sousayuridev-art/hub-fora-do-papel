@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { ColunaQuadro, Quadro } from "@/components/hub/Quadro";
-import { corColuna } from "@/lib/estilos";
+import { classeAcaoTexto, corColuna } from "@/lib/estilos";
 import { PropostaCartao } from "@/components/propostas/PropostaCartao";
 import type { CartaoProposta, ResumoPropostas, SituacaoProposta } from "@/lib/propostas";
 
@@ -21,8 +21,7 @@ const colunas: { id: SituacaoProposta; titulo: string; descricao: string; cor: s
 const INICIO = 6;
 const PASSO = 12;
 
-const classeVerMais =
-  "flex min-h-11 items-center self-start rounded-lg px-1 text-[13.5px] font-medium text-sit-info-t hover:text-hub-tinta hover:underline focus-visible:outline-2 focus-visible:outline-hub-tinta";
+const classeVerMais = `${classeAcaoTexto} self-start`;
 
 /** Quadro sem proposta aberta (card RD-5): Rascunhos, Enviadas, Aceitas e Recusadas. */
 export function PropostasQuadro({

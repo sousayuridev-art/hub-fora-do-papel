@@ -34,6 +34,7 @@ import {
   type Oportunidade,
 } from "@/lib/funil";
 import { chavesReunioes, listarReunioes } from "@/lib/reunioes";
+import { classeAcaoTexto } from "@/lib/estilos";
 
 const busca = z.object({ aba: z.enum(["visao", "linha", "reunioes"]).optional().catch(undefined) });
 
@@ -89,8 +90,8 @@ function Ficha() {
       <div className="flex flex-col items-start gap-3">
         <h1 className="font-titulo text-2xl font-bold">Ficha não encontrada</h1>
         <p className="text-hub-suave">Ela pode ter sido removida ou o endereço está errado.</p>
-        <Link to="/app/clientes" className="font-medium text-[#1E3FA8] underline">
-          Voltar para Clientes
+        <Link to="/app/clientes" className={classeAcaoTexto}>
+          Voltar para Clientes ›
         </Link>
       </div>
     );

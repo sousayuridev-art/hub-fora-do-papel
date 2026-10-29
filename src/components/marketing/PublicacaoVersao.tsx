@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ExternalLink } from "lucide-react";
 
 import { CampoTexto, classeEntrada } from "@/components/hub/Campo";
-import { classeBotaoSecundario } from "@/lib/estilos";
+import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { diaComHora } from "@/lib/formatar";
 import type { Etapa, Resultados, Versao } from "@/lib/marketing";
 import { cn } from "@/lib/utils";
@@ -147,7 +147,7 @@ export function PublicacaoVersao({
             href={v.published_url}
             target="_blank"
             rel="noreferrer noopener"
-            className="inline-flex min-h-11 items-center gap-1 font-semibold underline-offset-2 hover:underline"
+            className={`${classeAcaoTexto}`}
           >
             Abrir o post <ExternalLink className="size-3.5" aria-hidden="true" />
           </a>
