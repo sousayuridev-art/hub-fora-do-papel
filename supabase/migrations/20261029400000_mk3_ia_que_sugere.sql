@@ -149,11 +149,11 @@ $$;
 -- ---------------------------------------------------------------------
 -- Modelo da Central: Sonnet, porque é texto que vai a público (regra 4). Trocar é decisão de card.
 create or replace function public._mkt_ia_modelo()
-returns text language sql immutable as $$ select 'claude-sonnet-5-5'::text $$;
+returns text language sql immutable set search_path = public as $$ select 'claude-sonnet-5-5'::text $$;
 
 -- Teto de saída por ação (o mesmo da função de servidor) e entrada estimada com folga.
 create or replace function public._mkt_ia_reserva(p_tipo text, pr public.ai_model_prices)
-returns integer language sql immutable as $$
+returns integer language sql immutable set search_path = public as $$
   select ceil((8000::numeric * greatest(pr.entrada, pr.cache_escrita)
                + (case p_tipo when 'versao' then 2000 when 'ganchos' then 600 else 1200 end)::numeric * pr.saida)
               / 1000000)::int;
@@ -247,7 +247,11 @@ begin
   -- Arredonda para cima: o teto nunca fica abaixo do gasto real.
   custo := ceil((e::numeric * coalesce(pr.entrada, 0) + s::numeric * coalesce(pr.saida, 0)
                  + ce::numeric * coalesce(pr.cache_escrita, 0) + cl::numeric * coalesce(pr.cache_leitura, 0)) / 1000000);
-  if p_erro = 'ia_tempo_esgotado' then custo := greatest(custo, r.custo_estimado); end if;
+  -- Falha sem tokens contados (tempo esgotado, rede caiu, resposta ilegível): a API pode ter cobrado,
+  -- então fica a reserva. Só a recusa da API (4xx) não cobra.
+  if p_erro is not null and e + s + ce + cl = 0 and p_erro not like 'ia_http_4%' then
+    custo := greatest(custo, r.custo_estimado);
+  end if;
   update public.ai_usage
      set tokens_entrada = e, tokens_saida = s, tokens_cache_escrita = ce, tokens_cache_leitura = cl,
          custo_estimado = least(custo, 2000000000), ok = p_erro is null and p_conteudo is not null,
@@ -309,6 +313,10 @@ begin
   end if;
   v := public._mkt_versao_do_dono(s.version_id);
   select * into s from public.mkt_ai_suggestions where id = p_id for update;
+  -- De novo com a linha travada: um "Descartar" ao mesmo tempo vence.
+  if s.descartada_em is not null or s.expira_em <= now() then
+    raise exception 'sugestao_inexistente' using errcode = 'P0002';
+  end if;
 
   if s.tipo = 'versao' then
     usados := coalesce(p_campos, array['gancho', 'texto', 'roteiro', 'slides', 'chamada', 'hashtags']);
@@ -368,6 +376,7 @@ $$;
 -- 7. Permissões
 -- ---------------------------------------------------------------------
 revoke all on function public._mkt_ia_reserva(text, public.ai_model_prices) from public, anon, authenticated;
+revoke all on function public._mkt_ia_modelo() from public, anon, authenticated;
 revoke all on function public.ia_uso_do_mes(text) from public, anon;
 revoke all on function public.mkt_ia_preparar(uuid, text) from public, anon;
 revoke all on function public.mkt_ia_registrar(bigint, jsonb, jsonb, jsonb, text) from public, anon, authenticated;

@@ -2,7 +2,7 @@
 -- de serviço, custo estimado, usar por campo passando pela revisão da marca, ganchos, revisão e isolamento.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(54);
+select plan(55);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -80,6 +80,8 @@ select lives_ok(format($$ select public.mkt_ia_registrar(%s, '{}'::jsonb, null, 
     current_setting('teste.ctx4')::jsonb ->> 'uso_id'), 'Tempo esgotado também fecha o uso');
 select ok((select custo_estimado > 0 and ok = false from public.ai_usage where id = (current_setting('teste.ctx4')::jsonb ->> 'uso_id')::bigint),
   'No tempo esgotado fica a reserva (a API pode ter cobrado)');
+select ok((select custo_estimado = 10 from public.ai_usage where id = (current_setting('teste.ctx3')::jsonb ->> 'uso_id')::bigint),
+  'Falha com tokens contados fica com o custo real');
 select is((select count(*)::int from public.mkt_ai_suggestions), 2, 'Falha não vira sugestão');
 reset role;
 set local role authenticated;
