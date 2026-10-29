@@ -33,7 +33,7 @@
 ### Função de servidor (`supabase/functions/marketing-ia`)
 
 - **Pedido:** recebe só o id da peça ou da versão e a ação. Confere o dono (sessão forte, SEG-1) e lê o briefing no banco; nunca recebe texto livre do navegador.
-- **Chave:** a chave da Anthropic fica só nos segredos do Supabase (`ANTHROPIC_API_KEY`, workspace `fdp-hub`); nunca no navegador, no repositório ou em log.
+- **Chave:** a chave da Anthropic fica só nos segredos do Supabase (`ANTHROPIC_API_KEY_HUB`, workspace `fdp-hub`, nome definido no RE-0); nunca no navegador, no repositório ou em log.
 - **Modelo:** Sonnet (`claude-sonnet-5-5`), porque é texto que vai a público (regra 4). Trocar de modelo é decisão de card.
 - **Instruções fixas com cache:** manual de voz, regras de conteúdo por canal e regras desta tarefa. Por peça vão só o briefing e os textos. Dado de cliente só entra se a peça tem a autorização marcada.
 - **Teto:**
@@ -71,16 +71,20 @@
 ## Para o Yuri antes de publicar
 
 - No Console da Anthropic, workspace `fdp-hub`: criar a chave e pôr o limite de gasto do workspace.
-- No Supabase de produção, em Edge Functions › Secrets: guardar `ANTHROPIC_API_KEY`. Só você faz isso, porque a chave não pode passar pelo chat.
+- No Supabase de produção, em Edge Functions › Secrets: guardar `ANTHROPIC_API_KEY_HUB`. Só você faz isso, porque a chave não pode passar pelo chat.
 - Rodar o fluxo "Banco de produção" e publicar a função (instruções no PR).
 - Medir no piloto quanto custa, em média, uma sugestão de versão, antes de usar em peças de clientes (regra 5).
 
 ## Decisões (Yuri, 29/10)
 1. **Teto mensal da Central:** US$ 10.
 2. **Ações:** as três entram agora (sugerir a versão, mais ganchos e revisar pela voz).
-- **Preço do modelo:** fica na tabela `ai_model_prices`, corrigível sem mexer no código. O valor inicial do Sonnet 5.5 foi conferido em 29/10/2026 numa fonte de terceiros e deve ser conferido no Console da Anthropic: US$ 2 por milhão de tokens de entrada, US$ 10 de saída, US$ 2,50 de escrita no cache e US$ 0,20 de leitura do cache.
 
 ## Como ficou (implementação, 29/10)
+- **Preço do modelo:** fica na tabela `ai_model_prices`, corrigível sem mexer no código. O valor inicial do Sonnet 5.5 foi conferido em 29/10/2026 numa fonte de terceiros e deve ser conferido no Console da Anthropic: US$ 2 por milhão de tokens de entrada, US$ 10 de saída, US$ 2,50 de escrita no cache e US$ 0,20 de leitura do cache.
 - Falhas da IA também contam no limite de 30 pedidos do dia (protege contra clique repetido quando a API está instável) e ficam em `ai_usage` com o motivo.
 - A função `marketing-ia` exige login na porta (`verify_jwt = true`) e confere o dono de novo no banco.
 - Teste local sem gastar: `MARKETING_IA_API_URL` aponta a função para um servidor falso; em produção essa variável não existe e vale o endereço da Anthropic.
+- Reserva: antes de chamar a IA, o banco trava o tenant, confere teto e limite e já grava o pedido em `ai_usage` com o custo máximo; depois troca pelo custo real. Pedidos em paralelo não furam o teto, e uma versão apagada no meio não some da conta. No tempo esgotado fica a reserva (a API pode ter cobrado).
+- Revisão pela voz: cada troca diz o campo (gancho ou texto) e só entra se o trecho aparece uma vez nele.
+- Aviso de 80% aparece também no Painel do Hub.
+- **Para o Yuri confirmar:** o contador e o aviso mostram dólar (a Anthropic cobra em dólar) e ficam logo abaixo das sugestões, não no rodapé da aba.

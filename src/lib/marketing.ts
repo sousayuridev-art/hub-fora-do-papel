@@ -713,7 +713,12 @@ export function nomeDoMes(mes: string): string {
 // ---------------------------------------------------------------------
 export type TipoSugestao = "versao" | "ganchos" | "revisao";
 export type CampoSugestao = "gancho" | "texto" | "roteiro" | "slides" | "chamada" | "hashtags";
-export type ItemRevisao = { trecho: string; problema: string; troca: string };
+export type ItemRevisao = {
+  campo?: "gancho" | "texto";
+  trecho: string;
+  problema: string;
+  troca: string;
+};
 export type ConteudoSugestao = {
   gancho?: string;
   texto?: string;
@@ -787,8 +792,13 @@ export async function pedirSugestao(versao: string, tipo: TipoSugestao): Promise
     const corpo: unknown = await (error as { context?: Response }).context
       ?.json?.()
       .catch(() => null);
+    const status = (error as { context?: Response }).context?.status;
     const msg =
-      corpo && typeof corpo === "object" && "erro" in corpo ? String(corpo.erro) : "ia_sem_rede";
+      corpo && typeof corpo === "object" && "erro" in corpo
+        ? String(corpo.erro)
+        : status === 401
+          ? "sem_login"
+          : "ia_sem_rede";
     throw new Error(msg);
   }
   return (data as { sugestao: Sugestao }).sugestao;
@@ -846,6 +856,13 @@ export function mensagemDoMarketing(e: unknown): string | null {
     ia_sem_rede: "Sem conexão com a IA agora. Confira a internet. Nada mudou na peça.",
     pedido_invalido: "Pedido inválido. Recarregue a página.",
     sem_login: "Sua sessão expirou. Entre de novo.",
+    ia_sem_chave: "A IA ainda não está ligada no servidor (falta a chave). Nada mudou na peça.",
+    preco_do_modelo:
+      "Falta o preço do modelo da IA no banco; sem ele o teto não vale. Nada foi pedido.",
+    versao_removida: "A versão foi removida enquanto a IA escrevia. A sugestão não foi guardada.",
+    trecho_repetido:
+      "Esse trecho aparece mais de uma vez no texto. Troque à mão ou peça a revisão de novo.",
+    ja_usada: "Essa troca já foi feita.",
     campo_invalido: "Esse campo não pode ser usado.",
     opcao_invalida: "Essa opção não existe mais. Peça de novo.",
     trecho_nao_encontrado: "O texto mudou e esse trecho não está mais lá. Peça a revisão de novo.",

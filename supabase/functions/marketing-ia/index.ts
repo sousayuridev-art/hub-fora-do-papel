@@ -3,18 +3,20 @@
  *
  *   POST { versao, tipo }  (dono, com o login do Hub)  → sugestão guardada em mkt_ai_suggestions
  *
- * O navegador manda só o id da versão e a ação; o briefing vem do banco (mkt_ia_preparar, que
- * também confere dono, briefing, teto do mês e limite do dia). Toda chamada à API fica em ai_usage.
+ * O navegador manda só o id da versão e a ação; o briefing vem do banco. `mkt_ia_preparar` (com o
+ * login de quem pediu) confere dono, briefing, teto do mês e limite do dia e já RESERVA o pedido em
+ * ai_usage; `mkt_ia_registrar` (chave de serviço) fecha a reserva com os tokens reais.
  *
- * Segredos (só aqui): ANTHROPIC_API_KEY (workspace fdp-hub), SUPABASE_SERVICE_ROLE_KEY.
- * Nunca escreva chave, briefing ou resposta da IA em log.
+ * Segredos (só aqui): ANTHROPIC_API_KEY_HUB (workspace fdp-hub, nome do card RE-0) e
+ * SUPABASE_SERVICE_ROLE_KEY. Nunca escreva chave, briefing ou resposta da IA em log.
  */
 import {
   baseDaSugestao,
   type Contexto,
   corpoDoPedido,
+  enderecoDaIA,
   entradaDaFerramenta,
-  MODELO,
+  erroPublico,
   origemPermitida,
   type Tipo,
   type Uso,
@@ -31,9 +33,9 @@ function env(nome: string): string {
 const SUPA = env("SUPABASE_URL");
 const ANON = env("SUPABASE_ANON_KEY");
 const SERVICO = env("SUPABASE_SERVICE_ROLE_KEY");
+const CHAVE_IA = Deno.env.get("ANTHROPIC_API_KEY_HUB") ?? "";
+const API_IA = enderecoDaIA(SUPA, Deno.env.get("MARKETING_IA_API_URL"));
 const TEMPO_LIMITE_MS = 40_000;
-// Endereço da API. Só muda no teste local (servidor falso); em produção fica o padrão.
-const API_IA = Deno.env.get("MARKETING_IA_API_URL") ?? "https://api.anthropic.com/v1/messages";
 
 class ErroBanco extends Error {
   constructor(
@@ -93,12 +95,12 @@ function json(req: Request, corpo: unknown, status = 200): Response {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TIPOS: readonly Tipo[] = ["versao", "ganchos", "revisao"];
+const SEM_USO: Uso = { entrada: 0, saida: 0, cache_escrita: 0, cache_leitura: 0 };
 
 type Chamada = { ok: true; resposta: unknown; uso: Uso } | { ok: false; erro: string; uso: Uso };
 
 /** Chama a API de Mensagens com tempo-limite. Nunca devolve nem registra a chave. */
 async function chamarIA(c: Contexto): Promise<Chamada> {
-  const vazio: Uso = { entrada: 0, saida: 0, cache_escrita: 0, cache_leitura: 0 };
   const ctl = new AbortController();
   const relogio = setTimeout(() => ctl.abort(), TEMPO_LIMITE_MS);
   try {
@@ -106,7 +108,7 @@ async function chamarIA(c: Contexto): Promise<Chamada> {
       method: "POST",
       signal: ctl.signal,
       headers: {
-        "x-api-key": env("ANTHROPIC_API_KEY"),
+        "x-api-key": CHAVE_IA,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
@@ -123,7 +125,7 @@ async function chamarIA(c: Contexto): Promise<Chamada> {
   } catch (e) {
     const motivo =
       e instanceof DOMException && e.name === "AbortError" ? "ia_tempo_esgotado" : "ia_sem_rede";
-    return { ok: false, erro: motivo, uso: vazio };
+    return { ok: false, erro: motivo, uso: SEM_USO };
   } finally {
     clearTimeout(relogio);
   }
@@ -132,6 +134,11 @@ async function chamarIA(c: Contexto): Promise<Chamada> {
 async function sugerir(req: Request): Promise<Response> {
   const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
   if (!jwt || jwt === ANON) return json(req, { erro: "sem_login" }, 401);
+  // Sem a chave, não reserva nem chama: o erro é de configuração, não de rede.
+  if (!CHAVE_IA) {
+    console.error("marketing-ia: falta o segredo ANTHROPIC_API_KEY_HUB");
+    return json(req, { erro: "ia_sem_chave" }, 503);
+  }
 
   const pedido = (await req.json().catch(() => null)) as {
     versao?: unknown;
@@ -142,46 +149,43 @@ async function sugerir(req: Request): Promise<Response> {
   const tipo = TIPOS.find((t) => t === pedido?.tipo) ?? null;
   if (!versao || !tipo) return json(req, { erro: "pedido_invalido" }, 400);
 
-  // Confere dono, briefing, teto e limite do dia com o login de quem pediu.
+  // Confere dono, briefing, teto e limite do dia com o login de quem pediu, e reserva o pedido.
   const ctx = await rpc<Contexto>("mkt_ia_preparar", { p_versao: versao, p_tipo: tipo }, jwt);
 
   const registrar = (conteudo: unknown, base: unknown, uso: Uso, erro: string | null) =>
-    rpc<{ ok: boolean; custo: number; sugestao?: unknown }>(
+    rpc<{ ok: boolean; custo: number; erro?: string; sugestao?: unknown }>(
       "mkt_ia_registrar",
-      {
-        p_tenant: ctx.tenant_id,
-        p_usuario: ctx.usuario,
-        p_versao: ctx.versao_id,
-        p_tipo: tipo,
-        p_modelo: MODELO,
-        p_tokens: uso,
-        p_conteudo: conteudo,
-        p_base: base,
-        p_erro: erro,
-      },
+      { p_uso: ctx.uso_id, p_tokens: uso, p_conteudo: conteudo, p_base: base, p_erro: erro },
       null,
     );
 
   const r = await chamarIA(ctx);
-  if (!r.ok) {
-    await registrar(null, null, r.uso, r.erro);
-    console.error("marketing-ia: falha na IA", r.erro);
-    return json(req, { erro: "ia_indisponivel" }, 502);
+  try {
+    if (!r.ok) {
+      await registrar(null, null, r.uso, r.erro);
+      console.error("marketing-ia: falha na IA", r.erro);
+      return json(req, { erro: "ia_indisponivel" }, 502);
+    }
+    const entrada = entradaDaFerramenta(r.resposta, tipo);
+    const validado = entrada ? validar(tipo, entrada, ctx) : null;
+    if (!validado) {
+      await registrar(null, null, r.uso, "resposta_fora_do_formato");
+      console.error("marketing-ia: resposta fora do formato");
+      return json(req, { erro: "ia_resposta_invalida" }, 502);
+    }
+    const gravado = await registrar(
+      validado.conteudo,
+      baseDaSugestao(ctx, validado.descartados),
+      r.uso,
+      null,
+    );
+    if (!gravado.ok) return json(req, { erro: gravado.erro ?? "falha" }, 409);
+    return json(req, { sugestao: gravado.sugestao, custo: gravado.custo });
+  } catch (e) {
+    // A IA já respondeu: o problema foi ao gravar. A reserva continua contando no teto.
+    console.error("marketing-ia: falha ao registrar", e instanceof ErroBanco ? e.status : "");
+    return json(req, { erro: "falha" }, 502);
   }
-  const entrada = entradaDaFerramenta(r.resposta, tipo);
-  const validado = entrada ? validar(tipo, entrada, ctx) : null;
-  if (!validado) {
-    await registrar(null, null, r.uso, "resposta_fora_do_formato");
-    console.error("marketing-ia: resposta fora do formato");
-    return json(req, { erro: "ia_resposta_invalida" }, 502);
-  }
-  const gravado = await registrar(
-    validado.conteudo,
-    baseDaSugestao(ctx, validado.descartados),
-    r.uso,
-    null,
-  );
-  return json(req, { sugestao: gravado.sugestao, custo: gravado.custo });
 }
 
 Deno.serve(async (req) => {
@@ -191,8 +195,10 @@ Deno.serve(async (req) => {
     return await sugerir(req);
   } catch (e) {
     if (e instanceof ErroBanco) {
-      const status = e.status === 401 || e.message === "sem_permissao" ? 403 : 400;
-      return json(req, { erro: e.message }, status);
+      if (e.status >= 500) return json(req, { erro: "falha" }, 503);
+      const erro = erroPublico(e.message);
+      const status = e.status === 401 || e.status === 403 || erro === "sem_permissao" ? 403 : 400;
+      return json(req, { erro }, status);
     }
     console.error("marketing-ia: erro inesperado");
     return json(req, { erro: "falha" }, 500);

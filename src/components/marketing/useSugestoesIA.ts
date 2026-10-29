@@ -32,7 +32,7 @@ export const marcaOpcao = (s: Sugestao, i: number) =>
   `${s.tipo === "ganchos" ? "gancho" : "revisao"}:${i}`;
 
 /** Sugestões da IA de uma versão (MK-3): pedir, usar por campo e descartar. */
-export function useSugestoesIA(versao: string) {
+export function useSugestoesIA(versao: string, aoUsar: () => void) {
   const qc = useQueryClient();
   const chave = chavesMarketing.sugestoes(versao);
 
@@ -76,12 +76,18 @@ export function useSugestoesIA(versao: string) {
       if (ctx) qc.setQueryData(chave, ctx.antes);
       erro(falhou(e), { tentarDeNovo: () => usar.mutate(a) });
     },
-    onSuccess: () => ok("Sugestão usada. A revisão da marca já conferiu o texto."),
+    onSuccess: () => {
+      aoUsar();
+      ok("Sugestão usada. A revisão da marca já conferiu o texto.");
+    },
     onSettled: () =>
       Promise.all([
         qc.invalidateQueries({ queryKey: chave }),
         qc.invalidateQueries({ queryKey: chavesMarketing.detalhes }),
         qc.invalidateQueries({ queryKey: chavesMarketing.listas }),
+        // Usar pode desfazer a aprovação: números do quadro e calendário mudam.
+        qc.invalidateQueries({ queryKey: chavesMarketing.resumo }),
+        qc.invalidateQueries({ queryKey: chavesMarketing.calendarios }),
       ]),
   });
 

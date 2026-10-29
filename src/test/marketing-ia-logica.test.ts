@@ -4,10 +4,11 @@ import {
   baseDaSugestao,
   type Contexto,
   corpoDoPedido,
+  enderecoDaIA,
   entradaDaFerramenta,
+  erroPublico,
   INSTRUCOES,
   mensagemDoPedido,
-  MODELO,
   origemPermitida,
   usoDaResposta,
   validar,
@@ -20,6 +21,8 @@ function contexto(
   return {
     tenant_id: "t",
     usuario: "u",
+    uso_id: 1,
+    modelo: "claude-sonnet-5-5",
     peca_id: "p",
     versao_id: "v",
     tipo: "versao",
@@ -60,7 +63,7 @@ const slides = (n: number) =>
 describe("pedido à IA", () => {
   it("usa o Sonnet, instruções fixas com cache e a ferramenta forçada", () => {
     const c = corpoDoPedido(contexto());
-    expect(c.model).toBe(MODELO);
+    expect(c.model).toBe("claude-sonnet-5-5");
     expect(c.system[0]?.cache_control).toEqual({ type: "ephemeral" });
     expect(c.system[0]?.text).toBe(INSTRUCOES);
     expect(c.tool_choice).toEqual({ type: "tool", name: "sugerir_versao" });
@@ -191,26 +194,87 @@ describe("validação", () => {
     expect(validar("ganchos", { ganchos: [] }, contexto())).toBeNull();
   });
 
-  it("revisão só guarda trecho que existe no texto atual", () => {
+  it("revisão só guarda trecho que aparece uma vez no campo apontado", () => {
     const c = contexto(
       { tipo: "revisao" },
-      { gancho: "Revolucionário", texto: "Nosso CRM inovador." },
+      { gancho: "Revolucionário e inovador", texto: "Nosso CRM inovador. Um sistema, um sistema." },
     );
     const v = validar(
       "revisao",
       {
         itens: [
-          { trecho: "inovador", problema: "Palavra vazia", troca: "feito para a sua rotina" },
-          { trecho: "inexistente", problema: "x", troca: "y" },
+          {
+            campo: "texto",
+            trecho: "CRM inovador",
+            problema: "Palavra vazia",
+            troca: "cadastro de clientes",
+          },
+          { campo: "gancho", trecho: "Revolucionário", problema: "Palavra vazia", troca: "Feito" },
+          { campo: "texto", trecho: "inexistente", problema: "x", troca: "y" },
+          { campo: "texto", trecho: "sistema", problema: "repete", troca: "y" },
+          { campo: "gancho", trecho: "Nosso", problema: "campo errado", troca: "y" },
         ],
         resumo: "Começa pela ferramenta.",
       },
       c,
     );
     expect(v?.conteudo.itens).toEqual([
-      { trecho: "inovador", problema: "Palavra vazia", troca: "feito para a sua rotina" },
+      {
+        campo: "texto",
+        trecho: "CRM inovador",
+        problema: "Palavra vazia",
+        troca: "cadastro de clientes",
+      },
+      { campo: "gancho", trecho: "Revolucionário", problema: "Palavra vazia", troca: "Feito" },
     ]);
-    expect(v?.descartados).toEqual(["1 trecho(s) que não estão no texto"]);
+    expect(v?.descartados).toEqual([
+      "3 trecho(s) que não estão no campo ou aparecem mais de uma vez",
+    ]);
+  });
+
+  it("carrossel: mais de 8 slides fica nos 8 primeiros; sem slides, avisa", () => {
+    const muitos = validar(
+      "versao",
+      { gancho: "G", texto: "T", slides: slides(10), chamada: "marcar_conversa" },
+      contexto(),
+    );
+    expect((muitos?.conteudo.slides as unknown[]).length).toBe(8);
+    expect(muitos?.descartados).toContain("2 slide(s) além do 8º");
+    const sem = validar(
+      "versao",
+      { gancho: "G", texto: "T", chamada: "marcar_conversa" },
+      contexto(),
+    );
+    expect(sem?.descartados).toContain("slides (menos de 3)");
+  });
+
+  it("vídeo sem roteiro avisa o que faltou", () => {
+    const v = validar(
+      "versao",
+      { gancho: "G", texto: "T", chamada: "marcar_conversa" },
+      contexto({}, { formato: "reels" }),
+    );
+    expect(v?.descartados).toContain("roteiro");
+  });
+});
+
+describe("servidor", () => {
+  it("a troca do endereço da IA só vale no Supabase local", () => {
+    expect(enderecoDaIA("http://kong:8000", "http://host.docker.internal:8787/v1/messages")).toBe(
+      "http://host.docker.internal:8787/v1/messages",
+    );
+    expect(enderecoDaIA("https://abc.supabase.co", "https://webhook.site/x")).toBe(
+      "https://api.anthropic.com/v1/messages",
+    );
+    expect(enderecoDaIA("http://kong:8000", undefined)).toBe(
+      "https://api.anthropic.com/v1/messages",
+    );
+  });
+
+  it("só erros conhecidos chegam ao navegador", () => {
+    expect(erroPublico("teto_mensal")).toBe("teto_mensal");
+    expect(erroPublico("permission denied for function mkt_ia_registrar")).toBe("falha");
+    expect(erroPublico('duplicate key value violates unique constraint "x"')).toBe("falha");
   });
 });
 

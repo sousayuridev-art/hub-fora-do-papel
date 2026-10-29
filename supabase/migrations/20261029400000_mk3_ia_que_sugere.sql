@@ -23,7 +23,8 @@ create table public.ai_usage (
   tokens_cache_leitura integer not null default 0 check (tokens_cache_leitura >= 0),
   -- Centésimos de centavo de dólar (1 = US$ 0,0001): um pedido custa frações de centavo.
   custo_estimado      integer not null default 0 check (custo_estimado >= 0),
-  ok                  boolean not null default true,
+  -- Nulo enquanto o pedido está com a IA (reserva); depois, deu certo ou não.
+  ok                  boolean,
   erro                text check (erro is null or length(erro) <= 200),
   piece_id            uuid references public.mkt_pieces (id) on delete set null,
   version_id          uuid references public.mkt_versions (id) on delete set null,
@@ -146,16 +147,32 @@ $$;
 -- ---------------------------------------------------------------------
 -- 5. Preparar (com o login do dono) e registrar (só a chave de serviço)
 -- ---------------------------------------------------------------------
--- Confere dono, briefing completo, teto e limite do dia; devolve só o necessário para o pedido.
+-- Modelo da Central: Sonnet, porque é texto que vai a público (regra 4). Trocar é decisão de card.
+create or replace function public._mkt_ia_modelo()
+returns text language sql immutable as $$ select 'claude-sonnet-5-5'::text $$;
+
+-- Teto de saída por ação (o mesmo da função de servidor) e entrada estimada com folga.
+create or replace function public._mkt_ia_reserva(p_tipo text, pr public.ai_model_prices)
+returns integer language sql immutable as $$
+  select ceil((8000::numeric * greatest(pr.entrada, pr.cache_escrita)
+               + (case p_tipo when 'versao' then 2000 when 'ganchos' then 600 else 1200 end)::numeric * pr.saida)
+              / 1000000)::int;
+$$;
+
+-- Confere dono, briefing completo, teto e limite do dia e RESERVA o pedido em ai_usage
+-- (custo máximo), com o tenant travado: pedidos em paralelo não furam o teto nem o limite.
 -- Cliente só aparece pelo nome quando a peça tem a autorização marcada (regra 7).
 create or replace function public.mkt_ia_preparar(p_versao uuid, p_tipo text)
-returns jsonb language plpgsql stable security definer set search_path = public as $$
+returns jsonb language plpgsql volatile security definer set search_path = public as $$
 declare
   t uuid := public._tenant_do_dono();
   v public.mkt_versions;
   p public.mkt_pieces;
+  pr public.ai_model_prices;
   u jsonb;
   falta text[];
+  reserva integer;
+  uso_id bigint;
 begin
   if p_tipo is null or p_tipo not in ('versao', 'ganchos', 'revisao') then raise exception 'tipo_invalido' using errcode = '22023'; end if;
   select * into v from public.mkt_versions where id = p_versao and tenant_id = t;
@@ -170,12 +187,25 @@ begin
   if p_tipo = 'revisao' and length(trim(coalesce(v.body, ''))) = 0 and length(trim(coalesce(v.hook, ''))) = 0 then
     raise exception 'sem_texto_para_revisar' using errcode = '22023';
   end if;
+  -- Sem preço, o custo daria zero e o teto nunca valeria.
+  select * into pr from public.ai_model_prices where modelo = public._mkt_ia_modelo();
+  if pr.modelo is null then raise exception 'preco_do_modelo' using errcode = '22023'; end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('ia:' || t::text || ':marketing', 0));
   u := public._ia_uso(t, 'marketing');
   if (u ->> 'gasto')::bigint >= (u ->> 'teto')::bigint then raise exception 'teto_mensal' using errcode = '22023'; end if;
   if (u ->> 'pedidos_hoje')::int >= (u ->> 'limite_diario')::int then raise exception 'limite_diario' using errcode = '22023'; end if;
 
+  reserva := public._mkt_ia_reserva(p_tipo, pr);
+  insert into public.ai_usage (tenant_id, workspace, area, recurso, modelo, custo_estimado, ok, piece_id, version_id, user_id)
+  values (t, 'fdp-hub', 'marketing',
+          'marketing.' || case p_tipo when 'versao' then 'versoes' else p_tipo end,
+          pr.modelo, reserva, null, p.id, v.id, auth.uid())
+  returning id into uso_id;
+
   return jsonb_build_object(
-    'tenant_id', t, 'usuario', auth.uid(), 'peca_id', p.id, 'versao_id', v.id, 'tipo', p_tipo,
+    'tenant_id', t, 'usuario', auth.uid(), 'uso_id', uso_id, 'modelo', pr.modelo,
+    'peca_id', p.id, 'versao_id', v.id, 'tipo', p_tipo,
     'briefing', jsonb_build_object(
       'titulo', p.title, 'ideia', p.core_idea, 'objetivo', p.objective, 'funil', p.funnel, 'pilar', p.pillar,
       'frente', p.front, 'publico', p.audience, 'serie', p.series, 'direcao_arte', p.art_direction,
@@ -194,39 +224,50 @@ begin
 end;
 $$;
 
--- Grava o uso (sempre, com ou sem sucesso) e a sugestão (só com sucesso). Só a função de servidor chama.
+-- Fecha a reserva com os tokens reais (sempre) e grava a sugestão (só com sucesso e se a versão
+-- ainda existe). No tempo esgotado a API pode ter cobrado: fica a reserva. Só a função de servidor chama.
 create or replace function public.mkt_ia_registrar(
-  p_tenant uuid, p_usuario uuid, p_versao uuid, p_tipo text, p_modelo text,
-  p_tokens jsonb, p_conteudo jsonb, p_base jsonb, p_erro text default null
+  p_uso bigint, p_tokens jsonb, p_conteudo jsonb, p_base jsonb, p_erro text default null
 ) returns jsonb language plpgsql volatile security definer set search_path = public as $$
 declare
-  v public.mkt_versions;
+  r public.ai_usage;
   pr public.ai_model_prices;
+  v public.mkt_versions;
   e int := greatest(0, coalesce((p_tokens ->> 'entrada')::int, 0));
   s int := greatest(0, coalesce((p_tokens ->> 'saida')::int, 0));
   ce int := greatest(0, coalesce((p_tokens ->> 'cache_escrita')::int, 0));
   cl int := greatest(0, coalesce((p_tokens ->> 'cache_leitura')::int, 0));
-  custo bigint := 0;
+  custo bigint;
   sug public.mkt_ai_suggestions;
+  tipo text;
 begin
-  select * into v from public.mkt_versions where id = p_versao and tenant_id = p_tenant;
-  if v.id is null then raise exception 'versao_inexistente' using errcode = 'P0002'; end if;
-  select * into pr from public.ai_model_prices where modelo = p_modelo;
-  if pr.modelo is not null then
-    -- Arredonda para cima: o teto nunca fica abaixo do gasto real.
-    custo := ceil((e::numeric * pr.entrada + s::numeric * pr.saida + ce::numeric * pr.cache_escrita
-                   + cl::numeric * pr.cache_leitura) / 1000000);
-  end if;
-  insert into public.ai_usage (tenant_id, workspace, area, recurso, modelo, tokens_entrada, tokens_saida,
-                               tokens_cache_escrita, tokens_cache_leitura, custo_estimado, ok, erro, piece_id, version_id, user_id)
-  values (p_tenant, 'fdp-hub', 'marketing', 'marketing.' || p_tipo, p_modelo, e, s, ce, cl, custo,
-          p_erro is null, left(p_erro, 200), v.piece_id, v.id, p_usuario);
+  select * into r from public.ai_usage where id = p_uso and ok is null for update;
+  if r.id is null then raise exception 'uso_inexistente' using errcode = 'P0002'; end if;
+  select * into pr from public.ai_model_prices where modelo = r.modelo;
+  -- Arredonda para cima: o teto nunca fica abaixo do gasto real.
+  custo := ceil((e::numeric * coalesce(pr.entrada, 0) + s::numeric * coalesce(pr.saida, 0)
+                 + ce::numeric * coalesce(pr.cache_escrita, 0) + cl::numeric * coalesce(pr.cache_leitura, 0)) / 1000000);
+  if p_erro = 'ia_tempo_esgotado' then custo := greatest(custo, r.custo_estimado); end if;
+  update public.ai_usage
+     set tokens_entrada = e, tokens_saida = s, tokens_cache_escrita = ce, tokens_cache_leitura = cl,
+         custo_estimado = least(custo, 2000000000), ok = p_erro is null and p_conteudo is not null,
+         erro = left(coalesce(p_erro, case when p_conteudo is null then 'sem_conteudo' end), 200)
+   where id = r.id;
+
+  -- Sugestões vencidas saem de vez (podem ter nome de cliente).
+  delete from public.mkt_ai_suggestions where tenant_id = r.tenant_id and expira_em <= now();
 
   if p_erro is not null or p_conteudo is null then
     return jsonb_build_object('ok', false, 'custo', custo);
   end if;
+  select * into v from public.mkt_versions where id = r.version_id;
+  if v.id is null then
+    update public.ai_usage set ok = false, erro = 'versao_removida' where id = r.id;
+    return jsonb_build_object('ok', false, 'custo', custo, 'erro', 'versao_removida');
+  end if;
+  tipo := case r.recurso when 'marketing.versoes' then 'versao' else substr(r.recurso, 11) end;
   insert into public.mkt_ai_suggestions (tenant_id, piece_id, version_id, tipo, conteudo, base, created_by)
-  values (p_tenant, v.piece_id, v.id, p_tipo, p_conteudo, coalesce(p_base, '{}'::jsonb), p_usuario)
+  values (r.tenant_id, v.piece_id, v.id, tipo, p_conteudo, coalesce(p_base, '{}'::jsonb), r.user_id)
   returning * into sug;
   return jsonb_build_object('ok', true, 'custo', custo, 'sugestao', to_jsonb(sug) - 'tenant_id');
 end;
@@ -245,8 +286,9 @@ returns jsonb language sql stable security definer set search_path = public as $
 $$;
 
 -- Usa os campos escolhidos. Versão: gancho, texto, roteiro, slides, chamada, hashtags.
--- Ganchos: p_opcao escolhe um dos ganchos. Revisão: p_opcao escolhe a troca (o trecho tem que
--- estar no texto atual). Tudo passa por mkt_versao_editar (avisos da marca e aprovação desfeita).
+-- Ganchos: p_opcao escolhe um dos ganchos. Revisão: p_opcao escolhe a troca, que vale no campo
+-- apontado (gancho ou texto) e só se o trecho aparece uma vez nele hoje.
+-- Trava a peça e a versão antes de ler o texto; tudo passa por mkt_versao_editar.
 create or replace function public.mkt_sugestao_usar(p_id uuid, p_campos text[] default null, p_opcao integer default null)
 returns jsonb language plpgsql volatile security definer set search_path = public as $$
 declare
@@ -257,12 +299,16 @@ declare
   item jsonb;
   usados text[];
   r jsonb;
+  campo text;
+  atual text;
+  trecho text;
 begin
-  select * into s from public.mkt_ai_suggestions where id = p_id and tenant_id = public._tenant_do_dono() for update;
+  select * into s from public.mkt_ai_suggestions where id = p_id and tenant_id = public._tenant_do_dono();
   if s.id is null or s.descartada_em is not null or s.expira_em <= now() then
     raise exception 'sugestao_inexistente' using errcode = 'P0002';
   end if;
-  select * into v from public.mkt_versions where id = s.version_id;
+  v := public._mkt_versao_do_dono(s.version_id);
+  select * into s from public.mkt_ai_suggestions where id = p_id for update;
 
   if s.tipo = 'versao' then
     usados := coalesce(p_campos, array['gancho', 'texto', 'roteiro', 'slides', 'chamada', 'hashtags']);
@@ -272,26 +318,29 @@ begin
       end if;
       if s.conteudo ? k then c := c || jsonb_build_object(k, s.conteudo -> k); end if;
     end loop;
-  elsif s.tipo = 'ganchos' then
-    item := s.conteudo -> 'ganchos' -> coalesce(p_opcao, -1);
-    if item is null or jsonb_typeof(item) <> 'string' then raise exception 'opcao_invalida' using errcode = '22023'; end if;
-    c := jsonb_build_object('gancho', item #>> '{}');
-    usados := array['gancho:' || p_opcao];
   else
-    item := s.conteudo -> 'itens' -> coalesce(p_opcao, -1);
-    if item is null or jsonb_typeof(item) <> 'object' then raise exception 'opcao_invalida' using errcode = '22023'; end if;
-    if length(coalesce(item ->> 'trecho', '')) < 2 then raise exception 'opcao_invalida' using errcode = '22023'; end if;
-    -- A troca vale no campo onde o trecho está hoje (o texto pode ter mudado depois da revisão).
-    if position(item ->> 'trecho' in coalesce(v.body, '')) > 0 then
-      c := jsonb_build_object('texto', overlay(v.body placing coalesce(item ->> 'troca', '')
-                                               from position(item ->> 'trecho' in v.body) for length(item ->> 'trecho')));
-    elsif position(item ->> 'trecho' in coalesce(v.hook, '')) > 0 then
-      c := jsonb_build_object('gancho', overlay(v.hook placing coalesce(item ->> 'troca', '')
-                                                from position(item ->> 'trecho' in v.hook) for length(item ->> 'trecho')));
+    if p_opcao is null or p_opcao < 0 then raise exception 'opcao_invalida' using errcode = '22023'; end if;
+    if s.tipo = 'ganchos' then
+      item := s.conteudo -> 'ganchos' -> p_opcao;
+      if item is null or jsonb_typeof(item) <> 'string' then raise exception 'opcao_invalida' using errcode = '22023'; end if;
+      c := jsonb_build_object('gancho', item #>> '{}');
+      usados := array['gancho:' || p_opcao];
     else
-      raise exception 'trecho_nao_encontrado' using errcode = '22023';
+      item := s.conteudo -> 'itens' -> p_opcao;
+      if item is null or jsonb_typeof(item) <> 'object' then raise exception 'opcao_invalida' using errcode = '22023'; end if;
+      if ('revisao:' || p_opcao) = any (s.campos_usados) then raise exception 'ja_usada' using errcode = '22023'; end if;
+      campo := coalesce(item ->> 'campo', 'texto');
+      trecho := coalesce(item ->> 'trecho', '');
+      if campo not in ('gancho', 'texto') or length(trecho) < 2 then raise exception 'opcao_invalida' using errcode = '22023'; end if;
+      atual := coalesce(case campo when 'gancho' then v.hook else v.body end, '');
+      if position(trecho in atual) = 0 then raise exception 'trecho_nao_encontrado' using errcode = '22023'; end if;
+      -- Trecho repetido: não dá para saber qual trocar.
+      if (length(atual) - length(replace(atual, trecho, ''))) / length(trecho) > 1 then
+        raise exception 'trecho_repetido' using errcode = '22023';
+      end if;
+      c := jsonb_build_object(campo, replace(atual, trecho, coalesce(item ->> 'troca', '')));
+      usados := array['revisao:' || p_opcao];
     end if;
-    usados := array['revisao:' || p_opcao];
   end if;
 
   if c = '{}'::jsonb then raise exception 'nada_para_usar' using errcode = '22023'; end if;
@@ -318,16 +367,17 @@ $$;
 -- ---------------------------------------------------------------------
 -- 7. Permissões
 -- ---------------------------------------------------------------------
+revoke all on function public._mkt_ia_reserva(text, public.ai_model_prices) from public, anon, authenticated;
 revoke all on function public.ia_uso_do_mes(text) from public, anon;
 revoke all on function public.mkt_ia_preparar(uuid, text) from public, anon;
-revoke all on function public.mkt_ia_registrar(uuid, uuid, uuid, text, text, jsonb, jsonb, jsonb, text) from public, anon, authenticated;
+revoke all on function public.mkt_ia_registrar(bigint, jsonb, jsonb, jsonb, text) from public, anon, authenticated;
 revoke all on function public.mkt_sugestoes_listar(uuid) from public, anon;
 revoke all on function public.mkt_sugestao_usar(uuid, text[], integer) from public, anon;
 revoke all on function public.mkt_sugestao_descartar(uuid) from public, anon;
 
 grant execute on function public.ia_uso_do_mes(text) to authenticated;
 grant execute on function public.mkt_ia_preparar(uuid, text) to authenticated;
-grant execute on function public.mkt_ia_registrar(uuid, uuid, uuid, text, text, jsonb, jsonb, jsonb, text) to service_role;
+grant execute on function public.mkt_ia_registrar(bigint, jsonb, jsonb, jsonb, text) to service_role;
 grant execute on function public.mkt_sugestoes_listar(uuid) to authenticated;
 grant execute on function public.mkt_sugestao_usar(uuid, text[], integer) to authenticated;
 grant execute on function public.mkt_sugestao_descartar(uuid) to authenticated;

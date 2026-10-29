@@ -31,3 +31,11 @@ dist-ssr
 *.sln
 *.sw?
 .claude/worktrees/
+
+# Segredos locais (MK-3): nunca vão para o GitHub. O .env da raiz só tem chaves públicas.
+supabase/functions/.env
+supabase/functions/.env.*
+.env.*
+!.env.example
+*.pem
+*.key

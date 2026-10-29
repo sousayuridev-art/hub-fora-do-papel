@@ -14,12 +14,15 @@ export function SugestoesIA({
   v,
   faltaBriefing,
   ocupado,
+  aoUsar,
 }: {
   v: Versao;
   faltaBriefing: string[];
   ocupado: boolean;
+  /** Avisa o editor que o banco mudou por uma sugestão usada. */
+  aoUsar: () => void;
 }) {
-  const { uso, lista, pedir, usar, descartar } = useSugestoesIA(v.id);
+  const { uso, lista, pedir, usar, descartar } = useSugestoesIA(v.id, aoUsar);
   const canal = v.canal_nome ?? v.channel;
   const u = uso.data;
   const noTeto = !!u && u.gasto >= u.teto;

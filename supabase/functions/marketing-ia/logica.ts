@@ -7,8 +7,9 @@
  * campo fora do formato é descartado e o motivo fica registrado.
  */
 
-export const MODELO = "claude-sonnet-5-5";
+/** O modelo vem do banco (mkt_ia_preparar), junto com a reserva do custo. */
 export const VERSAO_INSTRUCOES = "marketing-ia v1 · manual de voz de 27/10/2026";
+/** Mesmos tetos de saída usados na reserva do banco (_mkt_ia_reserva). */
 export const MAX_TOKENS: Record<Tipo, number> = { versao: 2000, ganchos: 600, revisao: 1200 };
 
 export type Tipo = "versao" | "ganchos" | "revisao";
@@ -36,6 +37,9 @@ export function origemPermitida(origem: string | null | undefined): origem is st
 export type Contexto = {
   tenant_id: string;
   usuario: string | null;
+  /** Linha reservada em ai_usage, fechada no registro. */
+  uso_id: number;
+  modelo: string;
   peca_id: string;
   versao_id: string;
   tipo: Tipo;
@@ -167,7 +171,7 @@ export function ferramenta(tipo: Tipo) {
   return {
     name: "revisar_pela_voz",
     description:
-      "Aponta trechos do texto atual que fogem do manual e propõe a troca. O trecho precisa ser copiado exatamente do texto.",
+      "Aponta trechos do gancho ou do texto que fogem do manual e propõe a troca. O trecho é copiado exatamente do campo indicado e precisa aparecer uma vez só nele.",
     input_schema: {
       type: "object",
       properties: {
@@ -176,8 +180,13 @@ export function ferramenta(tipo: Tipo) {
           maxItems: 8,
           items: {
             type: "object",
-            properties: { trecho: textoSimples, problema: textoSimples, troca: textoSimples },
-            required: ["trecho", "problema", "troca"],
+            properties: {
+              campo: { type: "string", enum: ["gancho", "texto"] },
+              trecho: textoSimples,
+              problema: textoSimples,
+              troca: textoSimples,
+            },
+            required: ["campo", "trecho", "problema", "troca"],
           },
         },
         resumo: { type: "string", description: "Uma frase sobre o texto como um todo." },
@@ -230,8 +239,8 @@ export function mensagemDoPedido(c: Contexto): string {
   } else {
     linhas.push(
       "",
-      "Revise o texto abaixo pelo manual. Copie cada trecho exatamente como está. Só aponte o que fere o manual; se estiver bom, devolva a lista vazia.",
-      JSON.stringify({ gancho: v.gancho, texto: v.texto, slides: v.slides, roteiro: v.roteiro }),
+      "Revise o gancho e o texto abaixo pelo manual. Diga o campo de cada trecho e copie o trecho exatamente como está, com contexto suficiente para aparecer uma vez só. Só aponte o que fere o manual; se estiver bom, devolva a lista vazia.",
+      JSON.stringify({ gancho: v.gancho, texto: v.texto }),
     );
   }
   return linhas.join("\n");
@@ -241,7 +250,7 @@ export function mensagemDoPedido(c: Contexto): string {
 export function corpoDoPedido(c: Contexto) {
   const f = ferramenta(c.tipo);
   return {
-    model: MODELO,
+    model: c.modelo,
     max_tokens: MAX_TOKENS[c.tipo],
     system: [{ type: "text", text: INSTRUCOES, cache_control: { type: "ephemeral" } }],
     tools: [f],
@@ -271,7 +280,7 @@ export type EntradaIA = Partial<
 >;
 type Item = Partial<
   Record<
-    "tempo" | "fala" | "na_tela" | "titulo" | "texto" | "trecho" | "problema" | "troca",
+    "tempo" | "fala" | "na_tela" | "titulo" | "texto" | "campo" | "trecho" | "problema" | "troca",
     unknown
   >
 >;
@@ -329,8 +338,8 @@ export function validar(tipo: Tipo, e: EntradaIA, c: Contexto): Validado | null 
     else descartados.push("texto");
     if (typeof e.texto === "string" && e.texto.trim().length > (v.limite_texto ?? 2200))
       descartados.push("texto cortado no limite do canal");
-    if (ehVideo(v.formato) && Array.isArray(e.roteiro)) {
-      const r = e.roteiro
+    if (ehVideo(v.formato)) {
+      const r = (Array.isArray(e.roteiro) ? e.roteiro : [])
         .filter((x): x is Item => !!x && typeof x === "object")
         .slice(0, 60)
         .map((x) => ({
@@ -342,14 +351,17 @@ export function validar(tipo: Tipo, e: EntradaIA, c: Contexto): Validado | null 
       if (r.length > 0) out.roteiro = r;
       else descartados.push("roteiro");
     }
-    if (ehSlides(v.formato) && Array.isArray(e.slides)) {
-      const s = e.slides
+    if (ehSlides(v.formato)) {
+      // Carrossel do manual: de 3 a 8 slides. Passou de 8, ficam os 8 primeiros.
+      const s = (Array.isArray(e.slides) ? e.slides : [])
         .filter((x): x is Item => !!x && typeof x === "object")
-        .slice(0, 20)
         .map((x) => ({ titulo: corta(x.titulo, 120) ?? "", texto: corta(x.texto, 600) ?? "" }))
         .filter((x) => x.titulo || x.texto);
-      if (s.length >= 3) out.slides = s;
-      else descartados.push("slides (menos de 3)");
+      if (s.length < 3) descartados.push("slides (menos de 3)");
+      else {
+        out.slides = s.slice(0, 8);
+        if (s.length > 8) descartados.push(`${s.length - 8} slide(s) além do 8º`);
+      }
     }
     if (typeof e.chamada === "string" && (CHAMADAS as readonly string[]).includes(e.chamada))
       out.chamada = e.chamada;
@@ -371,18 +383,27 @@ export function validar(tipo: Tipo, e: EntradaIA, c: Contexto): Validado | null 
       descartados.push(`${5 - unicos.length} gancho(s) vazio(s) ou repetido(s)`);
     return { conteudo: { ganchos: unicos }, descartados };
   }
-  const atual = `${v.gancho ?? ""}\n${v.texto ?? ""}`;
   const itens = (Array.isArray(e.itens) ? e.itens : [])
     .filter((x): x is Item => !!x && typeof x === "object")
     .slice(0, 8)
     .map((x) => ({
+      campo: x.campo === "gancho" ? ("gancho" as const) : ("texto" as const),
       trecho: typeof x.trecho === "string" ? x.trecho.slice(0, 400) : "",
       problema: corta(x.problema, 300) ?? "",
       troca: typeof x.troca === "string" ? x.troca.slice(0, 400) : "",
     }));
-  const bons = itens.filter((x) => x.trecho.length >= 2 && atual.includes(x.trecho) && x.problema);
+  // A troca só entra se o trecho aparece uma vez no campo (a mesma regra do banco ao usar).
+  const vezes = (campo: string, t: string) => campo.split(t).length - 1;
+  const bons = itens.filter(
+    (x) =>
+      x.trecho.length >= 2 &&
+      x.problema &&
+      vezes(x.campo === "gancho" ? (v.gancho ?? "") : (v.texto ?? ""), x.trecho) === 1,
+  );
   if (bons.length < itens.length)
-    descartados.push(`${itens.length - bons.length} trecho(s) que não estão no texto`);
+    descartados.push(
+      `${itens.length - bons.length} trecho(s) que não estão no campo ou aparecem mais de uma vez`,
+    );
   return { conteudo: { itens: bons, resumo: corta(e.resumo, 400) ?? "" }, descartados };
 }
 
@@ -390,7 +411,7 @@ export function validar(tipo: Tipo, e: EntradaIA, c: Contexto): Validado | null 
 export function baseDaSugestao(c: Contexto, descartados: string[]) {
   return {
     instrucoes: VERSAO_INSTRUCOES,
-    modelo: MODELO,
+    modelo: c.modelo,
     usou: [
       "ideia central",
       "briefing",
@@ -401,4 +422,35 @@ export function baseDaSugestao(c: Contexto, descartados: string[]) {
     ],
     descartados,
   };
+}
+
+// ---------------------------------------------------------------------
+// Servidor
+// ---------------------------------------------------------------------
+export const API_ANTHROPIC = "https://api.anthropic.com/v1/messages";
+
+/**
+ * Endereço da API. A troca (servidor falso) só vale com o Supabase local: em produção a chave
+ * nunca vai para outro endereço, mesmo que a variável seja copiada por engano.
+ */
+export function enderecoDaIA(supabaseUrl: string, troca: string | undefined): string {
+  const local = /^http:\/\/(kong:8000|127\.0\.0\.1:[0-9]+|localhost:[0-9]+)$/.test(supabaseUrl);
+  return local && troca ? troca : API_ANTHROPIC;
+}
+
+/** Erros do banco que a tela sabe explicar. O resto vira "falha" (sem detalhe interno). */
+const ERROS_PUBLICOS = [
+  "teto_mensal",
+  "limite_diario",
+  "briefing_incompleto",
+  "sem_texto_para_revisar",
+  "tipo_invalido",
+  "versao_inexistente",
+  "versao_publicada",
+  "preco_do_modelo",
+  "sem_permissao",
+  "precisa_codigo",
+] as const;
+export function erroPublico(mensagem: string): string {
+  return ERROS_PUBLICOS.find((e) => mensagem.includes(e)) ?? "falha";
 }

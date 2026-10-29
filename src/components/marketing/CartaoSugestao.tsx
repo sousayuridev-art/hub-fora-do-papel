@@ -194,7 +194,9 @@ export function CartaoSugestao({
                     <s className="text-sit-risco-t">{x.trecho}</s> →{" "}
                     <b className="font-semibold">{x.troca || "(tirar)"}</b>
                   </p>
-                  <p className="text-[13px] text-hub-suave">{x.problema}</p>
+                  <p className="text-[13px] text-hub-suave">
+                    {x.campo === "gancho" ? "No gancho" : "No texto"}: {x.problema}
+                  </p>
                   {usados.has(marcaOpcao(s, i)) ? (
                     <span className="flex min-h-9 items-center gap-1 text-[13px] text-sit-ok-t">
                       <Check className="size-4" aria-hidden="true" /> Trocado

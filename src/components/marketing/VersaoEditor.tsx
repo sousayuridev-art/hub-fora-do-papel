@@ -87,13 +87,13 @@ export function VersaoEditor({
   const { links, falhou: linksFalharam } = useLinksArquivos((v.midias ?? []).map((m) => m.caminho));
   const publicada = !!v.published_at;
   // Rascunhos: seguem o banco, mas guardam o que foi digitado se a gravação falhar.
-  const [gancho, setGancho, marcarGancho] = useRascunho(v.hook ?? "");
-  const [texto, setTexto, marcarTexto] = useRascunho(v.body ?? "");
-  const [hashtags, setHashtags, marcarHashtags] = useRascunho(v.hashtags ?? "");
+  const [gancho, setGancho, marcarGancho, liberarGancho] = useRascunho(v.hook ?? "");
+  const [texto, setTexto, marcarTexto, liberarTexto] = useRascunho(v.body ?? "");
+  const [hashtags, setHashtags, marcarHashtags, liberarHashtags] = useRascunho(v.hashtags ?? "");
   const roteiroSalvo = roteiroEmTexto(v.script);
   const slidesSalvos = slidesEmTexto(v.slides);
-  const [roteiroT, setRoteiroT, marcarRoteiro] = useRascunho(roteiroSalvo);
-  const [slidesT, setSlidesT, marcarSlides] = useRascunho(slidesSalvos);
+  const [roteiroT, setRoteiroT, marcarRoteiro, liberarRoteiro] = useRascunho(roteiroSalvo);
+  const [slidesT, setSlidesT, marcarSlides, liberarSlides] = useRascunho(slidesSalvos);
   const roteiro = roteiroDoTexto(roteiroT);
   const slides = slidesDoTexto(slidesT);
 
@@ -253,7 +253,19 @@ export function VersaoEditor({
           </div>
         </fieldset>
 
-        <SugestoesIA v={v} faltaBriefing={faltaBriefing} ocupado={ocupado} />
+        <SugestoesIA
+          v={v}
+          faltaBriefing={faltaBriefing}
+          ocupado={ocupado}
+          aoUsar={() => {
+            // O texto mudou no banco pela sugestão: os campos voltam a mostrar o que está lá.
+            liberarGancho();
+            liberarTexto();
+            liberarHashtags();
+            liberarRoteiro();
+            liberarSlides();
+          }}
+        />
 
         <section aria-label="Arquivos" className="flex flex-col gap-2">
           <h3 className="text-[14px] font-medium">Arquivos</h3>
