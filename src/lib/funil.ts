@@ -126,6 +126,9 @@ export type ResumoFunil = {
   propostas_sem_resposta: number;
   ganho_mes: { quantidade: number; soma_cents: number };
   perdidos_mes: number;
+  com_proposta: number;
+  /** Ganho dos últimos 6 meses, do mais antigo ao atual. */
+  ganho_serie: number[];
   /** null quando não houve ganho nem perda em 90 dias. */
   taxa_ganho_90: number | null;
   filtros: Record<FiltroFunil, number>;

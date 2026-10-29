@@ -1,7 +1,7 @@
 -- RD2-2: v_funil com proposta e serviço adicional; números do topo e filtros novos.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(12);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -44,6 +44,9 @@ select is((public.funil_resumo() ->> 'taxa_ganho_90')::int, 50, 'Taxa de ganho: 
 select is((public.funil_resumo() -> 'filtros' ->> 'adicionais')::int, 1, 'Filtro serviço adicional');
 select is((public.funil_resumo('fechados') -> 'etapas' -> 'fechado' ->> 'quantidade')::int, 1, 'Filtro Fechados');
 select is((public.funil_resumo() -> 'etapas' -> 'fechado' ->> 'quantidade')::int, 0, 'Quadro sem Fechado');
+
+select is(jsonb_array_length(public.funil_resumo() -> 'ganho_serie'), 6, 'Série de 6 meses');
+select is((public.funil_resumo() -> 'ganho_serie' ->> 5)::int, 500000, 'Último ponto é o mês atual');
 
 select * from finish();
 rollback;
