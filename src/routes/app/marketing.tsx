@@ -16,6 +16,7 @@ import { ListaProducao } from "@/components/marketing/ListaProducao";
 import { NovaPecaPainel } from "@/components/marketing/NovaPecaPainel";
 import { PecaPainel } from "@/components/marketing/PecaPainel";
 import { QuadroProducao } from "@/components/marketing/QuadroProducao";
+import { ResultadosConteudo } from "@/components/marketing/ResultadosConteudo";
 import { useAvisoDeErro } from "@/components/marketing/useAvisoDeErro";
 import { useLinksArquivos } from "@/components/marketing/useLinksArquivos";
 import { useMutacoesMarketing } from "@/components/marketing/useMutacoesMarketing";
@@ -42,11 +43,11 @@ export const Route = createFileRoute("/app/marketing")({
   component: CentralConteudo,
 });
 
-type Aba = "producao" | "calendario" | "campanhas";
+type Aba = "producao" | "calendario" | "campanhas" | "resultados";
 
 /**
  * Central de conteúdo (MK-1): da ideia à publicação, com uma versão por canal, revisão da marca,
- * aprovação registrada, calendário e campanhas. Filtros, aba e peça aberta ficam no endereço.
+ * aprovação registrada, calendário, campanhas e resultados (MK-4). Filtros, aba e peça aberta ficam no endereço.
  */
 function CentralConteudo() {
   const busca = Route.useSearch();
@@ -131,12 +132,13 @@ function CentralConteudo() {
                 contagem: r?.agendadas_semana || undefined,
               },
               { id: "campanhas", rotulo: "Campanhas", contagem: campanhas.data?.length },
+              { id: "resultados", rotulo: "Resultados" },
             ]}
           />
         }
       />
 
-      {r && (
+      {r && aba !== "resultados" && (
         <FaixaNumeros
           itens={[
             { rotulo: "Em planejamento", valor: r.planejamento },
@@ -219,6 +221,16 @@ function CentralConteudo() {
             />
           )}
         </>
+      )}
+
+      {aba === "resultados" && hoje && (
+        <ResultadosConteudo
+          periodo={busca.periodo ?? "30"}
+          agrupar={busca.agrupar ?? "pilar"}
+          hoje={hoje}
+          aoMudar={mudar}
+          aoAbrir={(id) => painel.abrir(id)}
+        />
       )}
 
       {aba === "calendario" && (

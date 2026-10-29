@@ -106,6 +106,20 @@ export function VersoesPeca({
         )}
       </div>
 
+      {p.versoes.some((x) => x.published_at) && (
+        <p className="rounded-xl bg-hub-fundo px-3 py-2 text-[13.5px] tabular-nums text-hub-suave">
+          Esta peça trouxe{" "}
+          <b className="font-semibold text-hub-tinta">
+            {(p.contatos ?? 0).toLocaleString("pt-BR")}
+          </b>{" "}
+          contato(s) e{" "}
+          <b className="font-semibold text-hub-tinta">
+            {(p.negocios_fechados ?? 0).toLocaleString("pt-BR")}
+          </b>{" "}
+          negócio(s) fechado(s).
+        </p>
+      )}
+
       {novo && (
         <form
           className="flex flex-col gap-3 rounded-2xl border border-hub-borda p-4 sm:flex-row sm:items-end"

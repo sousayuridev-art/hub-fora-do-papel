@@ -89,6 +89,10 @@ export type Versao = {
   position: number;
   /** Arquivos da versão (MK-2), na ordem; o caminho serve para pedir o link temporário. */
   midias: Midia[];
+  /** MK-4: código de rastreio, link do site com UTM (nulo sem site da agência) e contatos ligados. */
+  codigo?: string;
+  link?: string | null;
+  contatos?: number;
 };
 
 export type PapelMidia = "slide" | "capa" | "imagem" | "video" | "documento";
@@ -153,7 +157,12 @@ export type EventoPeca = {
   quando: string;
 };
 
-export type PecaDetalhe = Peca & { historico: EventoPeca[] };
+export type PecaDetalhe = Peca & {
+  historico: EventoPeca[];
+  /** MK-4: contatos e negócios fechados com esta peça como origem (contados no banco). */
+  contatos?: number;
+  negocios_fechados?: number;
+};
 export type ListaPecas = { hoje: string; itens: Peca[] };
 
 export type ResumoMarketing = {
@@ -451,7 +460,13 @@ export async function linksDosArquivos(caminhos: string[]): Promise<Record<strin
 // ----------------------------------------------------------------------------
 
 export const buscaMarketing = z.object({
-  aba: z.enum(["producao", "calendario", "campanhas"]).optional(),
+  aba: z.enum(["producao", "calendario", "campanhas", "resultados"]).optional(),
+  /** Aba Resultados (MK-4): "30", "90" (dias) ou um mês "AAAA-MM". */
+  periodo: z
+    .string()
+    .regex(/^(30|90|\d{4}-\d{2})$/)
+    .optional(),
+  agrupar: z.enum(["pilar", "canal", "objetivo", "formato", "campanha"]).optional(),
   peca: z.string().uuid().optional(),
   campanha: z.string().uuid().optional(),
   canal: z.string().max(20).optional(),
@@ -508,6 +523,13 @@ export const chavesMarketing = {
   links: (caminhos: string[]) => ["marketing", "links", caminhos] as const,
   materiais: ["marketing", "materiais"] as const,
   sugestoes: (versao: string) => ["marketing", "sugestoes", versao] as const,
+  resultados: (inicio: string, fim: string, agrupar: Agrupar) =>
+    ["marketing", "resultados", inicio, fim, agrupar] as const,
+  destaques: (inicio: string, fim: string) => ["marketing", "destaques", inicio, fim] as const,
+  todosResultados: ["marketing", "resultados"] as const,
+  todosDestaques: ["marketing", "destaques"] as const,
+  origemCliente: (cliente: string) => ["marketing", "origem-cliente", cliente] as const,
+  publicadas: (busca: string) => ["marketing", "publicadas", busca] as const,
   usoIA: ["marketing", "uso-ia"] as const,
 };
 
@@ -804,6 +826,109 @@ export async function pedirSugestao(versao: string, tipo: TipoSugestao): Promise
   return (data as { sugestao: Sugestao }).sugestao;
 }
 
+// ---------------------------------------------------------------------
+// Resultados e aprendizado (MK-4)
+// ---------------------------------------------------------------------
+export type Agrupar = "pilar" | "canal" | "objetivo" | "formato" | "campanha";
+export const rotuloAgrupar: Record<Agrupar, string> = {
+  pilar: "Pilar",
+  canal: "Canal",
+  objetivo: "Objetivo",
+  formato: "Formato",
+  campanha: "Campanha",
+};
+export type SomasResultado = {
+  versoes: number;
+  com_resultado: number;
+  alcance: number;
+  salvamentos: number;
+  cliques: number;
+  mensagens: number;
+  contatos: number;
+  negocios_fechados: number;
+  valor_fechado: number;
+  /** Calculado no banco; nulo quando o alcance é zero. */
+  salvamentos_por_mil: number | null;
+};
+export type LinhaResultado = SomasResultado & { chave: string | null; nome: string | null };
+export type ResultadosConteudo = {
+  inicio: string;
+  fim: string;
+  agrupar: Agrupar;
+  totais: SomasResultado;
+  grupos: LinhaResultado[];
+};
+export type DestaquesConteudo = {
+  por_contatos: { peca_id: string; titulo: string; contatos: number }[];
+  por_salvamentos: {
+    peca_id: string;
+    titulo: string;
+    alcance: number;
+    salvamentos_por_mil: number;
+  }[];
+  falta_registrar: {
+    peca_id: string;
+    titulo: string;
+    versao_id: string;
+    canal: string;
+    canal_nome: string | null;
+    publicada_em: string;
+  }[];
+};
+export type VersaoPublicada = {
+  versao_id: string;
+  codigo: string;
+  peca_id: string;
+  titulo: string;
+  canal: string;
+  canal_nome: string | null;
+  formato: Formato;
+  publicada_em: string | null;
+};
+export type OrigemCliente = { manual: boolean; peca: VersaoPublicada | null };
+
+const doisDigitos = (n: number) => String(n).padStart(2, "0");
+const diaIso = (d: Date) =>
+  `${d.getUTCFullYear()}-${doisDigitos(d.getUTCMonth() + 1)}-${doisDigitos(d.getUTCDate())}`;
+
+/** Período da aba Resultados em datas (AAAA-MM-DD), a partir de "hoje" no fuso do tenant. */
+export function intervaloDoPeriodo(periodo: string, hoje: string): { inicio: string; fim: string } {
+  if (/^\d{4}-\d{2}$/.test(periodo)) {
+    const [a, m] = periodo.split("-").map(Number) as [number, number];
+    const fim = new Date(Date.UTC(a, m, 0));
+    return { inicio: `${periodo}-01`, fim: diaIso(fim) };
+  }
+  const dias = periodo === "90" ? 90 : 30;
+  const f = new Date(`${hoje}T00:00:00Z`);
+  const i = new Date(f.getTime() - (dias - 1) * 86_400_000);
+  return { inicio: diaIso(i), fim: hoje };
+}
+
+/** Nome da linha da tabela: rótulos do manual, nome do canal ou da campanha. */
+export function nomeDoGrupo(agrupar: Agrupar, l: LinhaResultado): string {
+  if (l.chave === null)
+    return agrupar === "campanha"
+      ? "Sem campanha"
+      : agrupar === "pilar"
+        ? "Sem pilar"
+        : "Sem objetivo";
+  if (agrupar === "pilar") return rotuloPilar[l.chave as Pilar] ?? l.chave;
+  if (agrupar === "objetivo") return rotuloObjetivo[l.chave as Objetivo] ?? l.chave;
+  if (agrupar === "formato") return rotuloFormato[l.chave as Formato] ?? l.chave;
+  return l.nome ?? l.chave;
+}
+
+export const resultadosConteudo = (inicio: string, fim: string, agrupar: Agrupar) =>
+  rpc<ResultadosConteudo>("mkt_resultados", { p_inicio: inicio, p_fim: fim, p_agrupar: agrupar });
+export const destaquesConteudo = (inicio: string, fim: string) =>
+  rpc<DestaquesConteudo>("mkt_resultados_destaques", { p_inicio: inicio, p_fim: fim });
+export const origemDoCliente = (cliente: string) =>
+  rpc<OrigemCliente>("mkt_cliente_origem", { p_cliente: cliente });
+export const definirOrigemDoCliente = (cliente: string, versao: string | null) =>
+  rpc<OrigemCliente>("mkt_cliente_origem_definir", { p_cliente: cliente, p_versao: versao });
+export const versoesPublicadas = (busca: string) =>
+  rpc<VersaoPublicada[]>("mkt_versoes_publicadas", { p_busca: busca || null });
+
 /** Erros do banco em português (o detalhe diz o que falta nas portas). */
 export function mensagemDoMarketing(e: unknown): string | null {
   const obj = (e ?? {}) as { message?: string; details?: string };
@@ -833,7 +958,8 @@ export function mensagemDoMarketing(e: unknown): string | null {
     campanha_inexistente: "Essa campanha não existe mais.",
     cliente_inexistente: "Esse cliente não existe mais.",
     autorizacao_sem_cliente: "Escolha o cliente antes de marcar a autorização.",
-    periodo_invalido: "Período do calendário inválido.",
+    periodo_invalido: "Período inválido. Escolha outro período.",
+    agrupamento_invalido: "Esse agrupamento não existe. Recarregue a página.",
     tipo_do_arquivo: "Esse tipo de arquivo não serve nesse lugar (ex.: PDF não entra como slide).",
     material_inexistente:
       "Esse arquivo não existe mais em Materiais ou ainda não terminou de subir.",

@@ -5,6 +5,7 @@ import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
 import { ArquivosVersao, type AcoesArquivos } from "@/components/marketing/ArquivosVersao";
 import { AvisosMarca } from "@/components/marketing/AvisosMarca";
 import { PreviaVersao } from "@/components/marketing/PreviaVersao";
+import { LinkRastreio } from "@/components/marketing/LinkRastreio";
 import { PublicacaoVersao } from "@/components/marketing/PublicacaoVersao";
 import { RoteiroEditor } from "@/components/marketing/RoteiroEditor";
 import { SlidesEditor } from "@/components/marketing/SlidesEditor";
@@ -287,6 +288,7 @@ export function VersaoEditor({
 
         <section aria-label="Agenda e publicação" className="flex flex-col gap-2">
           <h3 className="text-[14px] font-medium">Agenda e publicação</h3>
+          <LinkRastreio v={v} />
           <PublicacaoVersao
             key={`${v.id}-${v.published_at ?? ""}-${v.scheduled_at ?? ""}`}
             v={v}
