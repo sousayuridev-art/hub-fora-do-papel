@@ -61,6 +61,7 @@ export function VersaoEditor({
   aoRegistrar,
   arquivos,
   clienteDaPeca,
+  clienteAutorizou,
   enviando,
   ocupado,
 }: {
@@ -75,10 +76,11 @@ export function VersaoEditor({
   aoRegistrar: (r: Resultados) => void;
   arquivos: AcoesArquivos;
   clienteDaPeca: string | null;
+  clienteAutorizou: boolean;
   enviando: boolean;
   ocupado: boolean;
 }) {
-  const { links } = useLinksArquivos((v.midias ?? []).map((m) => m.caminho));
+  const { links, falhou: linksFalharam } = useLinksArquivos((v.midias ?? []).map((m) => m.caminho));
   const publicada = !!v.published_at;
   // Rascunhos: seguem o banco, mas guardam o que foi digitado se a gravação falhar.
   const [gancho, setGancho, marcarGancho] = useRascunho(v.hook ?? "");
@@ -252,6 +254,7 @@ export function VersaoEditor({
           <ArquivosVersao
             v={v}
             clienteDaPeca={clienteDaPeca}
+            clienteAutorizou={clienteAutorizou}
             links={links}
             acoes={arquivos}
             enviando={enviando}
@@ -282,6 +285,7 @@ export function VersaoEditor({
         <PreviaVersao
           v={{ ...v, hook: gancho, body: texto, script: roteiro, slides }}
           links={links}
+          falhou={linksFalharam}
         />
       </aside>
     </div>

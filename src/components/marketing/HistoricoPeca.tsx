@@ -23,6 +23,10 @@ function frase(e: EventoPeca): string {
       return "Publicada";
     case "resultados":
       return "Resultados registrados";
+    case "midia_ligada":
+      return "Arquivo ligado";
+    case "midia_removida":
+      return "Arquivo tirado da versão";
   }
 }
 

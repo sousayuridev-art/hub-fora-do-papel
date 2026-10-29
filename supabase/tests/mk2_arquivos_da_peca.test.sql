@@ -2,7 +2,7 @@
 -- ordem, arquivo do cliente, aprovação desfeita ao trocar arquivo e isolamento.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(51);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -88,21 +88,62 @@ select is((public.mkt_midia_remover((select id from public.mkt_version_media whe
             and material_id = '70000000-0000-0000-0000-000000000002'))) ->> 'stage', 'aprovacao', 'Remover slide de peça aprovada volta para Aprovação');
 
 -- Lixeira bloqueia a aprovação
-select lives_ok($$ select public.material_lixeira('70000000-0000-0000-0000-000000000004', true) $$, 'Vídeo vai para a lixeira');
+select lives_ok($$ select public.material_lixeira('70000000-0000-0000-0000-000000000003', true) $$, 'Slide 3 vai para a lixeira');
+select ok(((public.mkt_peca_detalhe(current_setting('teste.peca')::uuid)) -> 'falta') ? 'restaurar da lixeira um arquivo da peça',
+  'Arquivo na lixeira (com o slide exigido ainda presente) bloqueia a aprovação');
 select throws_ok(format($$ select public.mkt_peca_aprovar(%L) $$, current_setting('teste.peca')),
-  '22023', 'revisao_pendente', 'Arquivo na lixeira bloqueia a aprovação');
+  '22023', 'revisao_pendente', 'E a aprovação é recusada');
+select lives_ok($$ select public.material_lixeira('70000000-0000-0000-0000-000000000003', false) $$, 'Slide 3 restaurado');
 
+select lives_ok($$ select public.material_lixeira('70000000-0000-0000-0000-000000000004', true) $$, 'Vídeo vai para a lixeira');
 select throws_ok($$ select public.material_excluir('70000000-0000-0000-0000-000000000004') $$,
   '22023', 'material_em_uso', 'Arquivo usado numa peça não é excluído de vez');
 select ok(not public._material_pode_apagar('t/4/v.mp4'), 'O Storage também recusa apagar o arquivo em uso');
 
 -- Foto do cliente na peça do cliente
 select lives_ok(format($$ select public.mkt_peca_editar(%L, '{"cliente":"20000000-0000-0000-0000-000000000001"}') $$, current_setting('teste.peca')), 'Peça do cliente');
+select throws_ok(format($$ select public.mkt_midia_ligar(%L, '70000000-0000-0000-0000-000000000006', 'slide') $$, current_setting('teste.car')),
+  '22023', 'autorizacao_do_cliente', 'Sem a autorização marcada, a foto do cliente não entra');
+select lives_ok(format($$ select public.mkt_peca_editar(%L, '{"autorizacao":true}') $$, current_setting('teste.peca')), 'Autorização marcada');
 select lives_ok(format($$ select public.mkt_midia_ligar(%L, '70000000-0000-0000-0000-000000000006', 'slide') $$, current_setting('teste.car')),
-  'Foto do cliente entra na peça dele');
+  'Com autorização, a foto do cliente entra na peça dele');
+select lives_ok(format($$ select public.mkt_peca_editar(%L, '{"cliente":"20000000-0000-0000-0000-000000000002","autorizacao":true}') $$, current_setting('teste.peca')),
+  'Peça passa para outro cliente');
+select ok(((public.mkt_peca_detalhe(current_setting('teste.peca')::uuid)) -> 'falta') ? 'trocar os arquivos de outro cliente',
+  'Foto do cliente anterior bloqueia a aprovação');
+
+-- Ligar e ordenar também desfazem a aprovação
+select set_config('teste.p2', (public.mkt_peca_criar('Post simples', '[{"canal":"instagram","formato":"post_unico"}]')) ->> 'id', true);
+select set_config('teste.p2v', (select id::text from public.mkt_versions where piece_id = current_setting('teste.p2')::uuid), true);
+select lives_ok(format($$ select public.mkt_peca_editar(%L, '{"objetivo":"alcance","funil":"descoberta","pilar":"bastidores","ideia":"Uma tela do Hub em uso."}') $$,
+  current_setting('teste.p2')), 'Briefing da peça 2');
+select lives_ok(format($$ select public.mkt_versao_editar(%L, '{"texto":"Texto"}') $$, current_setting('teste.p2v')), 'Texto da peça 2');
+select lives_ok(format($$ select public.mkt_midia_ligar(%L, '70000000-0000-0000-0000-000000000001', 'imagem') $$, current_setting('teste.p2v')), 'Imagem da peça 2');
+select lives_ok(format($$ select public.mkt_peca_mover(%L, 'aprovacao') $$, current_setting('teste.p2')), 'Peça 2 em Aprovação');
+select lives_ok(format($$ select public.mkt_peca_aprovar(%L) $$, current_setting('teste.p2')), 'Peça 2 aprovada');
+select is((public.mkt_midia_ligar(current_setting('teste.p2v')::uuid, '70000000-0000-0000-0000-000000000002', 'imagem')) ->> 'stage',
+  'aprovacao', 'Ligar arquivo em peça aprovada volta para Aprovação');
+select lives_ok(format($$ select public.mkt_peca_aprovar(%L) $$, current_setting('teste.p2')), 'Peça 2 aprovada de novo');
+select is((public.mkt_midia_ordenar(current_setting('teste.p2v')::uuid, (select array_agg(id order by position desc) from public.mkt_version_media
+            where version_id = current_setting('teste.p2v')::uuid))) ->> 'stage', 'aprovacao', 'Ordenar em peça aprovada volta para Aprovação');
+select is((select array_agg(position order by position) from public.mkt_version_media where version_id = current_setting('teste.p2v')::uuid),
+  array[0, 1]::smallint[], 'Posições ficam de 0 a n-1');
+
+-- Versão publicada sem arquivo não trava a aprovação das outras (peças de antes do MK-2)
+select set_config('teste.p3', (public.mkt_peca_criar('Antes do MK-2', '[{"canal":"instagram","formato":"reels"},{"canal":"linkedin","formato":"texto"}]')) ->> 'id', true);
+reset role;
+update public.mkt_versions set body = 'Texto', published_at = now() - interval '1 day', published_url = 'https://instagram.com/p/x'
+ where piece_id = current_setting('teste.p3')::uuid and format = 'reels';
+update public.mkt_versions set body = 'Texto' where piece_id = current_setting('teste.p3')::uuid and format = 'texto';
+update public.mkt_pieces set objective = 'alcance', funnel = 'descoberta', pillar = 'bastidores', core_idea = 'Peça publicada pela metade.', stage = 'aprovacao'
+ where id = current_setting('teste.p3')::uuid;
+set local role authenticated;
+select is((public.mkt_peca_detalhe(current_setting('teste.p3')::uuid)) -> 'falta', '[]'::jsonb, 'Reels publicado sem arquivo não exige vídeo');
+select lives_ok(format($$ select public.mkt_peca_aprovar(%L) $$, current_setting('teste.p3')), 'A peça publicada pela metade é aprovada');
 
 -- Isolamento
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated","aal":"aal2"}', true);
+select is((select count(*)::int from public.mkt_version_media), 0, 'Dono de outro tenant não lê os arquivos das peças');
 select throws_ok(format($$ select public.mkt_midia_ligar(%L, '70000000-0000-0000-0000-000000000007', 'slide') $$, current_setting('teste.car')),
   'P0002', 'versao_inexistente', 'Dono de outro tenant não liga arquivo na peça');
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);

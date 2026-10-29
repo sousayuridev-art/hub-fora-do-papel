@@ -79,10 +79,12 @@ function Carrossel({
   slides,
   links,
   vertical,
+  falhou,
 }: {
   slides: Midia[];
   links: Record<string, string>;
   vertical: boolean;
+  falhou: boolean;
 }) {
   const [i, setI] = useState(0);
   const atual = slides[Math.min(i, slides.length - 1)];
@@ -97,7 +99,7 @@ function Carrossel({
           <img src={src} alt={atual?.titulo ?? ""} className="size-full object-cover" />
         ) : (
           <span className="flex size-full items-center justify-center text-[13px] text-hub-suave">
-            Carregando…
+            {falhou ? "Não conseguimos carregar a imagem." : "Carregando…"}
           </span>
         )}
         {atual?.na_lixeira && (
@@ -140,10 +142,12 @@ function Real({
   v,
   links,
   vertical,
+  falhou,
 }: {
   v: Versao;
   links: Record<string, string>;
   vertical: boolean;
+  falhou: boolean;
 }) {
   const midias = v.midias ?? [];
   const video = midias.find((m) => m.papel === "video");
@@ -175,7 +179,10 @@ function Real({
       </div>
     );
   }
-  if (imagens.length > 0) return <Carrossel slides={imagens} links={links} vertical={vertical} />;
+  if (imagens.length > 0)
+    return <Carrossel slides={imagens} links={links} vertical={vertical} falhou={falhou} />;
+  // Só a capa (o vídeo ainda não foi ligado): mostra a capa.
+  if (capa) return <Carrossel slides={[capa]} links={links} vertical={vertical} falhou={falhou} />;
   if (pdf) {
     const src = pdf.caminho ? links[pdf.caminho] : undefined;
     return (
@@ -197,7 +204,15 @@ function Real({
  * Prévia por canal: com arquivo (MK-2), a peça real (slides, imagem, vídeo com a área segura,
  * PDF); sem arquivo, a capa com o gancho (MK-1). Embaixo, o texto até onde a rede corta.
  */
-export function PreviaVersao({ v, links = {} }: { v: Versao; links?: Record<string, string> }) {
+export function PreviaVersao({
+  v,
+  links = {},
+  falhou = false,
+}: {
+  v: Versao;
+  links?: Record<string, string>;
+  falhou?: boolean;
+}) {
   const vertical = ehVideo(v.format) && v.format !== "video_longo";
   const titulo =
     (ehSlides(v.format) ? v.slides[0]?.titulo : null) ||
@@ -212,7 +227,7 @@ export function PreviaVersao({ v, links = {} }: { v: Versao; links?: Record<stri
     <figure className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-[#FAFAF7] p-3">
       <div className={vertical ? "mx-auto w-[220px]" : "mx-auto w-full max-w-[300px]"}>
         {(v.midias?.length ?? 0) > 0 ? (
-          <Real v={v} links={links} vertical={vertical} />
+          <Real v={v} links={links} vertical={vertical} falhou={falhou} />
         ) : v.format === "texto" || v.format === "artigo" ? null : (
           <Capa titulo={titulo} vertical={vertical} />
         )}

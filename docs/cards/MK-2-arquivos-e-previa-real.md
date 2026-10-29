@@ -2,7 +2,7 @@
 
 > **Origem:** PRD `docs/cards/MK-0-central-de-marketing-prd.md`, entrega MK-2 (29/10/2026).
 > **Depende de:** MK-1 (Central de conteúdo) e S8 (Materiais, Storage privado `materiais`).
-> **Decisões propostas (Yuri aprova antes do código):** os arquivos continuam morando em Materiais, numa categoria nova; a versão só aponta para eles. Formato visual sem arquivo não vai para aprovação.
+> **Decisões (Yuri, 29/10):** os arquivos continuam morando em Materiais, numa categoria nova; a versão só aponta para eles. Formato visual sem arquivo não vai para aprovação.
 
 **Objetivo:** cada versão mostra os arquivos de verdade (slides, imagem, vídeo ou PDF), na ordem certa e no formato da rede. Assim a aprovação é feita olhando a peça como ela vai sair, e os arquivos não se perdem fora do Hub.
 
@@ -66,17 +66,24 @@
 
 ## Critérios de aceite
 
-- [ ] **Envio do computador:** dado um carrossel do Instagram, quando envio 6 imagens, então elas aparecem na ordem do envio e a prévia passa slide a slide.
-- [ ] **Ordem:** subir o slide 3 muda a ordem na prévia e continua igual depois de recarregar.
-- [ ] **Porta da aprovação:** Reels sem vídeo não entra em Aprovação, e a tela diz "falta: vídeo".
-- [ ] **Lixeira:** mandar para a lixeira um arquivo usado numa versão em Aprovação bloqueia a aprovação, com o aviso.
-- [ ] **Depois da aprovação:** trocar um slide de peça aprovada volta a peça para Aprovação.
-- [ ] **Tipo errado:** PDF não entra como slide, e mp4 não entra como capa.
-- [ ] **Isolamento:**
+- [x] **Envio do computador:** dado um carrossel do Instagram, quando envio 6 imagens, então elas aparecem na ordem do envio e a prévia passa slide a slide.
+- [x] **Ordem:** subir o slide 3 muda a ordem na prévia e continua igual depois de recarregar.
+- [x] **Porta da aprovação:** Reels sem vídeo não entra em Aprovação, e a tela diz "falta: vídeo".
+- [x] **Lixeira:** mandar para a lixeira um arquivo usado numa versão em Aprovação bloqueia a aprovação, com o aviso.
+- [x] **Depois da aprovação:** trocar um slide de peça aprovada volta a peça para Aprovação.
+- [x] **Tipo errado:** PDF não entra como slide, e mp4 não entra como capa.
+- [x] **Isolamento:**
   - dono de outro tenant não liga arquivo seu nem vê os arquivos da peça;
   - cliente do portal não lê `mkt_version_media`.
-- [ ] **Sem rede:** remover um arquivo volta à lista com "Tentar de novo".
-- [ ] **Conferência:** `supabase test db`, `bun run build`, `bun run lint` e `bun run test` passam.
+- [x] **Sem rede:** remover um arquivo volta à lista com "Tentar de novo".
+- [x] **Conferência:** `supabase test db`, `bun run build`, `bun run lint` e `bun run test` passam.
+
+## Decidido na revisão (29/10)
+
+- **Versão já publicada** fica fora das exigências de arquivo, lixeira e cliente: peças publicadas antes do MK-2 continuam sendo aprovadas.
+- **Foto do cliente** só entra com o cliente ligado à peça **e** a autorização marcada (o banco recusa já ao ligar, não só na aprovação).
+- **Arquivo na lixeira** aparece como aviso na versão em qualquer etapa antes da publicação.
+- **"Tentar de novo" no envio** manda só os arquivos que faltaram.
 
 ## Para o Yuri depois de publicar
 

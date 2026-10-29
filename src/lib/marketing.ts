@@ -143,7 +143,9 @@ export type EventoPeca = {
     | "versao_removida"
     | "agendada"
     | "publicada"
-    | "resultados";
+    | "resultados"
+    | "midia_ligada"
+    | "midia_removida";
   de: Etapa | null;
   para: Etapa | null;
   nota: string | null;
@@ -738,8 +740,9 @@ export function mensagemDoMarketing(e: unknown): string | null {
     material_inexistente:
       "Esse arquivo não existe mais em Materiais ou ainda não terminou de subir.",
     material_na_lixeira: "Esse arquivo está na lixeira de Materiais. Restaure antes de usar.",
-    arquivo_de_outro_cliente:
-      "Foto enviada por um cliente só entra na peça ligada a esse cliente (com a autorização marcada).",
+    arquivo_de_outro_cliente: "Foto enviada por um cliente só entra na peça ligada a esse cliente.",
+    autorizacao_do_cliente:
+      "Marque no briefing que o cliente autorizou mostrar nome e telas antes de usar a foto dele.",
     arquivo_repetido: "Esse arquivo já está nesta versão.",
     arquivos_demais: "Uma versão tem no máximo 20 arquivos.",
     midia_inexistente: "Esse arquivo já saiu da versão. Recarregue a página.",

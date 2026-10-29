@@ -5,6 +5,7 @@ import { CampoEscolha } from "@/components/hub/Campo";
 import { SiglaCanal } from "@/components/marketing/SiglaCanal";
 import { VersaoEditor } from "@/components/marketing/VersaoEditor";
 import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
+import type { Material } from "@/lib/materiais";
 import {
   formatosDe,
   rotuloFormato,
@@ -26,7 +27,7 @@ export type AcoesVersao = {
   registrar: (id: string, r: Resultados) => void;
   /** Arquivos (MK-2) */
   enviarArquivos: (id: string, formato: Formato, arquivos: File[]) => void;
-  ligarArquivo: (id: string, material: string, papel: PapelMidia) => void;
+  ligarArquivo: (id: string, material: Material, papel: PapelMidia) => void;
   removerArquivo: (id: string, midia: string) => void;
   ordenarArquivos: (id: string, ids: string[]) => void;
 };
@@ -152,6 +153,7 @@ export function VersoesPeca({
           aoPublicar={(l, q) => acoes.publicar(ativa.id, l, q)}
           aoRegistrar={(r) => acoes.registrar(ativa.id, r)}
           clienteDaPeca={p.client_id}
+          clienteAutorizou={p.client_authorized}
           enviando={enviando}
           arquivos={{
             enviar: (fs) => acoes.enviarArquivos(ativa.id, ativa.format, fs),

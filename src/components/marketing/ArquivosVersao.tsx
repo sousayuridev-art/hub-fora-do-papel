@@ -12,7 +12,7 @@ import {
 
 import { EscolherArquivoPainel } from "@/components/marketing/EscolherArquivoPainel";
 import { classeAcaoTexto } from "@/lib/estilos";
-import { problemaDoArquivo, tipoDoArquivo } from "@/lib/materiais";
+import { problemaDoArquivo, tipoDoArquivo, type Material } from "@/lib/materiais";
 import {
   mimesDoPapel,
   papeisDoFormato,
@@ -28,7 +28,7 @@ import {
 
 export type AcoesArquivos = {
   enviar: (arquivos: File[]) => void;
-  ligar: (material: string, papel: PapelMidia) => void;
+  ligar: (material: Material, papel: PapelMidia) => void;
   remover: (id: string) => void;
   ordenar: (ids: string[]) => void;
 };
@@ -81,6 +81,7 @@ function Miniatura({
 export function ArquivosVersao({
   v,
   clienteDaPeca,
+  clienteAutorizou,
   links,
   acoes,
   enviando,
@@ -88,6 +89,7 @@ export function ArquivosVersao({
 }: {
   v: Versao;
   clienteDaPeca: string | null;
+  clienteAutorizou: boolean;
   links: Record<string, string>;
   acoes: AcoesArquivos;
   enviando: boolean;
@@ -106,6 +108,10 @@ export function ArquivosVersao({
     exigido &&
     !midias.some((m) => m.papel === exigido || (v.format === "documento" && m.papel === "slide"));
   const qtdFora = midias.filter((m) => foraDaProporcao[m.id]).length;
+  const naLixeira = !publicada && midias.some((m) => m.na_lixeira);
+  // Número do slide conta só os slides (a capa não entra na conta).
+  const numeroSlide = (id: string) =>
+    midias.filter((m) => m.papel === "slide").findIndex((m) => m.id === id) + 1;
 
   const mover = (i: number, passo: number) => {
     const j = i + passo;
@@ -143,6 +149,13 @@ export function ArquivosVersao({
         </p>
       )}
 
+      {naLixeira && (
+        <p className="flex items-start gap-2 rounded-xl bg-sit-risco px-3 py-2.5 text-[14px] text-sit-risco-t">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          Um arquivo desta versão está na lixeira de Materiais. Restaure ou troque antes de aprovar
+          e publicar.
+        </p>
+      )}
       {midias.length > 0 && (
         <ol aria-label="Arquivos da versão" className="flex flex-col gap-2">
           {midias.map((m, i) => (
@@ -160,7 +173,7 @@ export function ArquivosVersao({
                 <b className="truncate text-[14px] font-semibold">{m.titulo}</b>
                 <span className="text-[12.5px] text-hub-suave">
                   {rotuloPapel[m.papel]}
-                  {m.papel === "slide" ? ` ${i + 1}` : ""}
+                  {m.papel === "slide" ? ` ${numeroSlide(m.id)}` : ""}
                   {m.origem === "cliente" ? " · enviado pelo cliente" : ""}
                   {m.na_lixeira && <b className="text-sit-risco-t"> · na lixeira</b>}
                   {foraDaProporcao[m.id] && proporcao && (
@@ -257,9 +270,9 @@ export function ArquivosVersao({
         aberto={escolher}
         aoMudar={setEscolher}
         formato={v.format}
-        clienteDaPeca={clienteDaPeca}
+        clienteDaPeca={clienteAutorizou ? clienteDaPeca : null}
         jaLigados={midias.map((m) => m.material_id)}
-        aoEscolher={(m, papel) => acoes.ligar(m.id, papel)}
+        aoEscolher={(m, papel) => acoes.ligar(m, papel)}
       />
     </div>
   );

@@ -72,6 +72,7 @@ returns text language sql immutable set search_path = public as $$
 $$;
 
 -- O que falta nos arquivos para a aprovação (MK-2). Documento aceita o PDF ou slides em imagem.
+-- Versão já publicada fica de fora: o arquivo dela é opcional e não muda mais (revisão do MK-2).
 create or replace function public._mkt_falta_midia(p public.mkt_pieces)
 returns text[] language sql stable security definer set search_path = public as $$
   select coalesce(array_agg(distinct f) filter (where f is not null), '{}'::text[]) from (
@@ -85,17 +86,18 @@ returns text[] language sql stable security definer set search_path = public as 
            end as f
       from public.mkt_versions v
       left join public.mkt_channels c on c.tenant_id = v.tenant_id and c.slug = v.channel
-     where v.piece_id = p.id
+     where v.piece_id = p.id and v.published_at is null
     union all
-    select 'tirar da lixeira os arquivos da peça'
+    select 'restaurar da lixeira um arquivo da peça'
      where exists (select 1 from public.mkt_versions v join public.mkt_version_media x on x.version_id = v.id
                      join public.materials m on m.id = x.material_id
-                    where v.piece_id = p.id and m.deleted_at is not null)
+                    where v.piece_id = p.id and v.published_at is null and m.deleted_at is not null)
     union all
     select 'trocar os arquivos de outro cliente'
      where exists (select 1 from public.mkt_versions v join public.mkt_version_media x on x.version_id = v.id
                      join public.materials m on m.id = x.material_id
-                    where v.piece_id = p.id and m.origin = 'cliente' and m.client_id is distinct from p.client_id)
+                    where v.piece_id = p.id and v.published_at is null
+                      and m.origin = 'cliente' and m.client_id is distinct from p.client_id)
   ) t;
 $$;
 
@@ -150,9 +152,12 @@ begin
   if m.id is null or m.kind <> 'arquivo' or m.ready_at is null then raise exception 'material_inexistente' using errcode = 'P0002'; end if;
   if m.deleted_at is not null then raise exception 'material_na_lixeira' using errcode = '22023'; end if;
   if p_papel is null or not public._mkt_papel_aceita(p_papel, m.mime_type) then raise exception 'tipo_do_arquivo' using errcode = '22023'; end if;
-  -- Foto que o cliente enviou: só na peça daquele cliente (a autorização é conferida na aprovação).
+  -- Foto que o cliente enviou: só na peça daquele cliente e com a autorização marcada (decisão do Yuri).
   if m.origin = 'cliente' and m.client_id is distinct from p.client_id then
     raise exception 'arquivo_de_outro_cliente' using errcode = '22023';
+  end if;
+  if m.origin = 'cliente' and not p.client_authorized then
+    raise exception 'autorizacao_do_cliente' using errcode = '22023';
   end if;
   if exists (select 1 from public.mkt_version_media where version_id = v.id and material_id = m.id) then
     raise exception 'arquivo_repetido' using errcode = '22023';
@@ -162,7 +167,7 @@ begin
   end if;
   insert into public.mkt_version_media (tenant_id, version_id, material_id, role, position)
   values (v.tenant_id, v.id, m.id, p_papel,
-          coalesce((select max(position) + 1 from public.mkt_version_media where version_id = v.id), 0));
+          (select count(*) from public.mkt_version_media where version_id = v.id));
   perform public._mkt_evento(p, v.id, 'midia_ligada', null, null, m.title);
   p := public._mkt_reabrir_se_aprovada(p, 'Arquivo trocado depois da aprovação');
   return public._mkt_peca_json(p);
@@ -182,6 +187,11 @@ begin
   p := public._mkt_peca_do_dono(v.piece_id);
   if v.published_at is not null then raise exception 'versao_publicada' using errcode = '22023'; end if;
   delete from public.mkt_version_media where id = x.id;
+  -- Renumera de 0 a n-1 (a posição nunca passa do limite depois de muitas trocas).
+  update public.mkt_version_media y set position = o.n - 1
+    from (select id, row_number() over (order by position, created_at) n
+            from public.mkt_version_media where version_id = v.id) o
+   where y.id = o.id and y.position <> o.n - 1;
   perform public._mkt_evento(p, v.id, 'midia_removida', null, null, (select title from public.materials where id = x.material_id));
   p := public._mkt_reabrir_se_aprovada(p, 'Arquivo trocado depois da aprovação');
   return public._mkt_peca_json(p);

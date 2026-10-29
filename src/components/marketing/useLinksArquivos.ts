@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { useAvisoDeErro } from "@/components/marketing/useAvisoDeErro";
+
 import { chavesMarketing, linksDosArquivos } from "@/lib/marketing";
 
 /**
@@ -15,5 +17,6 @@ export function useLinksArquivos(caminhos: (string | null | undefined)[]) {
     staleTime: 8 * 60_000,
     refetchInterval: 9 * 60_000,
   });
+  useAvisoDeErro(q.isError, "Não conseguimos carregar as imagens e vídeos das peças.", q.refetch);
   return { links: q.data ?? {}, falhou: q.isError, tentarDeNovo: q.refetch };
 }

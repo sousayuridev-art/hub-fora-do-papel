@@ -103,8 +103,20 @@ export function PecaPainel({
         registrar: (vid, r) => m.resultados.mutate({ pecaId: p.id, id: vid, r }),
         enviarArquivos: (vid, formato, arquivos) =>
           m.enviar.mutate({ pecaId: p.id, versao: vid, formato, arquivos }),
-        ligarArquivo: (vid, material, papel) =>
-          m.ligar.mutate({ pecaId: p.id, versao: vid, material, papel }),
+        ligarArquivo: (vid, mat, papel) =>
+          m.ligar.mutate({
+            pecaId: p.id,
+            versao: vid,
+            material: mat.id,
+            papel,
+            previa: {
+              titulo: mat.titulo,
+              arquivo: mat.arquivo,
+              mime: mat.mime,
+              caminho: mat.caminho,
+              origem: mat.origem,
+            },
+          }),
         removerArquivo: (vid, id) => m.removerArquivo.mutate({ pecaId: p.id, versao: vid, id }),
         ordenarArquivos: (vid, ids) => m.ordenar.mutate({ pecaId: p.id, versao: vid, ids }),
       }

@@ -59,7 +59,7 @@ export function PecaCartao({
           src={miniatura}
           alt=""
           loading="lazy"
-          className="-mx-1 -mt-1 mb-1 aspect-[4/3] w-[calc(100%+0.5rem)] rounded-lg object-cover"
+          className="mb-1 aspect-[4/3] w-full rounded-lg object-cover"
         />
       )}
       <span className="min-w-0 truncate text-[12.5px] text-hub-suave">{topo}</span>

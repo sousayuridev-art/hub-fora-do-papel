@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
   useMutation,
   useQueryClient,
@@ -36,6 +37,7 @@ import {
   type CamposVersao,
   type Etapa,
   type Formato,
+  type Midia,
   type PapelMidia,
   type ListaPecas,
   type NovaPeca,
@@ -59,7 +61,11 @@ function restaurar(qc: QueryClient, foto: Foto) {
   for (const [chave, dados] of foto) qc.setQueryData(chave, dados);
 }
 async function pararLeituras(qc: QueryClient) {
-  await qc.cancelQueries({ queryKey: chavesMarketing.tudo });
+  // Só as leituras que a prévia otimista muda (links e Materiais seguem carregando).
+  await Promise.all([
+    qc.cancelQueries({ queryKey: chavesMarketing.listas }),
+    qc.cancelQueries({ queryKey: chavesMarketing.detalhes }),
+  ]);
 }
 
 /** Muda a mesma peça em todas as listas e no detalhe em cache. */
@@ -313,9 +319,29 @@ export function useMutacoesMarketing() {
 
   // MK-2: arquivos da versão
   const ligar = useAcaoVersao(
-    (a: { pecaId: string; versao: string; material: string; papel: PapelMidia }) =>
-      ligarArquivo(a.versao, a.material, a.papel),
+    (a: {
+      pecaId: string;
+      versao: string;
+      material: string;
+      papel: PapelMidia;
+      previa: Pick<Midia, "titulo" | "arquivo" | "mime" | "caminho" | "origem">;
+    }) => ligarArquivo(a.versao, a.material, a.papel),
     () => "Arquivo ligado à versão.",
+    (p, a) =>
+      naVersao(p, a.versao, (v) => ({
+        ...v,
+        midias: [
+          ...v.midias,
+          {
+            ...a.previa,
+            id: `temp-${a.material}`,
+            material_id: a.material,
+            papel: a.papel,
+            posicao: v.midias.length,
+            na_lixeira: false,
+          },
+        ],
+      })),
   );
   const removerArquivoM = useAcaoVersao(
     (a: { pecaId: string; versao: string; id: string }) => removerArquivo(a.id),
@@ -335,6 +361,7 @@ export function useMutacoesMarketing() {
         }),
       })),
   );
+  const enviados = useRef(0);
   /** Envia do computador para Materiais (categoria "redes") e liga à versão, um arquivo por vez. */
   const enviar = useMutation({
     mutationFn: async (a: {
@@ -344,6 +371,7 @@ export function useMutacoesMarketing() {
       arquivos: File[];
     }) => {
       let ultima: Peca | null = null;
+      enviados.current = 0;
       for (const f of a.arquivos) {
         const papel = papelDoArquivo(a.formato, tipoDoArquivo(f));
         if (!papel) throw new Error(`tipo_do_arquivo:${f.name}`);
@@ -357,6 +385,7 @@ export function useMutacoesMarketing() {
           compartilhado: false,
         });
         ultima = await ligarArquivo(a.versao, m.id, papel);
+        enviados.current += 1;
       }
       return ultima;
     },
@@ -368,8 +397,16 @@ export function useMutacoesMarketing() {
           : `${a.arquivos.length} arquivos enviados e ligados.`,
       );
     },
-    onError: (e, a) =>
-      erro(mensagemDoMaterial(e) ?? falhou(e), { tentarDeNovo: () => enviar.mutate(a) }),
+    onError: (e, a) => {
+      // Os que já subiram ficam; "Tentar de novo" manda só o que faltou (sem duplicar slides).
+      const resto = a.arquivos.slice(enviados.current);
+      erro(mensagemDoMaterial(e) ?? falhou(e), {
+        ...(enviados.current > 0 && {
+          detalhe: `${enviados.current} de ${a.arquivos.length} já entraram na versão.`,
+        }),
+        tentarDeNovo: () => enviar.mutate({ ...a, arquivos: resto }),
+      });
+    },
     onSettled: (_d, _e, a) => {
       recarregar(qc, a.pecaId);
       void qc.invalidateQueries({ queryKey: chavesMarketing.materiais });
