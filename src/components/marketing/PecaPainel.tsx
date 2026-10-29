@@ -87,7 +87,10 @@ export function PecaPainel({
     m.removerVersao.isPending ||
     m.agendar.isPending ||
     m.publicar.isPending ||
-    m.resultados.isPending;
+    m.resultados.isPending ||
+    m.ligar.isPending ||
+    m.removerArquivo.isPending ||
+    m.ordenar.isPending;
 
   const acoesVersao: AcoesVersao | null = p
     ? {
@@ -98,6 +101,12 @@ export function PecaPainel({
         agendar: (vid, quando) => m.agendar.mutate({ pecaId: p.id, id: vid, quando }),
         publicar: (vid, link, quando) => m.publicar.mutate({ pecaId: p.id, id: vid, link, quando }),
         registrar: (vid, r) => m.resultados.mutate({ pecaId: p.id, id: vid, r }),
+        enviarArquivos: (vid, formato, arquivos) =>
+          m.enviar.mutate({ pecaId: p.id, versao: vid, formato, arquivos }),
+        ligarArquivo: (vid, material, papel) =>
+          m.ligar.mutate({ pecaId: p.id, versao: vid, material, papel }),
+        removerArquivo: (vid, id) => m.removerArquivo.mutate({ pecaId: p.id, versao: vid, id }),
+        ordenarArquivos: (vid, ids) => m.ordenar.mutate({ pecaId: p.id, versao: vid, ids }),
       }
     : null;
 
@@ -193,7 +202,13 @@ export function PecaPainel({
             />
           )}
           {aba === "versoes" && acoesVersao && (
-            <VersoesPeca p={p} canais={canais} acoes={acoesVersao} ocupado={ocupado} />
+            <VersoesPeca
+              p={p}
+              canais={canais}
+              acoes={acoesVersao}
+              ocupado={ocupado}
+              enviando={m.enviar.isPending}
+            />
           )}
           {aba === "historico" && <HistoricoPeca itens={p.historico} />}
         </div>

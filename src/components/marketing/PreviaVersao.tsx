@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
-import { ehSlides, ehVideo, rotuloChamada, type Versao } from "@/lib/marketing";
+import { classeAcaoTexto } from "@/lib/estilos";
+import { ehSlides, ehVideo, rotuloChamada, type Midia, type Versao } from "@/lib/marketing";
 
 /** Quanto de texto cada canal mostra antes do "mais" (aproximado, para o gancho segurar). */
 const corte: Record<string, number> = { instagram: 125, linkedin: 210, tiktok: 80, youtube: 100 };
@@ -56,11 +58,146 @@ function Capa({ titulo, vertical }: { titulo: string; vertical: boolean }) {
   );
 }
 
+/** Áreas que a interface da rede cobre nos verticais (150 px em cima e 250 px embaixo, em 1920). */
+function AreaSegura() {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[7.8%] border-b border-dashed border-white/40 bg-black/20"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[13%] border-t border-dashed border-white/40 bg-black/20"
+      />
+    </>
+  );
+}
+
+/** Slides de verdade, um por vez, com contador e setas de 44 px. */
+function Carrossel({
+  slides,
+  links,
+  vertical,
+}: {
+  slides: Midia[];
+  links: Record<string, string>;
+  vertical: boolean;
+}) {
+  const [i, setI] = useState(0);
+  const atual = slides[Math.min(i, slides.length - 1)];
+  const src = atual?.caminho ? links[atual.caminho] : undefined;
+  return (
+    <div className="flex flex-col gap-2">
+      <div
+        className="relative overflow-hidden rounded-xl bg-[#E6E6DF]"
+        style={{ aspectRatio: vertical ? "9 / 16" : "4 / 5" }}
+      >
+        {src ? (
+          <img src={src} alt={atual?.titulo ?? ""} className="size-full object-cover" />
+        ) : (
+          <span className="flex size-full items-center justify-center text-[13px] text-hub-suave">
+            Carregando…
+          </span>
+        )}
+        {atual?.na_lixeira && (
+          <span className="absolute inset-x-2 top-2 rounded-md bg-sit-risco px-2 py-1 text-[12.5px] text-sit-risco-t">
+            Arquivo na lixeira
+          </span>
+        )}
+      </div>
+      {slides.length > 1 && (
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            aria-label="Slide anterior"
+            disabled={i === 0}
+            onClick={() => setI((n) => n - 1)}
+            className="flex size-11 items-center justify-center rounded-lg hover:bg-white disabled:opacity-30"
+          >
+            <ChevronLeft className="size-5" aria-hidden="true" />
+          </button>
+          <span className="text-[13px] tabular-nums text-hub-suave" aria-live="polite">
+            {Math.min(i, slides.length - 1) + 1} de {slides.length}
+          </span>
+          <button
+            type="button"
+            aria-label="Próximo slide"
+            disabled={i >= slides.length - 1}
+            onClick={() => setI((n) => n + 1)}
+            className="flex size-11 items-center justify-center rounded-lg hover:bg-white disabled:opacity-30"
+          >
+            <ChevronRight className="size-5" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Peça com os arquivos reais (MK-2). Devolve null quando a versão ainda não tem arquivo. */
+function Real({
+  v,
+  links,
+  vertical,
+}: {
+  v: Versao;
+  links: Record<string, string>;
+  vertical: boolean;
+}) {
+  const midias = v.midias ?? [];
+  const video = midias.find((m) => m.papel === "video");
+  const capa = midias.find((m) => m.papel === "capa");
+  const pdf = midias.find((m) => m.papel === "documento");
+  const imagens = midias.filter((m) => m.papel === "slide" || m.papel === "imagem");
+  if (video) {
+    const src = video.caminho ? links[video.caminho] : undefined;
+    const poster = capa?.caminho ? links[capa.caminho] : undefined;
+    return (
+      <div
+        className="relative overflow-hidden rounded-xl bg-[#0E1013]"
+        style={{ aspectRatio: vertical ? "9 / 16" : "16 / 9" }}
+      >
+        {src && (
+          <video
+            src={src}
+            poster={poster}
+            className="size-full object-cover"
+            muted
+            playsInline
+            controls
+            preload="metadata"
+          >
+            <track kind="captions" />
+          </video>
+        )}
+        {vertical && <AreaSegura />}
+      </div>
+    );
+  }
+  if (imagens.length > 0) return <Carrossel slides={imagens} links={links} vertical={vertical} />;
+  if (pdf) {
+    const src = pdf.caminho ? links[pdf.caminho] : undefined;
+    return (
+      <a
+        href={src}
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-disabled={!src}
+        className={`${classeAcaoTexto} self-center`}
+      >
+        <FileText className="size-4" aria-hidden="true" /> Abrir o PDF ›
+      </a>
+    );
+  }
+  return null;
+}
+
 /**
- * Prévia simples por canal (MK-1): capa com o gancho, área segura nos verticais e o texto até
- * onde a rede corta. A prévia com a imagem real chega no MK-2.
+ * Prévia por canal: com arquivo (MK-2), a peça real (slides, imagem, vídeo com a área segura,
+ * PDF); sem arquivo, a capa com o gancho (MK-1). Embaixo, o texto até onde a rede corta.
  */
-export function PreviaVersao({ v }: { v: Versao }) {
+export function PreviaVersao({ v, links = {} }: { v: Versao; links?: Record<string, string> }) {
   const vertical = ehVideo(v.format) && v.format !== "video_longo";
   const titulo =
     (ehSlides(v.format) ? v.slides[0]?.titulo : null) ||
@@ -74,7 +211,9 @@ export function PreviaVersao({ v }: { v: Versao }) {
   return (
     <figure className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-[#FAFAF7] p-3">
       <div className={vertical ? "mx-auto w-[220px]" : "mx-auto w-full max-w-[300px]"}>
-        {v.format === "texto" || v.format === "artigo" ? null : (
+        {(v.midias?.length ?? 0) > 0 ? (
+          <Real v={v} links={links} vertical={vertical} />
+        ) : v.format === "texto" || v.format === "artigo" ? null : (
           <Capa titulo={titulo} vertical={vertical} />
         )}
       </div>

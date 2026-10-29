@@ -11,6 +11,7 @@ import {
   type Canal,
   type CamposVersao,
   type Formato,
+  type PapelMidia,
   type PecaDetalhe,
   type Resultados,
 } from "@/lib/marketing";
@@ -23,6 +24,11 @@ export type AcoesVersao = {
   agendar: (id: string, quando: string | null) => void;
   publicar: (id: string, link: string, quando: string | null) => void;
   registrar: (id: string, r: Resultados) => void;
+  /** Arquivos (MK-2) */
+  enviarArquivos: (id: string, formato: Formato, arquivos: File[]) => void;
+  ligarArquivo: (id: string, material: string, papel: PapelMidia) => void;
+  removerArquivo: (id: string, midia: string) => void;
+  ordenarArquivos: (id: string, ids: string[]) => void;
 };
 
 /**
@@ -34,11 +40,13 @@ export function VersoesPeca({
   canais,
   acoes,
   ocupado,
+  enviando,
 }: {
   p: PecaDetalhe;
   canais: Canal[];
   acoes: AcoesVersao;
   ocupado: boolean;
+  enviando: boolean;
 }) {
   const [ativaId, setAtivaId] = useState<string | null>(p.versoes[0]?.id ?? null);
   const [novo, setNovo] = useState<{ canal: string; formato: Formato; base: string | null } | null>(
@@ -143,6 +151,14 @@ export function VersoesPeca({
           aoAgendar={(q) => acoes.agendar(ativa.id, q)}
           aoPublicar={(l, q) => acoes.publicar(ativa.id, l, q)}
           aoRegistrar={(r) => acoes.registrar(ativa.id, r)}
+          clienteDaPeca={p.client_id}
+          enviando={enviando}
+          arquivos={{
+            enviar: (fs) => acoes.enviarArquivos(ativa.id, ativa.format, fs),
+            ligar: (mat, papel) => acoes.ligarArquivo(ativa.id, mat, papel),
+            remover: (mid) => acoes.removerArquivo(ativa.id, mid),
+            ordenar: (ids) => acoes.ordenarArquivos(ativa.id, ids),
+          }}
         />
       ) : (
         <p className="rounded-2xl border border-dashed border-[#D6D6CF] p-6 text-center text-[14.5px] text-hub-suave">

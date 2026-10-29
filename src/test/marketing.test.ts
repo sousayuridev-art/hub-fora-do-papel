@@ -94,6 +94,7 @@ describe("Central de conteúdo (MK-1)", () => {
           results: null,
           ad_campaign_id: null,
           position: 0,
+          midias: [],
         },
       ],
     });

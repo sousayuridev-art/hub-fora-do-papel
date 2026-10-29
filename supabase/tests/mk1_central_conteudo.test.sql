@@ -23,6 +23,21 @@ insert into public.clients (id, tenant_id, company_name, contact_name, whatsapp)
 select is((select count(*)::int from public.mkt_channels where tenant_id = '10000000-0000-0000-0000-000000000001'), 4,
   'Tenant novo ganha os 4 canais');
 
+-- MK-2: formato visual precisa de arquivo para a aprovação. Arquivos de teste ligados direto.
+insert into public.materials (id, tenant_id, category, kind, title, storage_path, file_name, mime_type, size_bytes, ready_at) values
+  ('70000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'marca', 'arquivo', 'Imagem', 't/1/a.png', 'a.png', 'image/png', 10, now()),
+  ('70000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'marca', 'arquivo', 'Vídeo', 't/2/a.mp4', 'a.mp4', 'video/mp4', 10, now()),
+  ('70000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', 'marca', 'arquivo', 'PDF', 't/3/a.pdf', 'a.pdf', 'application/pdf', 10, now());
+create function pg_temp.anexar(p_peca uuid) returns void language sql security definer as $f$
+  insert into public.mkt_version_media (tenant_id, version_id, material_id, role)
+  select v.tenant_id, v.id,
+         case public._mkt_papel_exigido(v.format) when 'video' then '70000000-0000-0000-0000-000000000002'::uuid
+              when 'documento' then '70000000-0000-0000-0000-000000000003'::uuid else '70000000-0000-0000-0000-000000000001'::uuid end,
+         public._mkt_papel_exigido(v.format)
+    from public.mkt_versions v
+   where v.piece_id = p_peca and public._mkt_papel_exigido(v.format) is not null
+  on conflict do nothing;
+$f$;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 
@@ -77,6 +92,7 @@ select lives_ok(format($$ select public.mkt_versao_editar(%L, '{"texto":"TUDO em
   current_setting('teste.v_ig')), 'Texto corrigido');
 select is((select jsonb_array_length(warnings) from public.mkt_versions where id = current_setting('teste.v_ig')::uuid), 0, 'Sem avisos depois da correção');
 select is((select script -> 0 ->> 'na_tela' from public.mkt_versions where id = current_setting('teste.v_ig')::uuid), 'Planilha travou?', 'Roteiro guardado');
+select pg_temp.anexar(current_setting('teste.peca')::uuid);
 select is((public.mkt_peca_mover(current_setting('teste.peca')::uuid, 'aprovacao')) ->> 'stage', 'aprovacao', 'Aviso que não bloqueia deixa entrar em Aprovação');
 
 -- Ajuste e aprovação
@@ -133,6 +149,7 @@ select set_config('teste.p3ig', (select id::text from public.mkt_versions where 
 select set_config('teste.p3li', (select id::text from public.mkt_versions where piece_id = current_setting('teste.p3')::uuid and channel = 'linkedin'), true);
 select lives_ok(format($$ select public.mkt_versao_editar(%L, '{"texto":"Uma tela do Hub."}') $$, current_setting('teste.p3ig')), 'Texto IG');
 select lives_ok(format($$ select public.mkt_versao_editar(%L, '{"texto":"Uma tela do Hub, para o LinkedIn."}') $$, current_setting('teste.p3li')), 'Texto LinkedIn');
+select pg_temp.anexar(current_setting('teste.p3')::uuid);
 select lives_ok(format($$ select public.mkt_peca_mover(%L, 'aprovacao') $$, current_setting('teste.p3')), 'Peça 3 em Aprovação');
 select lives_ok(format($$ select public.mkt_peca_aprovar(%L) $$, current_setting('teste.p3')), 'Peça 3 aprovada');
 select lives_ok(format($$ select public.mkt_versao_agendar(%L, now() + interval '3 days') $$, current_setting('teste.p3li')), 'LinkedIn agendado');
@@ -160,6 +177,7 @@ select lives_ok(format($$ select public.mkt_peca_editar(%L, '{"objetivo":"autori
 select lives_ok(format($$ select public.mkt_versao_editar((select id from public.mkt_versions where piece_id = %L), '{"texto":"Projeto real, mostrado com autorização."}') $$,
   current_setting('teste.p4')), 'Texto da peça 4');
 select lives_ok(format($$ select public.mkt_peca_mover(%L, 'producao') $$, current_setting('teste.p4')), 'Peça 4 em Produção');
+select pg_temp.anexar(current_setting('teste.p4')::uuid);
 select throws_ok(format($$ select public.mkt_peca_mover(%L, 'aprovacao') $$, current_setting('teste.p4')),
   '22023', 'revisao_pendente', 'Sem autorização do cliente, não entra em Aprovação');
 select lives_ok(format($$ select public.mkt_peca_editar(%L, '{"autorizacao":true}') $$, current_setting('teste.p4')), 'Autorização marcada');

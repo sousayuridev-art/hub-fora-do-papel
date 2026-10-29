@@ -5,6 +5,7 @@ import {
   type QueryKey,
 } from "@tanstack/react-query";
 
+import { enviarMaterial, mensagemDoMaterial, tipoDoArquivo } from "@/lib/materiais";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 import {
   adicionarVersao,
@@ -20,7 +21,11 @@ import {
   pecaNaEtapa,
   pedirAjuste,
   publicarVersao,
+  ligarArquivo,
+  ordenarArquivos,
+  papelDoArquivo,
   registrarResultados,
+  removerArquivo,
   removerCampanha,
   removerPeca,
   removerVersao,
@@ -31,6 +36,7 @@ import {
   type CamposVersao,
   type Etapa,
   type Formato,
+  type PapelMidia,
   type ListaPecas,
   type NovaPeca,
   type Peca,
@@ -305,6 +311,71 @@ export function useMutacoesMarketing() {
     (p, a) => naVersao(p, a.id, (v) => ({ ...v, results: a.r })),
   );
 
+  // MK-2: arquivos da versão
+  const ligar = useAcaoVersao(
+    (a: { pecaId: string; versao: string; material: string; papel: PapelMidia }) =>
+      ligarArquivo(a.versao, a.material, a.papel),
+    () => "Arquivo ligado à versão.",
+  );
+  const removerArquivoM = useAcaoVersao(
+    (a: { pecaId: string; versao: string; id: string }) => removerArquivo(a.id),
+    () => "Arquivo tirado da versão. Ele continua em Materiais.",
+    (p, a) =>
+      naVersao(p, a.versao, (v) => ({ ...v, midias: v.midias.filter((x) => x.id !== a.id) })),
+  );
+  const ordenar = useAcaoVersao(
+    (a: { pecaId: string; versao: string; ids: string[] }) => ordenarArquivos(a.versao, a.ids),
+    () => "Ordem salva.",
+    (p, a) =>
+      naVersao(p, a.versao, (v) => ({
+        ...v,
+        midias: a.ids.flatMap((id, n) => {
+          const x = v.midias.find((y) => y.id === id);
+          return x ? [{ ...x, posicao: n }] : [];
+        }),
+      })),
+  );
+  /** Envia do computador para Materiais (categoria "redes") e liga à versão, um arquivo por vez. */
+  const enviar = useMutation({
+    mutationFn: async (a: {
+      pecaId: string;
+      versao: string;
+      formato: Formato;
+      arquivos: File[];
+    }) => {
+      let ultima: Peca | null = null;
+      for (const f of a.arquivos) {
+        const papel = papelDoArquivo(a.formato, tipoDoArquivo(f));
+        if (!papel) throw new Error(`tipo_do_arquivo:${f.name}`);
+        const m = await enviarMaterial({
+          arquivo: f,
+          categoria: "redes",
+          titulo: f.name.replace(/\.[^.]+$/, "").slice(0, 120) || "Arquivo da peça",
+          descricao: "",
+          clienteId: null,
+          projetoId: null,
+          compartilhado: false,
+        });
+        ultima = await ligarArquivo(a.versao, m.id, papel);
+      }
+      return ultima;
+    },
+    onSuccess: (p, a) => {
+      if (p) gravarPeca(qc, p);
+      ok(
+        a.arquivos.length === 1
+          ? "Arquivo enviado e ligado."
+          : `${a.arquivos.length} arquivos enviados e ligados.`,
+      );
+    },
+    onError: (e, a) =>
+      erro(mensagemDoMaterial(e) ?? falhou(e), { tentarDeNovo: () => enviar.mutate(a) }),
+    onSettled: (_d, _e, a) => {
+      recarregar(qc, a.pecaId);
+      void qc.invalidateQueries({ queryKey: chavesMarketing.materiais });
+    },
+  });
+
   const campanha = useMutation({
     mutationFn: (v: { id: string | null; campos: CamposCampanha }) =>
       salvarCampanha(v.id, v.campos),
@@ -332,6 +403,10 @@ export function useMutacoesMarketing() {
     agendar,
     publicar,
     resultados,
+    ligar,
+    removerArquivo: removerArquivoM,
+    ordenar,
+    enviar,
     campanha,
     removerCampanha: removerCampanhaM,
   };

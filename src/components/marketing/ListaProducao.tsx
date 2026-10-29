@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 
 import { PecaCartao } from "@/components/marketing/PecaCartao";
-import { colunas, type Etapa, type Peca } from "@/lib/marketing";
+import { colunas, primeiraImagem, type Etapa, type Peca } from "@/lib/marketing";
 import { useMargemDaLista } from "@/lib/useMargemDaLista";
 
 type Linha =
@@ -15,12 +15,15 @@ type Linha =
 export function ListaProducao({
   itens,
   hoje,
+  miniaturas,
   aoAbrir,
   aoMover,
   aoRemover,
 }: {
   itens: Peca[];
   hoje: string;
+  /** Caminho no Storage → link temporário (MK-2). */
+  miniaturas: Record<string, string>;
   aoAbrir: (p: Peca) => void;
   aoMover: (p: Peca, e: Etapa) => void;
   aoRemover: (p: Peca) => void;
@@ -77,6 +80,10 @@ export function ListaProducao({
                 <PecaCartao
                   p={l.p}
                   hoje={hoje}
+                  miniatura={(() => {
+                    const c = primeiraImagem(l.p);
+                    return c ? miniaturas[c] : undefined;
+                  })()}
                   aoAbrir={() => aoAbrir(l.p)}
                   aoMover={(e) => aoMover(l.p, e)}
                   aoRemover={() => aoRemover(l.p)}

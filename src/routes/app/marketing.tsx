@@ -17,6 +17,7 @@ import { NovaPecaPainel } from "@/components/marketing/NovaPecaPainel";
 import { PecaPainel } from "@/components/marketing/PecaPainel";
 import { QuadroProducao } from "@/components/marketing/QuadroProducao";
 import { useAvisoDeErro } from "@/components/marketing/useAvisoDeErro";
+import { useLinksArquivos } from "@/components/marketing/useLinksArquivos";
 import { useMutacoesMarketing } from "@/components/marketing/useMutacoesMarketing";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
@@ -28,6 +29,7 @@ import {
   listarCampanhas,
   listarCanais,
   listarPecas,
+  primeiraImagem,
   resumoMarketing,
   type BuscaMarketing,
   type Campanha,
@@ -84,6 +86,8 @@ function CentralConteudo() {
   const [removendo, setRemovendo] = useState<Peca | null>(null);
 
   const itens = useMemo(() => lista.data?.itens ?? [], [lista.data]);
+  // MK-2: um pedido só de links para as miniaturas de todas as peças da tela
+  const { links: miniaturas } = useLinksArquivos(itens.map(primeiraImagem));
   const hoje = lista.data?.hoje ?? resumo.data?.hoje ?? "";
   const daLista = busca.peca ? (itens.find((p) => p.id === busca.peca) ?? null) : null;
   const r = resumo.data;
@@ -199,6 +203,7 @@ function CentralConteudo() {
             <ListaProducao
               itens={itens}
               hoje={hoje}
+              miniaturas={miniaturas}
               aoAbrir={(p) => painel.abrir(p.id)}
               aoMover={(p, etapa) => m.mover.mutate({ id: p.id, etapa })}
               aoRemover={setRemovendo}
@@ -207,6 +212,7 @@ function CentralConteudo() {
             <QuadroProducao
               itens={itens}
               hoje={hoje}
+              miniaturas={miniaturas}
               aoAbrir={(p) => painel.abrir(p.id)}
               aoMover={(p, etapa) => m.mover.mutate({ id: p.id, etapa })}
               aoRemover={setRemovendo}

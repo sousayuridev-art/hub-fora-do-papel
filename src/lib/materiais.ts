@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 /** Materiais (card S8): cadastro único de arquivos, textos prontos e links. */
 
 export type CategoriaMaterial =
-  "modelos" | "guias" | "textos" | "marca" | "anuncios" | "entregas" | "cliente";
+  "modelos" | "guias" | "textos" | "marca" | "anuncios" | "redes" | "entregas" | "cliente";
 export type TipoMaterial = "arquivo" | "texto" | "link";
 
 export const categoriasMaterial: { id: CategoriaMaterial; rotulo: string }[] = [
@@ -12,6 +12,8 @@ export const categoriasMaterial: { id: CategoriaMaterial; rotulo: string }[] = [
   { id: "textos", rotulo: "Textos prontos" },
   { id: "marca", rotulo: "Marca e apresentação" },
   { id: "anuncios", rotulo: "Anúncios" },
+  // MK-2: arquivos das peças da Central de conteúdo
+  { id: "redes", rotulo: "Conteúdo das redes" },
   { id: "entregas", rotulo: "Entregas de projetos" },
   { id: "cliente", rotulo: "Enviados pelos clientes" },
 ];
@@ -261,6 +263,8 @@ export function mensagemDoMaterial(e: unknown): string | null {
     material_inexistente: "Esse material não existe mais. Recarregue a página.",
     pendencia_inexistente: "Essa pendência não está mais aberta.",
     arquivo_nao_apagado: "Não foi possível apagar o arquivo. Tente de novo em instantes.",
+    material_em_uso:
+      "Esse arquivo está numa peça da Central de conteúdo. Tire-o da peça antes de excluir de vez.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;

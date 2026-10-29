@@ -2,11 +2,13 @@ import { type FocusEvent } from "react";
 import { Copy, Trash2 } from "lucide-react";
 
 import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
+import { ArquivosVersao, type AcoesArquivos } from "@/components/marketing/ArquivosVersao";
 import { AvisosMarca } from "@/components/marketing/AvisosMarca";
 import { PreviaVersao } from "@/components/marketing/PreviaVersao";
 import { PublicacaoVersao } from "@/components/marketing/PublicacaoVersao";
 import { RoteiroEditor } from "@/components/marketing/RoteiroEditor";
 import { SlidesEditor } from "@/components/marketing/SlidesEditor";
+import { useLinksArquivos } from "@/components/marketing/useLinksArquivos";
 import { useRascunho } from "@/components/marketing/useRascunho";
 import {
   ehSlides,
@@ -57,6 +59,9 @@ export function VersaoEditor({
   aoAgendar,
   aoPublicar,
   aoRegistrar,
+  arquivos,
+  clienteDaPeca,
+  enviando,
   ocupado,
 }: {
   v: Versao;
@@ -68,8 +73,12 @@ export function VersaoEditor({
   aoAgendar: (quando: string | null) => void;
   aoPublicar: (link: string, quando: string | null) => void;
   aoRegistrar: (r: Resultados) => void;
+  arquivos: AcoesArquivos;
+  clienteDaPeca: string | null;
+  enviando: boolean;
   ocupado: boolean;
 }) {
+  const { links } = useLinksArquivos((v.midias ?? []).map((m) => m.caminho));
   const publicada = !!v.published_at;
   // Rascunhos: seguem o banco, mas guardam o que foi digitado se a gravação falhar.
   const [gancho, setGancho, marcarGancho] = useRascunho(v.hook ?? "");
@@ -238,6 +247,18 @@ export function VersaoEditor({
           </div>
         </fieldset>
 
+        <section aria-label="Arquivos" className="flex flex-col gap-2">
+          <h3 className="text-[14px] font-medium">Arquivos</h3>
+          <ArquivosVersao
+            v={v}
+            clienteDaPeca={clienteDaPeca}
+            links={links}
+            acoes={arquivos}
+            enviando={enviando}
+            ocupado={ocupado}
+          />
+        </section>
+
         <section aria-label="Revisão da marca" className="flex flex-col gap-2">
           <h3 className="text-[14px] font-medium">Revisão da marca</h3>
           <AvisosMarca avisos={v.warnings} />
@@ -258,7 +279,10 @@ export function VersaoEditor({
       </div>
       <aside aria-label="Prévia" className="flex flex-col gap-2 lg:sticky lg:top-0 lg:self-start">
         <h3 className="text-[14px] font-medium">Prévia</h3>
-        <PreviaVersao v={{ ...v, hook: gancho, body: texto, script: roteiro, slides }} />
+        <PreviaVersao
+          v={{ ...v, hook: gancho, body: texto, script: roteiro, slides }}
+          links={links}
+        />
       </aside>
     </div>
   );

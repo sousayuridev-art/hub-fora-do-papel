@@ -27,12 +27,15 @@ import {
 export function PecaCartao({
   p,
   hoje,
+  miniatura,
   aoAbrir,
   aoMover,
   aoRemover,
 }: {
   p: Peca;
   hoje: string;
+  /** Link temporário da primeira imagem da peça (MK-2), pedido em lote pela tela. */
+  miniatura?: string | undefined;
   aoAbrir: () => void;
   aoMover: (e: Etapa) => void;
   aoRemover: () => void;
@@ -51,6 +54,14 @@ export function PecaCartao({
 
   return (
     <li className="relative flex flex-col gap-1.5 rounded-xl border border-hub-borda bg-white p-3.5 pr-11 shadow-[0_1px_2px_rgba(14,16,19,0.04)] transition-colors hover:border-[#CFCFC8]">
+      {miniatura && (
+        <img
+          src={miniatura}
+          alt=""
+          loading="lazy"
+          className="-mx-1 -mt-1 mb-1 aspect-[4/3] w-[calc(100%+0.5rem)] rounded-lg object-cover"
+        />
+      )}
       <span className="min-w-0 truncate text-[12.5px] text-hub-suave">{topo}</span>
       <button
         type="button"

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ColunaQuadro, Quadro } from "@/components/hub/Quadro";
 import { PecaCartao } from "@/components/marketing/PecaCartao";
 import { classeAcaoTexto, corColuna } from "@/lib/estilos";
-import { colunas, type Coluna, type Etapa, type Peca } from "@/lib/marketing";
+import { colunas, primeiraImagem, type Coluna, type Etapa, type Peca } from "@/lib/marketing";
 
 const corDa: Record<Coluna, string> = {
   planejamento: corColuna.neutro,
@@ -23,12 +23,15 @@ const VISIVEIS = 12;
 export function QuadroProducao({
   itens,
   hoje,
+  miniaturas,
   aoAbrir,
   aoMover,
   aoRemover,
 }: {
   itens: Peca[];
   hoje: string;
+  /** Caminho no Storage → link temporário (MK-2). */
+  miniaturas: Record<string, string>;
   aoAbrir: (p: Peca) => void;
   aoMover: (p: Peca, e: Etapa) => void;
   aoRemover: (p: Peca) => void;
@@ -68,6 +71,10 @@ export function QuadroProducao({
                   key={p.id}
                   p={p}
                   hoje={hoje}
+                  miniatura={(() => {
+                    const c = primeiraImagem(p);
+                    return c ? miniaturas[c] : undefined;
+                  })()}
                   aoAbrir={() => aoAbrir(p)}
                   aoMover={(e) => aoMover(p, e)}
                   aoRemover={() => aoRemover(p)}

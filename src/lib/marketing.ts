@@ -87,6 +87,22 @@ export type Versao = {
   results: Resultados | null;
   ad_campaign_id: string | null;
   position: number;
+  /** Arquivos da versão (MK-2), na ordem; o caminho serve para pedir o link temporário. */
+  midias: Midia[];
+};
+
+export type PapelMidia = "slide" | "capa" | "imagem" | "video" | "documento";
+export type Midia = {
+  id: string;
+  material_id: string;
+  papel: PapelMidia;
+  posicao: number;
+  titulo: string;
+  arquivo: string | null;
+  mime: string | null;
+  caminho: string | null;
+  origem: "nosso" | "cliente";
+  na_lixeira: boolean;
 };
 
 export type Peca = {
@@ -354,6 +370,81 @@ export const guiaFormato: Partial<Record<Formato, string>> = {
 };
 
 // ----------------------------------------------------------------------------
+// Arquivos da versão (MK-2): a mesma regra do banco (_mkt_papel_aceita e _mkt_papel_exigido)
+// ----------------------------------------------------------------------------
+
+const imagens = ["image/png", "image/jpeg", "image/webp"];
+export const mimesDoPapel: Record<PapelMidia, string[]> = {
+  slide: imagens,
+  capa: imagens,
+  imagem: imagens,
+  video: ["video/mp4"],
+  documento: ["application/pdf"],
+};
+export const rotuloPapel: Record<PapelMidia, string> = {
+  slide: "Slide",
+  capa: "Capa",
+  imagem: "Imagem",
+  video: "Vídeo",
+  documento: "PDF",
+};
+
+/** Papel que o formato exige para ir à aprovação (null = não exige arquivo). */
+export function papelExigido(f: Formato): PapelMidia | null {
+  if (f === "carrossel" || f === "carrossel_fotos") return "slide";
+  if (f === "documento") return "documento";
+  if (f === "post_unico" || f === "stories") return "imagem";
+  if (["reels", "video", "video_curto", "shorts", "video_longo"].includes(f)) return "video";
+  return null;
+}
+
+/** Papéis que a pessoa pode escolher em cada formato (o primeiro é o padrão). */
+export function papeisDoFormato(f: Formato): PapelMidia[] {
+  const exigido = papelExigido(f);
+  if (exigido === "slide") return ["slide"];
+  if (exigido === "documento") return ["documento", "slide"];
+  if (exigido === "imagem") return ["imagem"];
+  if (exigido === "video") return ["video", "capa"];
+  return ["imagem", "video", "documento"];
+}
+
+/** Papel de um arquivo enviado, pelo tipo, dentro do que o formato aceita. */
+export function papelDoArquivo(f: Formato, mime: string): PapelMidia | null {
+  return papeisDoFormato(f).find((p) => mimesDoPapel[p].includes(mime)) ?? null;
+}
+
+/** Proporção esperada (largura ÷ altura) da imagem ou vídeo no formato; null = qualquer. */
+export function proporcaoDoFormato(f: Formato): { valor: number; rotulo: string } | null {
+  if (["carrossel", "post_unico"].includes(f)) return { valor: 4 / 5, rotulo: "4:5" };
+  if (f === "video_longo") return { valor: 16 / 9, rotulo: "16:9" };
+  if (["reels", "stories", "video", "video_curto", "shorts", "carrossel_fotos"].includes(f))
+    return { valor: 9 / 16, rotulo: "9:16" };
+  return null;
+}
+/** Diferença aceita entre a proporção medida e a esperada (o Instagram aceita 3:4 no feed). */
+export const proporcaoParecida = (medida: number, esperada: number) =>
+  Math.abs(medida - esperada) / esperada <= 0.08;
+
+/** Primeira imagem da peça (para a miniatura do cartão): slide, imagem ou capa. */
+export function primeiraImagem(p: Peca): string | null {
+  for (const v of p.versoes)
+    for (const m of v.midias ?? [])
+      if (m.papel !== "video" && m.papel !== "documento" && !m.na_lixeira && m.caminho)
+        return m.caminho;
+  return null;
+}
+
+/** Links temporários do Storage privado (10 minutos), pedidos em lote. */
+export async function linksDosArquivos(caminhos: string[]): Promise<Record<string, string>> {
+  if (caminhos.length === 0) return {};
+  const { data, error } = await supabase.storage.from("materiais").createSignedUrls(caminhos, 600);
+  if (error) throw error;
+  const r: Record<string, string> = {};
+  for (const l of data ?? []) if (l.path && l.signedUrl) r[l.path] = l.signedUrl;
+  return r;
+}
+
+// ----------------------------------------------------------------------------
 // Endereço (filtros e painéis na URL)
 // ----------------------------------------------------------------------------
 
@@ -412,6 +503,8 @@ export const chavesMarketing = {
   campanhas: ["marketing", "campanhas"] as const,
   canais: ["marketing", "canais"] as const,
   clientes: ["marketing", "clientes"] as const,
+  links: (caminhos: string[]) => ["marketing", "links", caminhos] as const,
+  materiais: ["marketing", "materiais"] as const,
 };
 
 async function rpc<T>(nome: string, args?: Record<string, unknown>): Promise<T> {
@@ -512,6 +605,12 @@ export const agendarVersao = (id: string, quando: string | null) =>
   rpc<Peca>("mkt_versao_agendar", { p_id: id, p_quando: quando });
 export const publicarVersao = (id: string, link: string, quando: string | null) =>
   rpc<Peca>("mkt_versao_publicar", { p_id: id, p_link: link, p_quando: quando });
+export const ligarArquivo = (versao: string, material: string, papel: PapelMidia) =>
+  rpc<Peca>("mkt_midia_ligar", { p_versao: versao, p_material: material, p_papel: papel });
+export const removerArquivo = (id: string) => rpc<Peca>("mkt_midia_remover", { p_id: id });
+export const ordenarArquivos = (versao: string, ids: string[]) =>
+  rpc<Peca>("mkt_midia_ordenar", { p_versao: versao, p_ids: ids });
+
 export const registrarResultados = (id: string, r: Resultados) =>
   rpc<Peca>("mkt_versao_resultados", { p_id: id, p_resultados: r });
 
@@ -635,6 +734,16 @@ export function mensagemDoMarketing(e: unknown): string | null {
     cliente_inexistente: "Esse cliente não existe mais.",
     autorizacao_sem_cliente: "Escolha o cliente antes de marcar a autorização.",
     periodo_invalido: "Período do calendário inválido.",
+    tipo_do_arquivo: "Esse tipo de arquivo não serve nesse lugar (ex.: PDF não entra como slide).",
+    material_inexistente:
+      "Esse arquivo não existe mais em Materiais ou ainda não terminou de subir.",
+    material_na_lixeira: "Esse arquivo está na lixeira de Materiais. Restaure antes de usar.",
+    arquivo_de_outro_cliente:
+      "Foto enviada por um cliente só entra na peça ligada a esse cliente (com a autorização marcada).",
+    arquivo_repetido: "Esse arquivo já está nesta versão.",
+    arquivos_demais: "Uma versão tem no máximo 20 arquivos.",
+    midia_inexistente: "Esse arquivo já saiu da versão. Recarregue a página.",
+    ordem_invalida: "A lista mudou enquanto isso. Recarregue a página e ordene de novo.",
     campos_invalidos: "Confira os dados: algum campo está fora do formato.",
     filtros_invalidos: "Esses filtros não valem mais. Limpe os filtros e tente de novo.",
   };
