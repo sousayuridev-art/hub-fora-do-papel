@@ -36,6 +36,19 @@ const busca = z.object({
     .catch(undefined),
 });
 
+/** Variação do ganho do mês contra o mês anterior (série do banco). */
+function variacaoGanho(serie: number[]): { texto: string; sobe: boolean } | undefined {
+  const atual = serie.at(-1) ?? 0;
+  const antes = serie.at(-2) ?? 0;
+  if (antes <= 0) return undefined;
+  const pct = Math.round(((atual - antes) / antes) * 100);
+  return { texto: `${Math.abs(pct)}% sobre ${mesAnterior}`, sobe: pct >= 0 };
+}
+
+const mesAnterior = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(
+  new Date(new Date().getFullYear(), new Date().getMonth() - 1, 15),
+);
+
 /** "outubro" (nome do mês atual, para o número "Ganho em …"). */
 const mesAtual = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(new Date());
 
@@ -104,9 +117,22 @@ function Funil() {
         <FaixaNumeros
           itens={[
             {
+              rotulo: `Ganho em ${mesAtual}`,
+              valor: r ? moeda(r.ganho_mes.soma_cents) : "…",
+              serie: r?.ganho_serie,
+              variacao: r ? variacaoGanho(r.ganho_serie) : undefined,
+              apoio: r
+                ? `${plural(r.ganho_mes.quantidade, "ganho", "ganhos")} · ${plural(r.perdidos_mes, "perdido", "perdidos")}`
+                : "",
+              aoClicar: () => irPara("fechados"),
+              ativo: filtro === "fechados",
+            },
+            {
               rotulo: "Em negociação",
               valor: r ? moeda(r.em_negociacao_cents) : "…",
-              apoio: r ? plural(r.abertas, "oportunidade aberta", "oportunidades abertas") : "",
+              apoio: r
+                ? `${plural(r.abertas, "oportunidade", "oportunidades")} · ${r.com_proposta} com proposta`
+                : "",
             },
             {
               rotulo: "Propostas sem resposta",
@@ -115,18 +141,16 @@ function Funil() {
               tom: r && r.propostas_sem_resposta > 0 ? "atencao" : undefined,
             },
             {
-              rotulo: `Ganho em ${mesAtual}`,
-              valor: r ? moeda(r.ganho_mes.soma_cents) : "…",
-              apoio: r
-                ? `${plural(r.ganho_mes.quantidade, "ganho", "ganhos")} · ${plural(r.perdidos_mes, "perdido", "perdidos")}`
-                : "",
-              aoClicar: () => irPara("fechados"),
-              ativo: filtro === "fechados",
-            },
-            {
               rotulo: "Taxa de ganho",
               valor: r ? (r.taxa_ganho_90 == null ? "—" : `${r.taxa_ganho_90}%`) : "…",
-              apoio: "nos últimos 90 dias",
+              barra:
+                r && r.taxa_ganho_90 != null
+                  ? [
+                      { rotulo: "Ganhos", valor: r.taxa_ganho_90, cor: "var(--color-serie-3)" },
+                      { rotulo: "Perdidos", valor: 100 - r.taxa_ganho_90, cor: "#ECECE6" },
+                    ]
+                  : undefined,
+              apoio: "Ganhos sobre fechados e perdidos em 90 dias",
             },
           ]}
         />

@@ -79,6 +79,16 @@ returns jsonb language sql stable security invoker set search_path = public as $
     'ganho_mes', (select jsonb_build_object('quantidade', count(*), 'soma_cents', coalesce(sum(value_cents), 0))
                     from base, mes where stage = 'fechado' and archived_at is null and closed_at >= mes.ini),
     'perdidos_mes', (select count(*) from base, mes where archived_at >= mes.ini),
+    'com_proposta', (select count(*) from abertas where proposta_status in ('enviada', 'rascunho')),
+    -- Ganho dos últimos 6 meses (do mais antigo ao atual), para a linha de tendência
+    'ganho_serie', (select coalesce(jsonb_agg(coalesce(g.soma, 0) order by m.n desc), '[]'::jsonb)
+                      from mes, generate_series(5, 0, -1) as m(n)
+                      left join lateral (
+                        select sum(b.value_cents) as soma from base b
+                         where b.stage = 'fechado' and b.archived_at is null
+                           and b.closed_at >= mes.ini - make_interval(months => m.n)
+                           and b.closed_at <  mes.ini - make_interval(months => m.n - 1)
+                      ) g on true),
     'taxa_ganho_90', (select case when ganhos + perdidos = 0 then null
                              else round(100.0 * ganhos / (ganhos + perdidos)) end from noventa),
     'filtros', jsonb_build_object(
