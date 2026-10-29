@@ -8,7 +8,7 @@
  */
 
 /** O modelo vem do banco (mkt_ia_preparar), junto com a reserva do custo. */
-export const VERSAO_INSTRUCOES = "marketing-ia v1 · manual de voz de 27/10/2026";
+export const VERSAO_INSTRUCOES = "marketing-ia v2 · manual de voz de 27/10/2026 · modelos da marca";
 /** Mesmos tetos de saída usados na reserva do banco (_mkt_ia_reserva). */
 export const MAX_TOKENS: Record<Tipo, number> = { versao: 2000, ganchos: 600, revisao: 1200 };
 
@@ -107,6 +107,7 @@ PILARES (o pilar vem no briefing)
 
 POR CANAL E FORMATO
 - Instagram (@somosforadopapel): chamada para o link da bio. Carrossel de 3 a 8 slides: slide 1 com o problema ou uma pergunta que a pessoa se faz (sem curiosidade vazia nem urgência falsa), uma ideia por slide, lista com no máximo 4 itens, último slide com a chamada. Legenda que aprofunda (não resume): até 3 parágrafos curtos, uma pergunta para a pessoa pensar, 3 a 5 hashtags específicas (#aracaju quando fizer sentido).
+- Modelos da marca (os slides viram imagem automaticamente): título do 1º slide (capa) com até 60 caracteres; título dos outros slides com até 40; texto de cada slide com até 220. O último slide do carrossel é a chamada final (o botão já traz as palavras da chamada; não repita).
 - LinkedIn (página da empresa): o mesmo assunto com texto próprio. Primeira linha forte (aparece antes do "ver mais"), 4 a 8 linhas curtas, tom um pouco mais formal, sem emoji, até 3 hashtags, termina com a chamada e o link do site (não "link na bio"). Documento = slides do carrossel em PDF.
 - Vídeo (Reels, TikTok, Shorts, vídeo): roteiro em blocos de até 5 segundos (tempo, fala, texto na tela); em cada bloco algo muda; 0 a 3 s: o problema em uma frase; legenda na tela sempre; fim com a chamada e @somosforadopapel.
 - YouTube vídeo longo: roteiro em capítulos; título e descrição pensados para a busca.

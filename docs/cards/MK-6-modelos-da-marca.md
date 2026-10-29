@@ -40,7 +40,7 @@ Hoje cada carrossel precisa ser montado à mão num editor de imagem, repetindo 
 
 ### P0 · Tela
 
-- **Versão › Arquivos:** botão "Gerar com o modelo da marca" (carrossel, documento, Reels, Shorts, vídeo do TikTok, Stories). Abre painel lateral (bottom sheet no celular):
+- **Versão › Arquivos:** botão "Gerar com o modelo da marca" (carrossel do Instagram e de fotos do TikTok, post único, Stories, capa de Reels, Shorts e vídeo do TikTok; o documento do LinkedIn fica com o PDF do P1). Abre painel lateral (bottom sheet no celular):
   - escolha do tema da capa (padrão: o próximo sugerido, com a frase "a última capa no Instagram foi escura") e do tema da chamada final;
   - miniaturas de todos os quadros, na ordem, com aviso de texto longo;
   - "Gerar e anexar": gera os PNG, envia para Materiais (categoria Conteúdo das redes) e liga à versão no papel certo (slide ou capa), pelo mesmo caminho do MK-2 (otimista, com "Tentar de novo" só do que faltou).

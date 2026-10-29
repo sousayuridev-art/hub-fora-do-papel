@@ -1,11 +1,12 @@
-import { type FocusEvent } from "react";
-import { Copy, Trash2 } from "lucide-react";
+import { useState, type FocusEvent } from "react";
+import { Copy, Sparkles, Trash2 } from "lucide-react";
 
 import { CampoArea, CampoEscolha, CampoTexto } from "@/components/hub/Campo";
 import { ArquivosVersao, type AcoesArquivos } from "@/components/marketing/ArquivosVersao";
 import { AvisosMarca } from "@/components/marketing/AvisosMarca";
 import { PreviaVersao } from "@/components/marketing/PreviaVersao";
 import { LinkRastreio } from "@/components/marketing/LinkRastreio";
+import { GerarModeloPainel } from "@/components/marketing/modelos/GerarModeloPainel";
 import { PublicacaoVersao } from "@/components/marketing/PublicacaoVersao";
 import { RoteiroEditor } from "@/components/marketing/RoteiroEditor";
 import { SlidesEditor } from "@/components/marketing/SlidesEditor";
@@ -24,10 +25,12 @@ import {
   type Chamada,
   type Etapa,
   type Formato,
+  type Pilar,
   type Resultados,
   type Slide,
   type Versao,
 } from "@/lib/marketing";
+import { geraModelo } from "@/lib/modelosMarca";
 import { cn } from "@/lib/utils";
 import { classeAcaoTexto } from "@/lib/estilos";
 
@@ -65,6 +68,7 @@ export function VersaoEditor({
   clienteDaPeca,
   clienteAutorizou,
   faltaBriefing,
+  pilar,
   enviando,
   ocupado,
 }: {
@@ -82,11 +86,14 @@ export function VersaoEditor({
   clienteAutorizou: boolean;
   /** O que falta no briefing para a IA sugerir (MK-3). */
   faltaBriefing: string[];
+  /** Pilar da peça: vira o rótulo da capa no modelo da marca (MK-6). */
+  pilar: Pilar | null;
   enviando: boolean;
   ocupado: boolean;
 }) {
   const { links, falhou: linksFalharam } = useLinksArquivos((v.midias ?? []).map((m) => m.caminho));
   const publicada = !!v.published_at;
+  const [gerarAberto, setGerarAberto] = useState(false);
   // Rascunhos: seguem o banco, mas guardam o que foi digitado se a gravação falhar.
   const [gancho, setGancho, marcarGancho, liberarGancho] = useRascunho(v.hook ?? "");
   const [texto, setTexto, marcarTexto, liberarTexto] = useRascunho(v.body ?? "");
@@ -278,7 +285,28 @@ export function VersaoEditor({
             acoes={arquivos}
             enviando={enviando}
             ocupado={ocupado}
+            extra={
+              geraModelo(v.format) && (
+                <button
+                  type="button"
+                  className={`${classeAcaoTexto} gap-2`}
+                  disabled={ocupado || enviando}
+                  onClick={() => setGerarAberto(true)}
+                >
+                  <Sparkles className="size-4" aria-hidden="true" /> Gerar com o modelo da marca
+                </button>
+              )
+            }
           />
+          {geraModelo(v.format) && !publicada && (
+            <GerarModeloPainel
+              aberto={gerarAberto}
+              aoMudar={setGerarAberto}
+              v={v}
+              pilar={pilar}
+              aoEnviar={arquivos.enviar}
+            />
+          )}
         </section>
 
         <section aria-label="Revisão da marca" className="flex flex-col gap-2">

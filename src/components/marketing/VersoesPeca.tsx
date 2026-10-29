@@ -170,6 +170,7 @@ export function VersoesPeca({
           clienteDaPeca={p.client_id}
           clienteAutorizou={p.client_authorized}
           faltaBriefing={faltaNoBriefing(p)}
+          pilar={p.pillar}
           enviando={enviando}
           arquivos={{
             enviar: (fs) => acoes.enviarArquivos(ativa.id, ativa.format, fs),

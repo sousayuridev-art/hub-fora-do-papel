@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -86,6 +86,7 @@ export function ArquivosVersao({
   acoes,
   enviando,
   ocupado,
+  extra,
 }: {
   v: Versao;
   clienteDaPeca: string | null;
@@ -94,6 +95,8 @@ export function ArquivosVersao({
   acoes: AcoesArquivos;
   enviando: boolean;
   ocupado: boolean;
+  /** Ação a mais ao lado de enviar e escolher (MK-6: gerar com o modelo da marca). */
+  extra?: ReactNode;
 }) {
   const entrada = useRef<HTMLInputElement>(null);
   const [escolher, setEscolher] = useState(false);
@@ -260,6 +263,7 @@ export function ArquivosVersao({
           >
             <FolderOpen className="size-4" aria-hidden="true" /> Escolher de Materiais ›
           </button>
+          {extra}
         </div>
       )}
       <p className="text-[12.5px] text-hub-suave">

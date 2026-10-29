@@ -89,6 +89,12 @@ export type Versao = {
   position: number;
   /** Arquivos da versão (MK-2), na ordem; o caminho serve para pedir o link temporário. */
   midias: Midia[];
+  /** MK-6: tema usado ao gerar os arquivos pelo modelo da marca. */
+  modelo?: {
+    capa: "escuro" | "claro" | "ambar";
+    final: "ambar" | "escuro";
+    gerado_em: string;
+  } | null;
   /** MK-4: código de rastreio, link do site com UTM (nulo sem site da agência) e contatos ligados. */
   codigo?: string;
   link?: string | null;
@@ -149,7 +155,8 @@ export type EventoPeca = {
     | "publicada"
     | "resultados"
     | "midia_ligada"
-    | "midia_removida";
+    | "midia_removida"
+    | "modelo_gerado";
   de: Etapa | null;
   para: Etapa | null;
   nota: string | null;
@@ -530,6 +537,8 @@ export const chavesMarketing = {
   todosDestaques: ["marketing", "destaques"] as const,
   origemCliente: (cliente: string) => ["marketing", "origem-cliente", cliente] as const,
   publicadas: (busca: string) => ["marketing", "publicadas", busca] as const,
+  proximaCapa: (canal: string, versao: string) =>
+    ["marketing", "proxima-capa", canal, versao] as const,
   usoIA: ["marketing", "uso-ia"] as const,
 };
 
@@ -929,6 +938,16 @@ export const definirOrigemDoCliente = (cliente: string, versao: string | null) =
 export const versoesPublicadas = (busca: string) =>
   rpc<VersaoPublicada[]>("mkt_versoes_publicadas", { p_busca: busca || null });
 
+// Modelos da marca (MK-6)
+export type ProximaCapa = {
+  ultima: "escuro" | "claro" | "ambar" | null;
+  sugerida: "escuro" | "claro" | "ambar";
+};
+export const proximaCapa = (canal: string, ignorar: string) =>
+  rpc<ProximaCapa>("mkt_proxima_capa", { p_canal: canal, p_ignorar: ignorar });
+export const salvarModelo = (versao: string, capa: string, final: string) =>
+  rpc<Versao>("mkt_versao_modelo", { p_id: versao, p_capa: capa, p_final: final });
+
 /** Erros do banco em português (o detalhe diz o que falta nas portas). */
 export function mensagemDoMarketing(e: unknown): string | null {
   const obj = (e ?? {}) as { message?: string; details?: string };
@@ -959,6 +978,7 @@ export function mensagemDoMarketing(e: unknown): string | null {
     cliente_inexistente: "Esse cliente não existe mais.",
     autorizacao_sem_cliente: "Escolha o cliente antes de marcar a autorização.",
     periodo_invalido: "Período inválido. Escolha outro período.",
+    modelo_invalido: "Esse tema não existe no modelo da marca.",
     agrupamento_invalido: "Esse agrupamento não existe. Recarregue a página.",
     tipo_do_arquivo: "Esse tipo de arquivo não serve nesse lugar (ex.: PDF não entra como slide).",
     material_inexistente:

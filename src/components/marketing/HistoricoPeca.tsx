@@ -27,6 +27,8 @@ function frase(e: EventoPeca): string {
       return "Arquivo ligado";
     case "midia_removida":
       return "Arquivo tirado da versão";
+    case "modelo_gerado":
+      return "Arquivos gerados pelo modelo da marca";
   }
 }
 
