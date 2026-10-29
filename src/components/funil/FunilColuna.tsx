@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
 
-import { FunilCartao, type AcaoCartao } from "@/components/funil/FunilCartao";
+import { FunilCartaoArrastavel, type AcaoCartao } from "@/components/funil/FunilCartao";
 import { moeda } from "@/lib/formatar";
 import type { Etapa, Oportunidade } from "@/lib/funil";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,6 @@ export function FunilColuna({
   somaCents,
   pesoPct,
   visual,
-  aoSoltar,
   aoAgir,
   arrastavel,
 }: {
@@ -43,31 +43,19 @@ export function FunilColuna({
   /** Parte desta etapa no valor total em negociação (0 a 100). */
   pesoPct: number;
   visual: VisualEtapa;
-  aoSoltar: (idOportunidade: string, etapa: Etapa) => void;
   aoAgir: (acao: AcaoCartao, o: Oportunidade) => void;
   arrastavel: boolean;
 }) {
-  const [sobre, setSobre] = useState(false);
+  const { setNodeRef, isOver: sobre } = useDroppable({ id: etapa, disabled: !arrastavel });
   const [todos, setTodos] = useState(false);
   const visiveis = todos ? itens : itens.slice(0, LIMITE);
 
   return (
     <section
+      ref={setNodeRef}
       aria-label={`${rotulo}: ${quantidade}`}
-      onDragOver={(e) => {
-        if (!arrastavel) return;
-        e.preventDefault();
-        setSobre(true);
-      }}
-      onDragLeave={() => setSobre(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setSobre(false);
-        const id = e.dataTransfer.getData("text/plain");
-        if (id) aoSoltar(id, etapa);
-      }}
       className={cn(
-        "flex w-[82vw] max-w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border-t-4 transition-shadow md:w-[290px] md:max-w-none xl:w-auto",
+        "flex w-[82vw] max-w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border-t-4 transition-[box-shadow,outline-color] duration-150 md:w-[290px] md:max-w-none xl:w-auto",
         sobre && "outline-2 outline-offset-2 outline-dashed outline-hub-tinta",
       )}
       style={{ background: visual.fundo, borderTopColor: visual.cor }}
@@ -97,7 +85,7 @@ export function FunilColuna({
       </header>
       <div className="flex flex-1 flex-col gap-2.5 px-2.5 pb-3 pt-1">
         {visiveis.map((o) => (
-          <FunilCartao key={o.id} o={o} aoAgir={aoAgir} arrastavel={arrastavel} />
+          <FunilCartaoArrastavel key={o.id} o={o} aoAgir={aoAgir} arrastavel={arrastavel} />
         ))}
         {itens.length === 0 && (
           <p className="px-2 py-3 text-center text-[13.5px] text-[#4A4D54]">

@@ -1,7 +1,17 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
 
 import { FunilColuna, type VisualEtapa } from "@/components/funil/FunilColuna";
-import type { AcaoCartao } from "@/components/funil/FunilCartao";
+import { FunilCartao, type AcaoCartao } from "@/components/funil/FunilCartao";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { etapas, type Etapa, type Oportunidade, type ResumoFunil } from "@/lib/funil";
 import { cn } from "@/lib/utils";
@@ -72,36 +82,66 @@ export function FunilQuadro({
   }, [itens]);
   const total = colunas.reduce((s, e) => s + (resumo?.etapas[e.id]?.soma_cents ?? 0), 0);
 
-  const soltar = (id: string, etapa: Etapa) => {
-    const o = itens.find((x) => x.id === id);
-    if (o && o.stage !== etapa) aoSoltar(o, etapa);
+  const arrastavel = !celular && !arquivados && !fechados;
+  // Arrastar só começa depois de 6 px: um clique simples continua abrindo o cliente e o menu
+  const sensores = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor),
+  );
+  const [ativoId, setAtivoId] = useState<string | null>(null);
+  const ativo = ativoId ? (itens.find((x) => x.id === ativoId) ?? null) : null;
+
+  const aoComecar = (e: DragStartEvent) => setAtivoId(String(e.active.id));
+  const aoTerminar = (e: DragEndEvent) => {
+    setAtivoId(null);
+    const etapa = e.over?.id as Etapa | undefined;
+    const o = itens.find((x) => x.id === e.active.id);
+    if (!o || !etapa || o.stage === etapa) return;
+    // Retorno ao toque em aparelhos que vibram (sem efeito no computador)
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(10);
+    aoSoltar(o, etapa);
   };
 
   return (
-    <div
-      className={cn(
-        "-mx-4 flex snap-x snap-mandatory scroll-px-4 items-stretch gap-3 overflow-x-auto px-4 pb-2 md:-mx-8 md:scroll-px-8 md:px-8 xl:mx-0 xl:grid xl:min-h-[calc(100dvh-340px)] xl:overflow-visible xl:px-0",
-        fechados ? "xl:grid-cols-[minmax(0,420px)]" : "xl:grid-cols-4",
-      )}
+    <DndContext
+      sensors={sensores}
+      onDragStart={aoComecar}
+      onDragEnd={aoTerminar}
+      onDragCancel={() => setAtivoId(null)}
+      accessibility={{
+        screenReaderInstructions: {
+          draggable:
+            "Para mover, aperte espaço, use as setas para escolher a coluna e aperte espaço de novo. Esc cancela.",
+        },
+      }}
     >
-      {colunas.map((e) => {
-        const soma = resumo?.etapas[e.id]?.soma_cents ?? 0;
-        return (
-          <FunilColuna
-            key={e.id}
-            etapa={e.id}
-            rotulo={e.rotulo}
-            visual={visualEtapa[e.id]}
-            itens={porEtapa.get(e.id) ?? []}
-            quantidade={resumo?.etapas[e.id]?.quantidade ?? porEtapa.get(e.id)?.length ?? 0}
-            somaCents={soma}
-            pesoPct={total > 0 ? (soma / total) * 100 : 0}
-            aoSoltar={soltar}
-            aoAgir={aoAgir}
-            arrastavel={!celular && !arquivados && !fechados}
-          />
-        );
-      })}
-    </div>
+      <div
+        className={cn(
+          "-mx-4 flex snap-x snap-mandatory scroll-px-4 items-stretch gap-3 overflow-x-auto px-4 pb-2 md:-mx-8 md:scroll-px-8 md:px-8 xl:mx-0 xl:grid xl:min-h-[calc(100dvh-340px)] xl:overflow-visible xl:px-0",
+          fechados ? "xl:grid-cols-[minmax(0,420px)]" : "xl:grid-cols-4",
+        )}
+      >
+        {colunas.map((e) => {
+          const soma = resumo?.etapas[e.id]?.soma_cents ?? 0;
+          return (
+            <FunilColuna
+              key={e.id}
+              etapa={e.id}
+              rotulo={e.rotulo}
+              visual={visualEtapa[e.id]}
+              itens={porEtapa.get(e.id) ?? []}
+              quantidade={resumo?.etapas[e.id]?.quantidade ?? porEtapa.get(e.id)?.length ?? 0}
+              somaCents={soma}
+              pesoPct={total > 0 ? (soma / total) * 100 : 0}
+              aoAgir={aoAgir}
+              arrastavel={arrastavel}
+            />
+          );
+        })}
+      </div>
+      <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(.2,.8,.2,1)" }}>
+        {ativo ? <FunilCartao o={ativo} aoAgir={aoAgir} arrastavel flutuando /> : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
