@@ -28,6 +28,7 @@ import {
   registrarResultados,
   removerArquivo,
   salvarModelo,
+  publicarSozinho,
   removerCampanha,
   removerPeca,
   removerVersao,
@@ -93,6 +94,7 @@ function recarregar(qc: QueryClient, id?: string) {
   // MK-4: publicar, registrar números ou mudar o briefing muda os resultados.
   void qc.invalidateQueries({ queryKey: chavesMarketing.todosResultados });
   void qc.invalidateQueries({ queryKey: chavesMarketing.todosDestaques });
+  void qc.invalidateQueries({ queryKey: chavesMarketing.problemasPublicacao });
   if (id) void qc.invalidateQueries({ queryKey: chavesMarketing.detalhe(id) });
 }
 
@@ -294,6 +296,17 @@ export function useMutacoesMarketing() {
     (a: { pecaId: string; id: string }) => removerVersao(a.id),
     () => "Versão removida.",
     (p, a) => naVersao(p, a.id, () => null),
+  );
+  const publicarSozinhoM = useAcaoVersao(
+    (a: { pecaId: string; id: string; ligar: boolean }) => publicarSozinho(a.id, a.ligar),
+    () => "Publicação automática atualizada.",
+    (p, a) =>
+      naVersao(p, a.id, (v) => ({
+        ...v,
+        publicar_sozinho: a.ligar,
+        publicacao: a.ligar ? "na_fila" : "manual",
+        publicacao_erro: null,
+      })),
   );
   const agendar = useAcaoVersao(
     (a: { pecaId: string; id: string; quando: string | null }) => agendarVersao(a.id, a.quando),
@@ -507,6 +520,7 @@ export function useMutacoesMarketing() {
     adicionar,
     removerVersao: removerVersaoM,
     agendar,
+    publicarSozinho: publicarSozinhoM,
     publicar,
     resultados,
     ligar,

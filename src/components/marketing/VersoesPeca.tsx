@@ -24,6 +24,8 @@ export type AcoesVersao = {
   adicionar: (canal: string, formato: Formato, copiarDe: string | null) => void;
   remover: (id: string) => void;
   agendar: (id: string, quando: string | null) => void;
+  /** MK-5: liga ou desliga a publicação automática na data marcada. */
+  publicarSozinho: (id: string, ligar: boolean) => void;
   publicar: (id: string, link: string, quando: string | null) => void;
   registrar: (id: string, r: Resultados) => void;
   /** Arquivos (MK-2) */
@@ -174,6 +176,7 @@ export function VersoesPeca({
           aoDuplicar={() => abrirNovo(ativa.id)}
           aoRemover={() => acoes.remover(ativa.id)}
           aoAgendar={(q) => acoes.agendar(ativa.id, q)}
+          aoPublicarSozinho={(ligar) => acoes.publicarSozinho(ativa.id, ligar)}
           aoPublicar={(l, q) => acoes.publicar(ativa.id, l, q)}
           aoRegistrar={(r) => acoes.registrar(ativa.id, r)}
           clienteDaPeca={p.client_id}

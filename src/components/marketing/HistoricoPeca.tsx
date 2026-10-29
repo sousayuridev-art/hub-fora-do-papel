@@ -29,6 +29,8 @@ function frase(e: EventoPeca): string {
       return "Arquivo tirado da versão";
     case "modelo_gerado":
       return "Arquivos gerados pelo modelo da marca";
+    case "publicacao":
+      return "Publicação automática";
   }
 }
 

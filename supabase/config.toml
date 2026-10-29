@@ -429,3 +429,7 @@ verify_jwt = false
 # Card MK-3: só o dono chama; o login é conferido na porta (JWT) e de novo dentro da função.
 [functions.marketing-ia]
 verify_jwt = true
+
+# Card MK-5: chamada pelo pg_cron sem login; só trabalha a fila do banco e não devolve dados.
+[functions.marketing-publicar]
+verify_jwt = false

@@ -7,6 +7,7 @@ import { AvisosMarca } from "@/components/marketing/AvisosMarca";
 import { PreviaVersao } from "@/components/marketing/PreviaVersao";
 import { LinkRastreio } from "@/components/marketing/LinkRastreio";
 import { PublicacaoVersao } from "@/components/marketing/PublicacaoVersao";
+import { PublicarSozinho } from "@/components/marketing/PublicarSozinho";
 import { RoteiroEditor } from "@/components/marketing/RoteiroEditor";
 import { SlidesEditor } from "@/components/marketing/SlidesEditor";
 import { SugestoesIA } from "@/components/marketing/SugestoesIA";
@@ -64,6 +65,7 @@ export function VersaoEditor({
   aoDuplicar,
   aoRemover,
   aoAgendar,
+  aoPublicarSozinho,
   aoPublicar,
   aoRegistrar,
   arquivos,
@@ -81,6 +83,7 @@ export function VersaoEditor({
   aoDuplicar: () => void;
   aoRemover: () => void;
   aoAgendar: (quando: string | null) => void;
+  aoPublicarSozinho: (ligar: boolean) => void;
   aoPublicar: (link: string, quando: string | null) => void;
   aoRegistrar: (r: Resultados) => void;
   arquivos: AcoesArquivos;
@@ -322,6 +325,7 @@ export function VersaoEditor({
         <section aria-label="Agenda e publicação" className="flex flex-col gap-2">
           <h3 className="text-[14px] font-medium">Agenda e publicação</h3>
           <LinkRastreio v={v} />
+          <PublicarSozinho v={v} etapa={etapa} aoMudar={aoPublicarSozinho} ocupado={ocupado} />
           <PublicacaoVersao
             key={`${v.id}-${v.published_at ?? ""}-${v.scheduled_at ?? ""}`}
             v={v}

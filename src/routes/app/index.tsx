@@ -15,6 +15,7 @@ import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { Selo } from "@/components/hub/Selo";
 import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
+import { AvisoPublicacao } from "@/components/painel/AvisoPublicacao";
 import { AvisoUsoIA } from "@/components/painel/AvisoUsoIA";
 import { PainelEntregas } from "@/components/painel/PainelEntregas";
 import { PainelCapacidade } from "@/components/painel/PainelCapacidade";
@@ -52,6 +53,7 @@ function Painel() {
       <CabecalhoPagina
         titulo={primeiroNome ? `${saudacao()}, ${primeiroNome}!` : `${saudacao()}!`}
       />
+      <AvisoPublicacao />
       <AvisoUsoIA />
 
       {dados.isError ? (

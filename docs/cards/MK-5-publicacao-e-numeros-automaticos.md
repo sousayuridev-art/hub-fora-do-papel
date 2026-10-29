@@ -5,6 +5,8 @@
 > **Por que não o Claude Max:** o Max paga o uso do Claude (o Claude Code e, pelos créditos de API, as sugestões da IA do MK-3). Publicar numa rede exige a permissão da própria rede (Meta, LinkedIn, TikTok, Google); nenhum plano do Claude faz isso. O Max continua pagando a IA da Central.
 > **Depende de:** MK-1 a MK-4 e MK-6 no ar.
 
+> **Como ficou (implementação, 29/10):** o envio não passa pelo n8n. A função de servidor `marketing-publicar` (como a de reuniões) é chamada pelo pg_cron a cada 5 minutos e uma vez por dia para os números; a conta do Upload-Post fica nos segredos do Supabase, e os arquivos saem por link assinado de 1 hora gerado ali mesmo. Motivo: no n8n seria preciso guardar mais acessos para assinar e anexar os arquivos; na função, tudo fica num lugar só, testado como o resto do Hub. O n8n continua recebendo `marketing.publicacao_falhou` para avisar no WhatsApp. Sem a conta configurada, o que estiver na hora volta para a pessoa com o motivo, sem tentar publicar.
+
 **Objetivo:** a versão aprovada e agendada sai sozinha na hora marcada, o link do post volta para o Hub e, uma vez por dia, os números (alcance, salvamentos, cliques, mensagens/comentários) entram na versão sem digitação. A pessoa continua decidindo: só publica o que foi aprovado e marcado para publicar sozinho.
 
 ## Problema
@@ -87,6 +89,6 @@ Hoje, depois de aprovar e agendar, alguém precisa abrir cada rede, subir as ima
 **Para ligar de verdade (depois do merge):**
 1. Assinar o Upload-Post (plano Basic) e criar o perfil "fora-do-papel".
 2. Conectar Instagram (conta profissional), página do LinkedIn, TikTok e YouTube pelo link do Upload-Post.
-3. Guardar a chave do Upload-Post nas credenciais do n8n (não passa pelo chat) e importar os dois fluxos.
+3. No Supabase de produção, em Edge Functions › Secrets, criar os segredos do card (nomes na função `marketing-publicar`: a chave da API, o nome do perfil e, para a página da empresa, o id da página do LinkedIn). A chave não passa pelo chat. Publicar a função pelo painel, como a de reuniões.
 4. Testar com uma peça só ("Publicar sozinho" numa versão de teste) antes de ligar nas outras.
 5. Na política de privacidade e nos contratos: as publicações passam pelo Upload-Post, fornecedor nos EUA (LGPD).

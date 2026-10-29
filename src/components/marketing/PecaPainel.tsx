@@ -90,6 +90,7 @@ export function PecaPainel({
     m.adicionar.isPending ||
     m.removerVersao.isPending ||
     m.agendar.isPending ||
+    m.publicarSozinho.isPending ||
     m.publicar.isPending ||
     m.resultados.isPending ||
     m.ligar.isPending ||
@@ -103,6 +104,7 @@ export function PecaPainel({
           m.adicionar.mutate({ pecaId: p.id, canal, formato, copiarDe }),
         remover: (vid) => m.removerVersao.mutate({ pecaId: p.id, id: vid }),
         agendar: (vid, quando) => m.agendar.mutate({ pecaId: p.id, id: vid, quando }),
+        publicarSozinho: (vid, ligar) => m.publicarSozinho.mutate({ pecaId: p.id, id: vid, ligar }),
         publicar: (vid, link, quando) => m.publicar.mutate({ pecaId: p.id, id: vid, link, quando }),
         registrar: (vid, r) => m.resultados.mutate({ pecaId: p.id, id: vid, r }),
         enviarArquivos: (vid, formato, arquivos) =>

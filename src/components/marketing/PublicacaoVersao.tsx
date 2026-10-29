@@ -94,7 +94,7 @@ export function PublicacaoVersao({
             )}
           </div>
           <p className="text-[13px] text-hub-suave">
-            A data entra no calendário. A publicação na rede ainda é feita por você.
+            A data entra no calendário. Para sair sozinha, ligue “Publicar sozinho” acima.
           </p>
         </div>
         <form
@@ -166,6 +166,12 @@ export function PublicacaoVersao({
         }}
       >
         <b className="text-[15px]">Resultados</b>
+        {v.resultados_fonte === "automatico" && v.resultados_em && (
+          <p className="rounded-lg bg-sit-info px-3 py-2 text-[13px] text-sit-info-t">
+            Atualizado pela rede em {diaComHora(v.resultados_em)}. Se corrigir à mão, a rede não
+            passa por cima por 24 horas.
+          </p>
+        )}
         <p className="text-[13px] text-hub-suave">
           Copie os números do painel da rede, uma semana depois de publicar. Deixe em branco o que a
           rede não mostra.

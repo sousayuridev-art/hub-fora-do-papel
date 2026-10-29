@@ -23,6 +23,9 @@ Pipedrive e ChatGuru/WhatsApp. Card REV-5.
 | --- | --- | --- |
 | `marketing.peca_aprovada` | a peça foi aprovada | `peca_id`, `titulo`, `canais` |
 | `marketing.versao_agendada` | uma versão ganhou data | `peca_id`, `versao_id`, `canal`, `formato`, `quando` |
-| `marketing.versao_publicada` | uma versão foi marcada como publicada (link colado) | `peca_id`, `versao_id`, `canal`, `formato`, `link`, `quando`, `pilar` |
+| `marketing.versao_publicada` | uma versão foi marcada como publicada (link colado ou publicação automática do MK-5, com `automatica: true`) | `peca_id`, `versao_id`, `canal`, `formato`, `link`, `quando`, `pilar` |
+| `marketing.publicacao_falhou` | a publicação automática não saiu (MK-5) | `peca_id`, `versao_id`, `canal`, `erro` |
+
+Sugestão para o n8n: `marketing.publicacao_falhou` → mensagem no WhatsApp do Yuri com o motivo. A publicação em si não passa pelo n8n: a função `marketing-publicar` faz o envio (MK-5).
 
 Hoje nenhum fluxo publica na rede: esses eventos servem para avisos e, no MK-5, para publicar e trazer números.

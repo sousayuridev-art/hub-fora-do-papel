@@ -47,7 +47,7 @@ jobs:
         if: inputs.modo == 'verificar'
         run: |
           nomes=$(supabase secrets list --project-ref "$PROJECT_REF" -o json | jq -r '.[].name')
-          for s in GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET ANTHROPIC_API_KEY_HUB IA_TETO_MENSAL_CENTAVOS; do
+          for s in GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET ANTHROPIC_API_KEY_HUB IA_TETO_MENSAL_CENTAVOS UPLOAD_POST_API_KEY UPLOAD_POST_USER; do
             if grep -qx "$s" <<< "$nomes"; then echo "ok: $s"; else echo "falta: $s"; fi
           done
 
@@ -74,6 +74,12 @@ jobs:
         if: inputs.modo == 'aplicar'
         continue-on-error: true
         run: supabase functions deploy marketing-ia --project-ref "$PROJECT_REF" --use-api
+
+      # Card MK-5: publicação automática (segredos UPLOAD_POST_API_KEY e UPLOAD_POST_USER).
+      - name: Publicar função de publicação nas redes
+        if: inputs.modo == 'aplicar'
+        continue-on-error: true
+        run: supabase functions deploy marketing-publicar --project-ref "$PROJECT_REF" --no-verify-jwt --use-api
 
       - name: Situação depois de aplicar
         if: inputs.modo == 'aplicar'

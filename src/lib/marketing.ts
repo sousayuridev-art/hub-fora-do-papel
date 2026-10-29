@@ -89,6 +89,13 @@ export type Versao = {
   position: number;
   /** Arquivos da versão (MK-2), na ordem; o caminho serve para pedir o link temporário. */
   midias: Midia[];
+  /** MK-5: publicar sozinho pelo n8n (Upload-Post) e de onde vieram os números. */
+  publicar_sozinho?: boolean;
+  publicacao?: "manual" | "na_fila" | "enviada" | "publicada" | "falhou";
+  publicacao_erro?: string | null;
+  publicacao_em?: string | null;
+  resultados_fonte?: "manual" | "automatico" | null;
+  resultados_em?: string | null;
   /** MK-6: tema usado ao gerar os arquivos pelo modelo da marca. */
   modelo?: {
     capa: "escuro" | "claro" | "ambar";
@@ -156,7 +163,8 @@ export type EventoPeca = {
     | "resultados"
     | "midia_ligada"
     | "midia_removida"
-    | "modelo_gerado";
+    | "modelo_gerado"
+    | "publicacao";
   de: Etapa | null;
   para: Etapa | null;
   nota: string | null;
@@ -537,6 +545,7 @@ export const chavesMarketing = {
   todosDestaques: ["marketing", "destaques"] as const,
   origemCliente: (cliente: string) => ["marketing", "origem-cliente", cliente] as const,
   publicadas: (busca: string) => ["marketing", "publicadas", busca] as const,
+  problemasPublicacao: ["marketing", "problemas-publicacao"] as const,
   proximaCapa: (canal: string, versao: string) =>
     ["marketing", "proxima-capa", canal, versao] as const,
   usoIA: ["marketing", "uso-ia"] as const,
@@ -938,6 +947,21 @@ export const definirOrigemDoCliente = (cliente: string, versao: string | null) =
 export const versoesPublicadas = (busca: string) =>
   rpc<VersaoPublicada[]>("mkt_versoes_publicadas", { p_busca: busca || null });
 
+// Publicação automática (MK-5)
+export const publicarSozinho = (versao: string, ligar: boolean) =>
+  rpc<Peca>("mkt_versao_publicar_sozinho", { p_id: versao, p_ligar: ligar });
+export type ProblemaPublicacao = {
+  peca_id: string;
+  titulo: string;
+  versao_id: string;
+  canal: string;
+  canal_nome: string | null;
+  erro: string | null;
+  situacao: string;
+};
+export const publicacoesComProblema = () =>
+  rpc<ProblemaPublicacao[]>("mkt_publicacoes_com_problema");
+
 // Modelos da marca (MK-6)
 export type ProximaCapa = {
   ultima: "escuro" | "claro" | "ambar" | null;
@@ -978,6 +1002,8 @@ export function mensagemDoMarketing(e: unknown): string | null {
     cliente_inexistente: "Esse cliente não existe mais.",
     autorizacao_sem_cliente: "Escolha o cliente antes de marcar a autorização.",
     periodo_invalido: "Período inválido. Escolha outro período.",
+    sem_data: "Marque a data e a hora antes de ligar o publicar sozinho.",
+    publicacao_em_andamento: "A publicação já foi enviada para a rede. Espere a confirmação.",
     modelo_invalido: "Esse tema não existe no modelo da marca.",
     agrupamento_invalido: "Esse agrupamento não existe. Recarregue a página.",
     tipo_do_arquivo: "Esse tipo de arquivo não serve nesse lugar (ex.: PDF não entra como slide).",
