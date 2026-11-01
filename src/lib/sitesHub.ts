@@ -15,7 +15,9 @@ export type CapaDoSite =
       secao: { type: string; props: Record<string, unknown> } | null;
       cor: CorDoSite | null;
     }
-  | { tipo: "topo"; topo: Partial<BlocoTopo> };
+  | { tipo: "topo"; topo: Partial<BlocoTopo> }
+  /** Catálogo de loja (HUB-CG): a foto de capa publicada. */
+  | { tipo: "foto"; caminho: string };
 
 export type SiteResumo = {
   id: string;
@@ -156,6 +158,15 @@ const eventos: Record<string, string> = {
   "site.contato_respondido": "respondeu um contato",
   "site.secoes_definidas": "mudou as seções permitidas",
   "site.cliente_definido": "mudou o que o cliente pode editar",
+  "site.catalogo_publicado": "publicou o catálogo",
+  "site.catalogo_produto_salvo": "salvou o produto",
+  "site.catalogo_produto_apagado": "apagou o produto",
+  "site.catalogo_categoria_salva": "salvou a categoria",
+  "site.catalogo_categoria_apagada": "apagou a categoria",
+  "site.catalogo_depoimento_salvo": "salvou o depoimento de",
+  "site.catalogo_depoimento_apagado": "apagou o depoimento de",
+  "site.catalogo_config_salva": "mudou os ajustes da loja",
+  "site.catalogo_importado": "importou o catálogo",
 };
 
 /** "Marta publicou a página Início". */

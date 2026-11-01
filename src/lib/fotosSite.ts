@@ -60,14 +60,15 @@ export function medidasReduzidas(largura: number, altura: number, max: number) {
 }
 
 /**
- * Comprime no navegador antes de subir: até 2000 px e WebP, baixando a qualidade
+ * Comprime no navegador antes de subir: até 2000 px (ou `maiorLado`) e WebP, baixando a qualidade
  * até ficar dentro dos 2 MB do bucket. Foto que já cabe e é pequena sobe como está.
  */
-export async function comprimirFoto(f: File): Promise<File> {
+export async function comprimirFoto(f: File, maiorLado = 2000): Promise<File> {
   const bitmap = await createImageBitmap(f);
   try {
-    if (f.size <= tamanhoMaximoImagem && Math.max(bitmap.width, bitmap.height) <= 2000) return f;
-    for (const max of [2000, 1600, 1200]) {
+    if (f.size <= tamanhoMaximoImagem && Math.max(bitmap.width, bitmap.height) <= maiorLado)
+      return f;
+    for (const max of [maiorLado, Math.round(maiorLado * 0.8), Math.round(maiorLado * 0.6)]) {
       const { largura, altura } = medidasReduzidas(bitmap.width, bitmap.height, max);
       const tela = document.createElement("canvas");
       tela.width = largura;
@@ -91,8 +92,9 @@ export async function comprimirFoto(f: File): Promise<File> {
   throw new Error(`${f.name}: não foi possível reduzir para 2 MB. Tente uma foto menor.`);
 }
 
-export async function enviarFoto(siteId: string, f: File): Promise<FotoSite> {
-  const pronta = await comprimirFoto(f);
+/** `maiorLado`: limite do lado maior (catálogo: produto 900, categoria 800, capa 1400, HUB-CG-02/03). */
+export async function enviarFoto(siteId: string, f: File, maiorLado = 2000): Promise<FotoSite> {
+  const pronta = await comprimirFoto(f, maiorLado);
   const img = await enviarImagem(siteId, pronta);
   await rpc("site_midia_enviada", { p_caminho: img.caminho });
   return { ...img, descricao: null, usos: [] };

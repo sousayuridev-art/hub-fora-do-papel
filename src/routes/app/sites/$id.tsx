@@ -9,6 +9,11 @@ import { SitePaginasHub } from "@/components/clientes/SitePaginasHub";
 import { useLogos } from "@/components/clientes/useLogos";
 import { Abas } from "@/components/hub/Abas";
 import { Sigla } from "@/components/hub/Selo";
+import { CatalogoCategorias } from "@/components/catalogo/CatalogoCategorias";
+import { CatalogoDepoimentos } from "@/components/catalogo/CatalogoDepoimentos";
+import { CatalogoLoja } from "@/components/catalogo/CatalogoLoja";
+import { CatalogoProdutos } from "@/components/catalogo/CatalogoProdutos";
+import { CatalogoPublicar } from "@/components/catalogo/CatalogoPublicar";
 import { SiteContatos } from "@/components/sites/SiteContatos";
 import { SiteVisaoGeral } from "@/components/sites/SiteVisaoGeral";
 import { useEspelho } from "@/components/sites/useEspelho";
@@ -38,7 +43,19 @@ import {
 
 const busca = z.object({
   aba: z
-    .enum(["visao", "paginas", "artigos", "midia", "contatos", "edicao"])
+    .enum([
+      "visao",
+      "produtos",
+      "categorias",
+      "depoimentos",
+      "loja",
+      "publicar",
+      "paginas",
+      "artigos",
+      "midia",
+      "contatos",
+      "edicao",
+    ])
     .optional()
     .catch(undefined),
   situacao: z.enum(["publicado", "rascunho", "arquivado"]).optional().catch(undefined),
@@ -75,6 +92,7 @@ function PaginaDoSite() {
   const resumo = qSites.data?.itens.find((s) => s.id === id) ?? null;
   const atual = resumo ? { id: resumo.id, nome: resumo.nome, dominio: resumo.dominio } : null;
   const nosso = resumo?.client_id === null;
+  const catalogo = resumo?.modulos.includes("catalogo") ?? false;
   const logos = useLogos([resumo?.logo_path]);
   const espelho = useEspelho();
   const qArtigos = useQuery({
@@ -229,7 +247,19 @@ function PaginaDoSite() {
             rotulo="Partes do site"
             opcoes={[
               { id: "visao" as const, rotulo: "Visão geral" },
-              { id: "paginas" as const, rotulo: "Páginas" },
+              // Catálogo de loja (HUB-CG-01 a 04)
+              ...(catalogo
+                ? [
+                    { id: "produtos" as const, rotulo: "Produtos" },
+                    { id: "categorias" as const, rotulo: "Categorias" },
+                    { id: "depoimentos" as const, rotulo: "Depoimentos" },
+                    { id: "loja" as const, rotulo: "Ajustes da loja" },
+                    { id: "publicar" as const, rotulo: "Publicar" },
+                  ]
+                : []),
+              ...(nosso || resumo?.modulos.includes("paginas")
+                ? [{ id: "paginas" as const, rotulo: "Páginas" }]
+                : []),
               ...(nosso || resumo?.modulos.includes("artigos")
                 ? [{ id: "artigos" as const, rotulo: "Artigos", contagem: lista?.length }]
                 : []),
@@ -270,6 +300,16 @@ function PaginaDoSite() {
             Voltar para Sites ›
           </Link>
         </div>
+      ) : catalogo && aba === "produtos" ? (
+        <CatalogoProdutos siteId={atual.id} />
+      ) : catalogo && aba === "categorias" ? (
+        <CatalogoCategorias siteId={atual.id} />
+      ) : catalogo && aba === "depoimentos" ? (
+        <CatalogoDepoimentos siteId={atual.id} />
+      ) : catalogo && aba === "loja" ? (
+        <CatalogoLoja siteId={atual.id} />
+      ) : catalogo && aba === "publicar" ? (
+        <CatalogoPublicar siteId={atual.id} dominio={atual.dominio} />
       ) : aba === "visao" ? (
         <SiteVisaoGeral
           s={resumo}
