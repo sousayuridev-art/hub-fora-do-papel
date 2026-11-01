@@ -1,16 +1,34 @@
 import { useId, useState, type ReactNode } from "react";
-
-import { listrado } from "@/lib/estilos";
-import { cn } from "@/lib/utils";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  type TooltipProps,
+} from "recharts";
 
 /**
- * Gráficos simples do Hub (card RD-0), sem biblioteca: barras e linha.
- * Regras (dataviz): um eixo só; até 2 séries nas cores --serie-1/--serie-2 (validadas para daltonismo);
- * legenda sempre que houver 2 séries; rótulo de valor só onde importa; dica ao passar o mouse
- * ou tocar; tabela escondida para leitor de tela. Os números chegam prontos do banco.
+ * Gráficos do Hub com Recharts (card RD2-6), carregados só nas telas do /app que os usam
+ * (Financeiro, Relatórios e Tráfego pago), fora do pacote do site e do portal.
+ * Regras (dataviz): um eixo só; cores --serie-1..4 em ordem fixa (validadas para daltonismo);
+ * legenda sempre que houver 2 séries; dica ao passar o mouse ou tocar; tabela escondida para
+ * leitor de tela. Os números chegam prontos do banco.
  */
 
 export type Serie = { nome: string; cor: string; valores: number[] };
+
+const LARGURA_EIXO = 48;
+const tinta = "#0E1013";
+const suave = "#4A4D54";
+const grade = "#ECECE6";
+const base = "#D6D6CF";
 
 /** Teto "redondo" do eixo (1, 2, 2,5, 5 × 10^n). */
 function tetoRedondo(max: number): number {
@@ -33,6 +51,77 @@ export function Legenda({ series }: { series: Pick<Serie, "nome" | "cor">[] }) {
           {s.nome}
         </span>
       ))}
+    </div>
+  );
+}
+
+/** Caixa da dica (escura, texto branco), igual nos dois gráficos. */
+function Dica({
+  titulo,
+  linhas,
+}: {
+  titulo: string;
+  linhas: { nome?: string; cor?: string; valor: string }[];
+}) {
+  return (
+    <div className="pointer-events-none whitespace-nowrap rounded-lg bg-hub-tinta px-2.5 py-1.5 text-[12.5px] text-white shadow-lg">
+      <b className="block font-semibold">{titulo}</b>
+      {linhas.map((l, i) => (
+        <span key={l.nome ?? i} className="flex items-center gap-1.5 tabular-nums">
+          {l.cor && (
+            <span
+              aria-hidden="true"
+              className="size-2 rounded-[2px]"
+              style={{ background: l.cor }}
+            />
+          )}
+          {l.nome ? `${l.nome}: ` : ""}
+          {l.valor}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Tabela para leitor de tela (dentro de um div: "sr-only" direto na tabela cria rolagem lateral). */
+function TabelaOculta({
+  id,
+  rotulo,
+  categorias,
+  series,
+  formatar,
+}: {
+  id: string;
+  rotulo: string;
+  categorias: string[];
+  series: Pick<Serie, "nome" | "valores">[];
+  formatar: (n: number) => string;
+}) {
+  return (
+    <div className="sr-only">
+      <table id={id}>
+        <caption>{rotulo}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Período</th>
+            {series.map((s) => (
+              <th key={s.nome} scope="col">
+                {s.nome}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {categorias.map((c, i) => (
+            <tr key={c}>
+              <th scope="row">{c}</th>
+              {series.map((s) => (
+                <td key={s.nome}>{formatar(s.valores[i] ?? 0)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -61,102 +150,120 @@ export function GraficoBarras({
   previstas?: number[];
   altura?: number;
 }) {
-  const [foco, setFoco] = useState<number | null>(null);
   const tabelaId = useId();
+  const padrao = useId().replace(/:/g, "");
+  const dados = categorias.map((c, i) => {
+    const linha: Record<string, string | number> = { categoria: c };
+    series.forEach((s, k) => (linha[`s${k}`] = s.valores[i] ?? 0));
+    return linha;
+  });
   const somas = categorias.map((_, i) =>
     empilhado
       ? series.reduce((t, s) => t + (s.valores[i] ?? 0), 0)
       : Math.max(0, ...series.map((s) => s.valores[i] ?? 0)),
   );
   const teto = tetoRedondo(Math.max(0, ...somas));
-  const px = (v: number) => Math.max(v > 0 ? 2 : 0, Math.round((v / teto) * altura));
   const eixo = formatarEixo ?? formatar;
-  const larguraBarra =
-    empilhado || series.length === 1 ? "w-[clamp(14px,45%,40px)]" : "w-[clamp(8px,30%,24px)]";
+
+  const dica = ({ active, label }: TooltipProps<number, string>) => {
+    if (!active || typeof label !== "string") return null;
+    const i = categorias.indexOf(label);
+    return (
+      <Dica
+        titulo={`${label}${previstas.includes(i) ? " · previsto" : ""}`}
+        linhas={series.map((s) => ({
+          nome: s.nome,
+          cor: s.cor,
+          valor: formatar(s.valores[i] ?? 0),
+        }))}
+      />
+    );
+  };
 
   return (
     <figure className="m-0 flex flex-col gap-2" aria-describedby={tabelaId}>
       <div
-        className="relative grid"
-        style={{ gridTemplateColumns: `48px repeat(${categorias.length}, minmax(0, 1fr))` }}
+        aria-hidden="true"
+        style={{ height: altura }}
+        className="[&_.recharts-surface]:overflow-visible"
       >
-        <div
-          aria-hidden="true"
-          className="flex flex-col justify-between pr-2 text-right text-[12.5px] tabular-nums text-hub-suave"
-          style={{ height: altura }}
-        >
-          <span className="-translate-y-2">{eixo(teto)}</span>
-          <span>{eixo(teto / 2)}</span>
-          <span className="translate-y-2">0</span>
-        </div>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute right-0 top-0 border-t border-dashed border-[#ECECE6]"
-          style={{ left: 48 }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute right-0 border-t border-dashed border-[#ECECE6]"
-          style={{ left: 48, top: altura / 2 }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute right-0 border-t border-[#D6D6CF]"
-          style={{ left: 48, top: altura }}
-        />
-        {categorias.map((c, i) => (
-          <button
-            key={c}
-            type="button"
-            aria-label={`${c}: ${series.map((s) => `${s.nome} ${formatar(s.valores[i] ?? 0)}`).join(", ")}`}
-            onMouseEnter={() => setFoco(i)}
-            onMouseLeave={() => setFoco(null)}
-            onFocus={() => setFoco(i)}
-            onBlur={() => setFoco(null)}
-            onClick={() => setFoco((f) => (f === i ? null : i))}
-            className={cn(
-              "relative flex items-end justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-hub-tinta",
-              foco === i && "bg-hub-fundo",
-              empilhado ? "flex-col-reverse items-center justify-start" : "gap-0.5",
-            )}
-            style={{ height: altura }}
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={dados}
+            margin={{ top: 6, right: 0, bottom: 0, left: 0 }}
+            barCategoryGap={empilhado || series.length === 1 ? "28%" : "22%"}
+            barGap={2}
+            accessibilityLayer={false}
           >
-            {series.map((s, k) => (
-              <span
-                key={s.nome}
-                className={cn(
-                  larguraBarra,
-                  (!empilhado || k === series.length - 1) && "rounded-t-[4px]",
-                )}
-                style={{
-                  height: px(s.valores[i] ?? 0),
-                  background: previstas.includes(i) ? listrado(s.cor) : s.cor,
-                  marginTop: empilhado && k > 0 ? 2 : undefined,
-                }}
-              />
-            ))}
-            {foco === i && (
-              <span
-                role="status"
-                className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-lg bg-hub-tinta px-2.5 py-1.5 text-left text-[12.5px] text-white shadow-lg"
-              >
-                <b className="block font-semibold">
-                  {c}
-                  {previstas.includes(i) ? " · previsto" : ""}
-                </b>
-                {series.map((s) => (
-                  <span key={s.nome} className="block tabular-nums">
-                    {s.nome}: {formatar(s.valores[i] ?? 0)}
-                  </span>
-                ))}
-              </span>
-            )}
-          </button>
-        ))}
+            <defs>
+              {series.map((s, k) => (
+                <pattern
+                  key={s.nome}
+                  id={`${padrao}-${k}`}
+                  width="6"
+                  height="6"
+                  patternUnits="userSpaceOnUse"
+                  patternTransform="rotate(45)"
+                >
+                  <rect width="6" height="6" style={{ fill: "#fff" }} />
+                  <rect width="3" height="6" style={{ fill: s.cor }} />
+                </pattern>
+              ))}
+            </defs>
+            <CartesianGrid vertical={false} stroke={grade} strokeDasharray="3 3" />
+            <XAxis dataKey="categoria" hide />
+            <YAxis
+              width={LARGURA_EIXO}
+              domain={[0, teto]}
+              ticks={[0, teto / 2, teto]}
+              tick={(t: { x: number; y: number; payload: { value: number } }) => (
+                // Texto próprio: o tick padrão quebra "R$ 800" em duas linhas
+                <text
+                  x={t.x - 6}
+                  y={t.y}
+                  dy={4}
+                  textAnchor="end"
+                  fontSize={12.5}
+                  style={{ fill: suave, fontVariantNumeric: "tabular-nums" }}
+                >
+                  {t.payload.value === 0 ? "0" : eixo(t.payload.value)}
+                </text>
+              )}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip content={dica} cursor={{ fill: "#F5F7FA" }} isAnimationActive={false} />
+            <ReferenceLine y={0} stroke={base} />
+            {series.map((s, k) => {
+              const topo = !empilhado || k === series.length - 1;
+              // Empilhado: contorno na cor do fundo dá 2 px de respiro entre os segmentos
+              return (
+                <Bar
+                  key={s.nome}
+                  dataKey={`s${k}`}
+                  name={s.nome}
+                  {...(empilhado ? { stackId: "pilha", stroke: "#fff", strokeWidth: 1 } : {})}
+                  radius={topo ? [4, 4, 0, 0] : 0}
+                  maxBarSize={empilhado || series.length === 1 ? 40 : 24}
+                  isAnimationActive={false}
+                >
+                  {dados.map((d, i) => (
+                    <Cell
+                      key={String(d["categoria"])}
+                      style={{ fill: previstas.includes(i) ? `url(#${padrao}-${k})` : s.cor }}
+                    />
+                  ))}
+                </Bar>
+              );
+            })}
+          </BarChart>
+        </ResponsiveContainer>
       </div>
       <div
         className="grid text-center text-[12.5px]"
-        style={{ gridTemplateColumns: `48px repeat(${categorias.length}, minmax(0, 1fr))` }}
+        style={{
+          gridTemplateColumns: `${LARGURA_EIXO}px repeat(${categorias.length}, minmax(0, 1fr))`,
+        }}
       >
         <span />
         {categorias.map((c, i) => (
@@ -166,32 +273,13 @@ export function GraficoBarras({
           </span>
         ))}
       </div>
-      {/* Tabela dentro de um div: "sr-only" direto na tabela não limita a largura e cria rolagem lateral */}
-      <div className="sr-only">
-        <table id={tabelaId}>
-          <caption>{rotulo}</caption>
-          <thead>
-            <tr>
-              <th scope="col">Período</th>
-              {series.map((s) => (
-                <th key={s.nome} scope="col">
-                  {s.nome}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {categorias.map((c, i) => (
-              <tr key={c}>
-                <th scope="row">{c}</th>
-                {series.map((s) => (
-                  <td key={s.nome}>{formatar(s.valores[i] ?? 0)}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <TabelaOculta
+        id={tabelaId}
+        rotulo={rotulo}
+        categorias={categorias}
+        series={series}
+        formatar={formatar}
+      />
     </figure>
   );
 }
@@ -202,6 +290,7 @@ export function GraficoLinha({
   cor = "var(--color-serie-1)",
   formatar,
   referencia,
+  altura = 150,
 }: {
   rotulo: string;
   pontos: { rotulo: string; valor: number }[];
@@ -209,90 +298,99 @@ export function GraficoLinha({
   formatar: (n: number) => string;
   /** Linha tracejada de limite ou meta. */
   referencia?: { valor: number; rotulo: string; cor?: string };
+  altura?: number;
 }) {
-  const [foco, setFoco] = useState<number | null>(null);
   const tabelaId = useId();
-  const W = 300;
-  const H = 140;
-  const topo = 16;
+  const [foco, setFoco] = useState<number | null>(null);
   const teto = tetoRedondo(Math.max(referencia?.valor ?? 0, ...pontos.map((p) => p.valor)) * 1.1);
-  const x = (i: number) => (pontos.length <= 1 ? W / 2 : 8 + (i * (W - 16)) / (pontos.length - 1));
-  const y = (v: number) => H - ((H - topo) * v) / teto;
-  const ultimo = pontos.length - 1;
-  const alvo = foco ?? ultimo;
+  const alvo = foco ?? pontos.length - 1;
   const p = pontos[alvo];
+  const corRef = referencia?.cor ?? "#9A1C12";
+
+  const dica = ({ active, label }: TooltipProps<number, string>) => {
+    if (!active || typeof label !== "string") return null;
+    const pt = pontos.find((x) => x.rotulo === label);
+    return pt ? <Dica titulo={label} linhas={[{ valor: formatar(pt.valor) }]} /> : null;
+  };
 
   return (
     <figure className="m-0 flex flex-col gap-2" aria-describedby={tabelaId}>
-      <div className="relative">
-        <svg
-          viewBox={`0 0 ${W} ${H + 4}`}
-          className="h-auto w-full overflow-visible"
-          aria-hidden="true"
-        >
-          <line x1="0" y1={H} x2={W} y2={H} stroke="#D6D6CF" strokeWidth="1" />
-          <line
-            x1="0"
-            y1={y(teto / 2)}
-            x2={W}
-            y2={y(teto / 2)}
-            stroke="#ECECE6"
-            strokeDasharray="3 3"
-          />
-          {referencia && (
-            <line
-              x1="0"
-              y1={y(referencia.valor)}
-              x2={W}
-              y2={y(referencia.valor)}
-              stroke={referencia.cor ?? "#9A1C12"}
-              strokeWidth="1.5"
-              strokeDasharray="5 4"
+      <div aria-hidden="true" style={{ height: altura }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={pontos}
+            margin={{ top: 16, right: 8, bottom: 4, left: 8 }}
+            onMouseMove={(e) =>
+              setFoco(typeof e?.activeTooltipIndex === "number" ? e.activeTooltipIndex : null)
+            }
+            onMouseLeave={() => setFoco(null)}
+            accessibilityLayer={false}
+          >
+            <CartesianGrid vertical={false} stroke={grade} strokeDasharray="3 3" />
+            <XAxis dataKey="rotulo" hide />
+            <YAxis domain={[0, teto]} hide />
+            <ReferenceLine y={0} stroke={base} />
+            {referencia && (
+              <ReferenceLine
+                y={referencia.valor}
+                stroke={corRef}
+                strokeWidth={1.5}
+                strokeDasharray="5 4"
+                label={(l: { viewBox?: { x?: number; y?: number; width?: number } }) => (
+                  // Rótulo acima da linha, alinhado à direita
+                  <text
+                    x={(l.viewBox?.x ?? 0) + (l.viewBox?.width ?? 0)}
+                    y={(l.viewBox?.y ?? 0) - 5}
+                    textAnchor="end"
+                    fontSize={12.5}
+                    style={{ fill: corRef }}
+                  >
+                    {referencia.rotulo}
+                  </text>
+                )}
+              />
+            )}
+            <Tooltip
+              content={dica}
+              cursor={{ stroke: "#C9D0DA", strokeWidth: 1 }}
+              isAnimationActive={false}
             />
-          )}
-          {pontos.length > 1 && (
-            <polyline
-              points={pontos.map((pt, i) => `${x(i)},${y(pt.valor)}`).join(" ")}
-              fill="none"
+            <Line
+              type="linear"
+              dataKey="valor"
               stroke={cor}
-              strokeWidth="2"
+              style={{ stroke: cor }}
+              strokeWidth={2}
               strokeLinejoin="round"
               strokeLinecap="round"
+              isAnimationActive={false}
+              dot={(props: { cx?: number; cy?: number; index?: number }) =>
+                props.index === pontos.length - 1 && foco === null ? (
+                  <circle
+                    key="ultimo"
+                    cx={props.cx}
+                    cy={props.cy}
+                    r={4.5}
+                    style={{ fill: cor }}
+                    stroke="#fff"
+                    strokeWidth={2}
+                  />
+                ) : (
+                  <g key={`p${props.index ?? 0}`} />
+                )
+              }
+              activeDot={{ r: 4.5, stroke: "#fff", strokeWidth: 2, style: { fill: cor } }}
             />
-          )}
-          {p && (
-            <circle cx={x(alvo)} cy={y(p.valor)} r="4.5" fill={cor} stroke="#fff" strokeWidth="2" />
-          )}
-          {pontos.map((pt, i) => (
-            <rect
-              key={pt.rotulo}
-              x={x(i) - W / Math.max(2, pontos.length) / 2}
-              y="0"
-              width={W / Math.max(2, pontos.length)}
-              height={H}
-              fill="transparent"
-              onMouseEnter={() => setFoco(i)}
-              onMouseLeave={() => setFoco(null)}
-            />
-          ))}
-        </svg>
-        {referencia && (
-          // Rótulo da linha em HTML (não no SVG, que encolhe com a largura): fica sempre em 12,5 px
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute right-0 -translate-y-full pb-0.5 text-[12.5px] leading-none"
-            style={{
-              top: `${(y(referencia.valor) / (H + 4)) * 100}%`,
-              color: referencia.cor ?? "#9A1C12",
-            }}
-          >
-            {referencia.rotulo}
-          </span>
-        )}
+          </LineChart>
+        </ResponsiveContainer>
       </div>
       <div className="flex justify-between text-[12.5px] text-hub-suave">
         {pontos.map((pt, i) => (
-          <span key={pt.rotulo} className={cn(i === alvo && "font-semibold text-hub-tinta")}>
+          <span
+            key={pt.rotulo}
+            className={i === alvo ? "font-semibold text-hub-tinta" : undefined}
+            style={i === alvo ? { color: tinta } : undefined}
+          >
             {pt.rotulo}
           </span>
         ))}
@@ -302,20 +400,13 @@ export function GraficoLinha({
           {p.rotulo}: <b className="font-semibold tabular-nums">{formatar(p.valor)}</b>
         </p>
       )}
-      {/* Tabela dentro de um div: "sr-only" direto na tabela não limita a largura e cria rolagem lateral */}
-      <div className="sr-only">
-        <table id={tabelaId}>
-          <caption>{rotulo}</caption>
-          <tbody>
-            {pontos.map((pt) => (
-              <tr key={pt.rotulo}>
-                <th scope="row">{pt.rotulo}</th>
-                <td>{formatar(pt.valor)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <TabelaOculta
+        id={tabelaId}
+        rotulo={rotulo}
+        categorias={pontos.map((x) => x.rotulo)}
+        series={[{ nome: "Valor", valores: pontos.map((x) => x.valor) }]}
+        formatar={formatar}
+      />
     </figure>
   );
 }
