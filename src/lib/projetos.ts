@@ -122,6 +122,8 @@ export type Fase = {
   position: number;
   name: string;
   due_label: string | null;
+  /** Prazo com data (RD2-4), AAAA-MM-DD. */
+  due_date?: string | null;
   status: SituacaoFase;
   started_at: string | null;
   completed_at: string | null;
@@ -478,4 +480,14 @@ export function mensagemDoProjeto(e: unknown): string | null {
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;
+}
+
+/** Prazo com data de uma fase (RD2-4). `null` tira o prazo. */
+export async function definirPrazoFase(fase: string, data: string | null) {
+  const { data: r, error } = await supabase.rpc("projeto_fase_prazo", {
+    p_fase: fase,
+    p_data: data,
+  });
+  if (error) throw error;
+  return r as { id: string; due_date: string | null };
 }

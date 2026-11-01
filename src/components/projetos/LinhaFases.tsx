@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 
-import { diaMes } from "@/lib/formatar";
+import { dataLocal, diaMes } from "@/lib/formatar";
 import type { SituacaoFase } from "@/lib/projetos";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +10,20 @@ type FaseLinha = {
   quando: string | null;
   status: SituacaoFase;
   concluida_em: string | null;
+  /** Prazo com data (RD2-4), AAAA-MM-DD. */
+  prazo?: string | null | undefined;
 };
+
+/** "Prazo 25/10 · 3 dias de atraso" (só fase ainda não concluída). */
+function textoPrazo(prazo: string, hoje: string | undefined): { texto: string; atrasada: boolean } {
+  const base = `Prazo ${diaMes(dataLocal(prazo))}`;
+  if (!hoje) return { texto: base, atrasada: false };
+  const dias = Math.round((dataLocal(hoje).getTime() - dataLocal(prazo).getTime()) / 86_400_000);
+  if (dias > 0)
+    return { texto: `${base} · ${dias} ${dias === 1 ? "dia" : "dias"} de atraso`, atrasada: true };
+  if (dias === 0) return { texto: `${base} · vence hoje`, atrasada: false };
+  return { texto: base, atrasada: false };
+}
 
 /**
  * Fases em linha: concluídas com ✓, a atual em destaque, as próximas apagadas.
@@ -19,9 +32,12 @@ type FaseLinha = {
 export function LinhaFases({
   fases,
   compacta = false,
+  hoje,
 }: {
   fases: FaseLinha[];
   compacta?: boolean;
+  /** Dia de hoje (AAAA-MM-DD, do banco) para contar o atraso dos prazos. */
+  hoje?: string | undefined;
 }) {
   return (
     <ol
@@ -73,7 +89,21 @@ export function LinhaFases({
               {f.status === "andamento" && <span className="sr-only"> (fase atual)</span>}
               {f.status === "concluida" && <span className="sr-only"> (concluída)</span>}
             </span>
-            {!compacta || f.status !== "pendente" ? (
+            {f.prazo && f.status !== "concluida" ? (
+              (() => {
+                const p = textoPrazo(f.prazo, hoje);
+                return (
+                  <span
+                    className={cn(
+                      "truncate text-[13px]",
+                      p.atrasada ? "font-medium text-sit-risco-t" : "text-hub-suave",
+                    )}
+                  >
+                    {p.texto}
+                  </span>
+                );
+              })()
+            ) : !compacta || f.status !== "pendente" ? (
               <span className="truncate text-[13px] text-hub-suave">
                 {f.status === "concluida" && f.concluida_em
                   ? `Concluída ${diaMes(f.concluida_em)}`

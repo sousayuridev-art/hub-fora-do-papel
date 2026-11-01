@@ -43,6 +43,8 @@ export type Pedido = {
 };
 
 export type PedidoLinha = Pedido & {
+  /** Sobe para o topo da coluna, com selo vermelho (RD2-4). */
+  urgente?: boolean;
   company_name: string;
   contact_name: string | null;
   project_name: string | null;
@@ -212,3 +214,47 @@ export function mensagemDoPedido(e: unknown): string | null {
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;
 }
+
+/** Marca ou desmarca o pedido como urgente (RD2-4). */
+export async function marcarUrgente(id: string, urgente: boolean) {
+  const { data, error } = await supabase.rpc("pedido_urgente", { p_id: id, p_urgente: urgente });
+  if (error) throw error;
+  return data as { id: string; urgente: boolean; updated_at: string };
+}
+
+/** Dias desde que o pedido chegou (pela data local). */
+export function idadeEmDias(criadoEm: string, agora: Date = new Date()): number {
+  const c = new Date(criadoEm);
+  const a = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+  const d = new Date(c.getFullYear(), c.getMonth(), c.getDate());
+  return Math.max(0, Math.round((a.getTime() - d.getTime()) / 86_400_000));
+}
+
+/** Colunas do quadro de pedidos (RD2-4), na ordem do trabalho. */
+export const colunasPedidos: {
+  id: string;
+  rotulo: string;
+  descricao: string;
+  situacoes: SituacaoPedido[];
+}[] = [
+  { id: "novos", rotulo: "Novos", descricao: "Para classificar", situacoes: ["recebido"] },
+  {
+    id: "analise",
+    rotulo: "Em análise",
+    descricao: "Estimando horas e valor",
+    situacoes: ["em_analise"],
+  },
+  {
+    id: "cliente",
+    rotulo: "Aguardando o cliente",
+    descricao: "Esperando aprovação",
+    situacoes: ["aguardando_cliente"],
+  },
+  { id: "fazendo", rotulo: "Fazendo", descricao: "Em produção", situacoes: ["fazendo"] },
+  {
+    id: "prontos",
+    rotulo: "Prontos",
+    descricao: "Últimos entregues",
+    situacoes: ["pronto", "recusado"],
+  },
+];

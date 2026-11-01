@@ -9,7 +9,9 @@ import { CampoEscolha } from "@/components/hub/Campo";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { FiltrosChip } from "@/components/hub/FiltrosChip";
 import { PedidoPainel } from "@/components/pedidos/PedidoPainel";
+import { AlternarVista } from "@/components/pedidos/AlternarVista";
 import { PedidosLista } from "@/components/pedidos/PedidosLista";
+import { PedidosQuadro } from "@/components/pedidos/PedidosQuadro";
 import { RegistrarPedidoPainel } from "@/components/pedidos/RegistrarPedidoPainel";
 import { useMutacoesPedidos } from "@/components/pedidos/useMutacoesPedidos";
 import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
@@ -34,6 +36,9 @@ const busca = z.object({
   pedido: z.string().uuid().optional().catch(undefined),
   cliente: z.string().uuid().optional().catch(undefined),
   origem: z.enum(["portal", "painel", "whatsapp", "reuniao", "hub"]).optional().catch(undefined),
+  /** Quadro por situação (padrão) ou lista (RD2-4). */
+  vista: z.enum(["quadro", "lista"]).optional().catch(undefined),
+  urgentes: z.boolean().optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/app/pedidos")({
@@ -43,7 +48,14 @@ export const Route = createFileRoute("/app/pedidos")({
 });
 
 function Pedidos() {
-  const { aba = "todos", pedido, cliente: clienteNaUrl, origem: origemNaUrl } = Route.useSearch();
+  const {
+    aba = "todos",
+    pedido,
+    cliente: clienteNaUrl,
+    origem: origemNaUrl,
+    vista = "quadro",
+    urgentes = false,
+  } = Route.useSearch();
   const navigate = Route.useNavigate();
   const cliente = clienteNaUrl ?? "todos";
   const setCliente = (v: string) =>
@@ -78,15 +90,24 @@ function Pedidos() {
   }, [lista.data, cliente]);
 
   const visiveis = useMemo(() => {
-    const sit = situacoesDaAba[aba];
+    // no quadro as colunas já separam a situação; lá o filtro é só "Urgentes"
+    const sit = vista === "quadro" ? null : situacoesDaAba[aba];
     return (lista.data ?? []).filter(
       (p) =>
         (!sit || sit.includes(p.status)) &&
+        (vista === "lista" || !urgentes || p.urgente === true) &&
         (cliente === "todos" || p.client_id === cliente) &&
         (origem === "todas" || p.origin === origem) &&
         (!termo || `${p.code} ${p.title} ${p.company_name}`.toLowerCase().includes(termo)),
     );
-  }, [lista.data, aba, cliente, origem, termo]);
+  }, [lista.data, aba, cliente, origem, termo, vista, urgentes]);
+  const totalUrgentes = useMemo(
+    () =>
+      (lista.data ?? []).filter(
+        (p) => p.urgente && p.status !== "pronto" && p.status !== "recusado",
+      ).length,
+    [lista.data],
+  );
 
   const aberto = pedido ? ((lista.data ?? []).find((p) => p.id === pedido) ?? null) : null;
   // Abrir o pedido cria entrada no histórico; fechar pela tela não (RD-9)
@@ -107,31 +128,59 @@ function Pedidos() {
         }
       />
 
-      <FiltrosChip<AbaPedidos>
-        rotulo="Situação dos pedidos"
-        ativo={aba}
-        aoEscolher={(id) =>
-          void navigate({
-            search: (s) => ({ ...s, aba: id === "todos" ? undefined : id }),
-            replace: true,
-          })
-        }
-        opcoes={abasPedidos.map((a) => ({
-          id: a.id,
-          rotulo: a.rotulo,
-          contagem: r
-            ? a.id === "todos"
-              ? r.todos
-              : a.id === "recebido"
-                ? r.recebido
-                : a.id === "andamento"
-                  ? r.andamento
-                  : a.id === "aguardando_cliente"
-                    ? r.aguardando_cliente
-                    : r.concluidos
-            : undefined,
-        }))}
-      />
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        {vista === "quadro" ? (
+          <FiltrosChip<"todos" | "urgentes">
+            rotulo="Filtrar o quadro"
+            ativo={urgentes ? "urgentes" : "todos"}
+            aoEscolher={(id) =>
+              void navigate({
+                search: (s) => ({ ...s, urgentes: id === "urgentes" ? true : undefined }),
+                replace: true,
+              })
+            }
+            opcoes={[
+              { id: "todos", rotulo: "Todos" },
+              { id: "urgentes", rotulo: "Urgentes", contagem: totalUrgentes },
+            ]}
+          />
+        ) : (
+          <FiltrosChip<AbaPedidos>
+            rotulo="Situação dos pedidos"
+            ativo={aba}
+            aoEscolher={(id) =>
+              void navigate({
+                search: (s) => ({ ...s, aba: id === "todos" ? undefined : id }),
+                replace: true,
+              })
+            }
+            opcoes={abasPedidos.map((a) => ({
+              id: a.id,
+              rotulo: a.rotulo,
+              contagem: r
+                ? a.id === "todos"
+                  ? r.todos
+                  : a.id === "recebido"
+                    ? r.recebido
+                    : a.id === "andamento"
+                      ? r.andamento
+                      : a.id === "aguardando_cliente"
+                        ? r.aguardando_cliente
+                        : r.concluidos
+                : undefined,
+            }))}
+          />
+        )}
+        <AlternarVista
+          vista={vista}
+          aoMudar={(v) =>
+            void navigate({
+              search: (s) => ({ ...s, vista: v === "quadro" ? undefined : v }),
+              replace: true,
+            })
+          }
+        />
+      </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <CampoEscolha
@@ -180,6 +229,14 @@ function Pedidos() {
             ? 'Nenhum pedido ainda. Pedidos feitos pelo cliente no portal entram aqui sozinhos; os do WhatsApp, registre em "Registrar pedido".'
             : "Nenhum pedido com esses filtros."}
         </p>
+      ) : vista === "quadro" ? (
+        <PedidosQuadro
+          itens={visiveis}
+          aoAbrir={(p) => painelPedido.abrir(p.id)}
+          aoVerProntos={() =>
+            void navigate({ search: (s) => ({ ...s, vista: "lista", aba: "concluidos" }) })
+          }
+        />
       ) : (
         <PedidosLista itens={visiveis} aoAbrir={(p) => painelPedido.abrir(p.id)} />
       )}
@@ -193,6 +250,7 @@ function Pedidos() {
         aoIniciar={(p) => m.iniciar.mutate({ p })}
         aoConcluir={(p) => m.concluir.mutate({ p })}
         aoRecusar={(p, motivo) => m.recusar.mutate({ p, motivo })}
+        aoUrgente={(p, urgente) => m.urgente.mutate({ p, urgente })}
       />
       <RegistrarPedidoPainel
         aberto={registrar}

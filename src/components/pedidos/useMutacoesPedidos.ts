@@ -7,6 +7,7 @@ import {
   concluirPedido,
   enviarAoCliente,
   iniciarPedido,
+  marcarUrgente,
   mensagemDoPedido,
   recusarPedido,
   registrarPedido,
@@ -94,5 +95,11 @@ export function useMutacoesPedidos() {
     onSettled: recarregar,
   });
 
-  return { classificar, enviar, iniciar, concluir, recusar, registrar };
+  const urgente = useMudanca(
+    (v: { p: PedidoLinha; urgente: boolean }) => marcarUrgente(v.p.id, v.urgente),
+    (v) => ({ status: v.p.status, urgente: v.urgente }),
+    (v) => (v.urgente ? `${v.p.code} marcado como urgente.` : `${v.p.code} deixou de ser urgente.`),
+  );
+
+  return { classificar, enviar, iniciar, concluir, recusar, registrar, urgente };
 }

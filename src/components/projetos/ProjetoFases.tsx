@@ -1,6 +1,8 @@
-import { Check } from "lucide-react";
+import { useState } from "react";
+import { CalendarDays, Check } from "lucide-react";
 
 import { LinhaFases } from "@/components/projetos/LinhaFases";
+import { PrazosFasesPainel } from "@/components/projetos/PrazosFasesPainel";
 import { classeAcaoTexto, classeBotaoSecundario } from "@/lib/estilos";
 import { dataLocal, diaMes } from "@/lib/formatar";
 import { faseAtual, type DetalheProjeto } from "@/lib/projetos";
@@ -25,6 +27,7 @@ export function ProjetoFases({
     ? d.aprovacoes.some((a) => a.phase_id === atual.fase.id && a.status === "aguardando")
     : false;
   const lanc = d.projeto.launch_date;
+  const [prazos, setPrazos] = useState(false);
   return (
     <section
       aria-labelledby="fases-t"
@@ -40,12 +43,19 @@ export function ProjetoFases({
             {esperando ? " · fase atual esperando a aprovação do cliente" : ""}
           </p>
         </div>
-        {atual && !esperando && d.projeto.status === "andamento" && (
-          // RD-10: o âmbar fica no bloco "O que destrava o projeto" (ação principal única da tela).
-          <button type="button" className={classeBotaoSecundario} onClick={aoConcluir}>
-            <Check className="size-4" aria-hidden="true" /> Concluir fase e pedir aprovação
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {d.projeto.status === "andamento" && (
+            <button type="button" className={classeAcaoTexto} onClick={() => setPrazos(true)}>
+              <CalendarDays className="size-4" aria-hidden="true" /> Prazos
+            </button>
+          )}
+          {atual && !esperando && d.projeto.status === "andamento" && (
+            // RD-10: o âmbar fica no bloco "O que destrava o projeto" (ação principal única da tela).
+            <button type="button" className={classeBotaoSecundario} onClick={aoConcluir}>
+              <Check className="size-4" aria-hidden="true" /> Concluir fase e pedir aprovação
+            </button>
+          )}
+        </div>
       </div>
       <LinhaFases
         fases={d.fases.map((f) => ({
@@ -54,7 +64,9 @@ export function ProjetoFases({
           quando: f.due_label,
           status: f.status,
           concluida_em: f.completed_at,
+          prazo: f.due_date ?? null,
         }))}
+        hoje={d.hoje}
       />
       {podeMudar && (
         <button
@@ -65,6 +77,7 @@ export function ProjetoFases({
           Sistema sob medida? Entregar por módulos
         </button>
       )}
+      <PrazosFasesPainel d={d} aberto={prazos} aoMudar={setPrazos} />
     </section>
   );
 }
