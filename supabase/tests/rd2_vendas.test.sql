@@ -19,7 +19,7 @@ insert into public.clients (id, tenant_id, company_name, contact_name, whatsapp)
   ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', 'De Outra', 'Zé', '79900000003');
 insert into public.deals (id, tenant_id, client_id, stage, value_cents, next_step, next_step_at, closed_at, archived_at, lost_reason) values
   -- Loja Antiga: fechou um projeto e agora negocia um adicional
-  ('30000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'fechado', 500000, null, null, now() - interval '2 days', null, null),
+  ('30000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'fechado', 500000, null, null, now() - interval '1 minute', null, null),
   ('30000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'proposta', 300000, 'Retornar', now() + interval '1 day', null, null, null),
   -- Padaria Nova: contato novo, passo vencido
   ('30000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', 'contato', 100000, 'Ligar', now() - interval '3 days', null, null, null),
