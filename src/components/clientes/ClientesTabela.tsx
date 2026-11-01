@@ -35,7 +35,13 @@ function ProximoPasso({ c }: { c: ClienteLinha }) {
  * Lista de clientes virtualizada (só as linhas visíveis vão para a tela).
  * Computador: tabela. Celular: cartões empilhados.
  */
-export function ClientesTabela({ itens }: { itens: ClienteLinha[] }) {
+export function ClientesTabela({
+  itens,
+  logos = {},
+}: {
+  itens: ClienteLinha[];
+  logos?: Record<string, string>;
+}) {
   const lista = useRef<HTMLDivElement>(null);
   const [margem, setMargem] = useState(0);
   useLayoutEffect(() => {
@@ -93,7 +99,10 @@ export function ClientesTabela({ itens }: { itens: ClienteLinha[] }) {
                 )}
               >
                 <span className="col-span-2 flex min-w-0 items-center gap-3 lg:col-span-1">
-                  <Sigla texto={sigla(c.company_name)} semente={c.company_name} />
+                  <Sigla
+                    texto={sigla(c.company_name)}
+                    logo={c.logo_path ? logos[c.logo_path] : undefined}
+                  />
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate font-semibold">{c.company_name}</span>
                     <span className="truncate text-[13.5px] text-hub-suave">{c.contact_name}</span>

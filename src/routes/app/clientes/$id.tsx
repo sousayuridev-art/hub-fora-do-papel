@@ -11,7 +11,10 @@ import {
   type AcaoOportunidade,
 } from "@/components/clientes/ClienteOportunidade";
 import { ClienteContato } from "@/components/clientes/ClienteContato";
-import { ClienteNumeros } from "@/components/clientes/ClienteNumeros";
+import { ClienteAgora } from "@/components/clientes/ClienteAgora";
+import { ClienteAtividades } from "@/components/clientes/ClienteAtividades";
+import { LogoClientePainel } from "@/components/clientes/LogoClientePainel";
+import { useLogos } from "@/components/clientes/useLogos";
 import { ClientePropostas } from "@/components/clientes/ClientePropostas";
 import { ClienteProjetos } from "@/components/clientes/ClienteProjetos";
 import { ClienteAcessoPortal } from "@/components/clientes/ClienteAcessoPortal";
@@ -35,9 +38,12 @@ import {
   type Oportunidade,
 } from "@/lib/funil";
 import { chavesReunioes, listarReunioes } from "@/lib/reunioes";
+import { chavesAgora, clientesAgora, rotuloRelacao } from "@/lib/clientes";
 import { classeAcaoTexto } from "@/lib/estilos";
 
-const busca = z.object({ aba: z.enum(["visao", "linha", "reunioes"]).optional().catch(undefined) });
+const busca = z.object({
+  aba: z.enum(["visao", "projetos", "linha", "reunioes"]).optional().catch(undefined),
+});
 
 export const Route = createFileRoute("/app/clientes/$id")({
   validateSearch: busca,
@@ -50,6 +56,7 @@ function Ficha() {
   const { aba = "visao" } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [editar, setEditar] = useState(false);
+  const [painelLogo, setPainelLogo] = useState(false);
   const [painel, setPainel] = useState<{ acao: AcaoOportunidade; o: Oportunidade } | null>(null);
   const m = useMutacoesFunil();
 
@@ -69,6 +76,9 @@ function Ficha() {
     queryKey: chavesReunioes.lista("todas", id),
     queryFn: () => listarReunioes("todas", id),
   });
+
+  const agora = useQuery({ queryKey: chavesAgora, queryFn: clientesAgora });
+  const logos = useLogos([cliente.data?.logo_path]);
 
   if (cliente.isPending) {
     return (
@@ -106,29 +116,26 @@ function Ficha() {
     else setPainel({ acao, o });
   }
   const abas = [
-    { id: "visao" as const, rotulo: "Visão geral" },
+    { id: "visao" as const, rotulo: "Resumo" },
+    { id: "projetos" as const, rotulo: "Projetos e propostas" },
     { id: "linha" as const, rotulo: "Linha do tempo", contagem: linha.data?.length },
     { id: "reunioes" as const, rotulo: "Reuniões", contagem: reunioes.data?.itens.length },
   ];
+  const a = agora.data?.itens[c.id];
+  const logo = c.logo_path ? logos[c.logo_path] : undefined;
+  const irPara = (id: (typeof abas)[number]["id"]) =>
+    void navigate({ search: { aba: id === "visao" ? undefined : id }, replace: true });
 
   return (
     <div className="flex flex-col gap-5">
       <ClienteCabecalho
         c={c}
         aoEditar={() => setEditar(true)}
-        abas={
-          <Abas
-            rotulo="Seções da ficha"
-            opcoes={abas}
-            ativa={aba}
-            aoEscolher={(id) =>
-              void navigate({ search: { aba: id === "visao" ? undefined : id }, replace: true })
-            }
-          />
-        }
+        logo={logo}
+        relacao={a?.relacao ? rotuloRelacao[a.relacao] : null}
+        aoLogo={() => setPainelLogo(true)}
+        abas={<Abas rotulo="Seções da ficha" opcoes={abas} ativa={aba} aoEscolher={irPara} />}
       />
-
-      <ClienteNumeros c={c} o={o} />
 
       {aba === "reunioes" ? (
         <ClienteReunioes clienteId={c.id} />
@@ -143,9 +150,35 @@ function Ficha() {
         ) : (
           <ClienteLinhaDoTempo itens={linha.data} />
         )
+      ) : aba === "projetos" ? (
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="flex min-w-0 flex-col gap-4">
+            <ClienteProjetos clienteId={c.id} />
+            <ClientePropostas clienteId={c.id} />
+          </div>
+          <div className="flex flex-col gap-4">
+            <ClienteSite clienteId={c.id} />
+            <ClientePecaDeOrigem clienteId={c.id} />
+            <Link
+              to="/app/materiais"
+              search={{ cliente: c.id }}
+              className="flex min-h-11 items-center justify-between rounded-2xl border border-[#E3E7ED] bg-white px-5 py-3 text-[15px] font-medium hover:bg-[#F9FAFC]"
+            >
+              Materiais deste cliente <span aria-hidden="true">›</span>
+            </Link>
+            <Link
+              to="/app/pedidos"
+              search={{ cliente: c.id, vista: "lista" }}
+              className="flex min-h-11 items-center justify-between rounded-2xl border border-[#E3E7ED] bg-white px-5 py-3 text-[15px] font-medium hover:bg-[#F9FAFC]"
+            >
+              Pedidos deste cliente <span aria-hidden="true">›</span>
+            </Link>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-4">
+            <ClienteAgora clienteId={c.id} />
             {dealId ? (
               o ? (
                 <ClienteOportunidade o={o} aoAgir={agir} />
@@ -158,30 +191,17 @@ function Ficha() {
                 <div className="h-64 animate-pulse rounded-2xl bg-white" />
               )
             ) : (
-              <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-6 text-[15px] text-hub-suave">
-                Esta ficha ainda não tem oportunidade no funil.
-              </p>
+              !a?.projeto && (
+                <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-6 text-[15px] text-hub-suave">
+                  Esta ficha ainda não tem oportunidade no funil.
+                </p>
+              )
             )}
-            <ClienteProjetos clienteId={c.id} />
-            <ClientePropostas clienteId={c.id} />
+            <ClienteAtividades itens={linha.data} aoVerTudo={() => irPara("linha")} />
           </div>
           <div className="flex flex-col gap-4">
-            <ClienteContato c={c} aoEditar={() => setEditar(true)} />
             <ClienteFinanceiro clienteId={c.id} />
-            <Link
-              to="/app/materiais"
-              search={{ cliente: c.id }}
-              className="flex min-h-11 items-center justify-between rounded-2xl border border-hub-borda bg-white px-5 py-3 text-[15px] font-medium hover:bg-hub-fundo"
-            >
-              Materiais deste cliente <span aria-hidden="true">→</span>
-            </Link>
-            <Link
-              to="/app/pedidos"
-              search={{ cliente: c.id }}
-              className="flex min-h-11 items-center justify-between rounded-2xl border border-hub-borda bg-white px-5 py-3 text-[15px] font-medium hover:bg-hub-fundo"
-            >
-              Pedidos deste cliente <span aria-hidden="true">→</span>
-            </Link>
+            <ClienteContato c={c} aoEditar={() => setEditar(true)} />
             <ClienteAcessoPortal
               clienteId={c.id}
               emailSugerido={c.email}
@@ -189,14 +209,19 @@ function Ficha() {
               contato={c.contact_name}
               empresa={c.company_name}
             />
-            <ClientePecaDeOrigem clienteId={c.id} />
-            <ClienteSite clienteId={c.id} />
             <ClienteAnotacoes clienteId={c.id} linha={linha.data} />
           </div>
         </div>
       )}
 
       <EditarClientePainel c={c} aberto={editar} aoMudar={setEditar} />
+      <LogoClientePainel
+        clienteId={c.id}
+        empresa={c.company_name}
+        logoAtual={logo}
+        aberto={painelLogo}
+        aoMudar={setPainelLogo}
+      />
       <MoverParaPainel
         o={painel?.acao === "mover" ? painel.o : null}
         aoFechar={() => setPainel(null)}

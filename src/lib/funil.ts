@@ -169,6 +169,8 @@ export type ClienteLinha = {
   situacao: Situacao;
   fechado_cents: number;
   ultima_atividade: string | null;
+  /** Logo da empresa no Storage (RD2-5). */
+  logo_path?: string | null;
 };
 
 export type ItemLinhaDoTempo = {

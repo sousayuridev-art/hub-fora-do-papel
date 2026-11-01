@@ -21,7 +21,8 @@ links soltos. Meta: achar o que fazer hoje em 5 segundos em qualquer tela e oper
 | RD2-2 | Vendas: funil + propostas num quadro, Fechado fora, tipo e valor estimado | RD2-1 |
 | RD2-3 | Clientes, página do cliente e Reuniões (com escrita na Agenda) | RD2-1 |
 | RD2-4 | Projetos (anel de progresso, etapas com data) e Pedidos (quadro, urgente) | RD2-1 |
-| RD2-5 | Materiais com prévia em painel; Sites dentro de Entregar | RD2-1 |
+| RD2-5 | Clientes e página do cliente (abas por grupo, "Agora", logo) | RD2-1 |
+| RD2-7 | Materiais com prévia em painel; Sites dentro de Entregar | RD2-1 |
 | RD2-6 | Gráficos com Recharts no Painel, Financeiro e Relatórios | RD2-1 |
 
 ---
@@ -68,7 +69,7 @@ links soltos. Meta: achar o que fazer hoje em 5 segundos em qualquer tela e oper
 - Projeto: cabeçalho com anel de progresso, etapas com data prevista e real (`project_phases.due_date`).
 - Pedidos: quadro com colunas coloridas por situação; `requests.urgente` com selo de risco e ordenação.
 
-## RD2-5 · Materiais e Sites
+## RD2-7 · Materiais e Sites
 - Prévia em painel (imagem, PDF, vídeo) sem baixar; "Sites" em Entregar reúne o site da Fora do Papel e os dos clientes.
 
 ## RD2-6 · Gráficos (Recharts)
