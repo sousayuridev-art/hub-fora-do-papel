@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Selo, SeloTipo, Sigla } from "@/components/hub/Selo";
+import { Selo, Sigla } from "@/components/hub/Selo";
 import { diaComHora, diaMes, moeda, prazoRelativo, sigla } from "@/lib/formatar";
 import {
   rotuloDiagnostico,
@@ -28,7 +28,7 @@ export type AcaoCartao = "mover" | "passo" | "arquivar" | "desarquivar";
 const fundoPrazo = {
   risco: "bg-sit-risco",
   atencao: "bg-[#FFF6E2]",
-  neutro: "bg-[#F7F7F4]",
+  neutro: "bg-[#F7F9FB]",
 } as const;
 const textoPrazo = {
   risco: "font-semibold text-sit-risco-t",
@@ -126,7 +126,11 @@ export function FunilCartao({
       )}
 
       <div className="flex flex-wrap gap-1.5 px-3.5 pb-3 pt-2">
-        {o.adicional && <SeloTipo tipo="pedidos">Serviço adicional</SeloTipo>}
+        {o.adicional && (
+          <Selo tom="neutro" ponto={false}>
+            Serviço adicional
+          </Selo>
+        )}
         <Selo tom="neutro" ponto={false}>
           {rotuloOrigem[o.origin]}
         </Selo>
@@ -170,7 +174,7 @@ export function FunilCartao({
         </div>
       )}
       {o.archived_at && (
-        <p className="border-t border-[rgba(14,16,19,0.06)] bg-[#F7F7F4] px-3.5 py-2.5 text-[13px] text-hub-suave">
+        <p className="border-t border-[rgba(14,16,19,0.06)] bg-[#F7F9FB] px-3.5 py-2.5 text-[13px] text-hub-suave">
           Estava em {rotuloEtapa[o.stage]}
         </p>
       )}

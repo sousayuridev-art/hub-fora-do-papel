@@ -16,38 +16,17 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { etapas, type Etapa, type Oportunidade, type ResumoFunil } from "@/lib/funil";
 import { cn } from "@/lib/utils";
 
-/** Cor de cada etapa (RD2-2): a mesma em todas as telas que mostram a etapa. */
+/**
+ * Visual de cada etapa (RD2, 29/10: menos cor). Colunas brancas com borda fina e faixa cinza
+ * no topo; a cor fica só nas situações dos cartões (vencido, para hoje, proposta vista).
+ */
+const neutro = { fundo: "#FFFFFF", cor: "#C9D0DA", texto: "var(--color-hub-tinta)" };
 export const visualEtapa: Record<Etapa, VisualEtapa> = {
-  contato: {
-    fundo: "var(--color-tipo-vendas)",
-    cor: "var(--color-tipo-vendas-p)",
-    texto: "var(--color-tipo-vendas-t)",
-    descricao: "Primeira conversa",
-  },
-  diagnostico: {
-    fundo: "var(--color-tipo-pedidos)",
-    cor: "var(--color-tipo-pedidos-p)",
-    texto: "var(--color-tipo-pedidos-t)",
-    descricao: "Entendendo o problema",
-  },
-  mapeamento: {
-    fundo: "var(--color-tipo-entrega)",
-    cor: "var(--color-tipo-entrega-p)",
-    texto: "var(--color-tipo-entrega-t)",
-    descricao: "Desenhando a solução",
-  },
-  proposta: {
-    fundo: "var(--color-tipo-dinheiro)",
-    cor: "var(--color-tipo-dinheiro-p)",
-    texto: "var(--color-tipo-dinheiro-t)",
-    descricao: "Esperando resposta",
-  },
-  fechado: {
-    fundo: "var(--color-sit-ok)",
-    cor: "var(--color-sit-ok-t)",
-    texto: "var(--color-sit-ok-t)",
-    descricao: "Viraram cliente",
-  },
+  contato: { ...neutro, descricao: "Primeira conversa" },
+  diagnostico: { ...neutro, descricao: "Entendendo o problema" },
+  mapeamento: { ...neutro, descricao: "Desenhando a solução" },
+  proposta: { ...neutro, descricao: "Esperando resposta" },
+  fechado: { ...neutro, cor: "var(--color-sit-ok-t)", descricao: "Viraram cliente" },
 };
 
 /**

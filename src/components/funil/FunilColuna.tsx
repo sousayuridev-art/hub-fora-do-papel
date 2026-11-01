@@ -20,7 +20,7 @@ export type VisualEtapa = {
 };
 
 /**
- * Coluna de Vendas (RD2-2): fundo na cor da etapa de ponta a ponta, faixa no topo,
+ * Coluna de Vendas (RD2-2): branca com borda fina e faixa no topo (RD2, 29/10: menos cor),
  * quantidade, descrição e soma, e a barra com o peso da etapa no valor em negociação.
  * Cartões brancos separados; recebe cartões arrastados.
  */
@@ -55,7 +55,7 @@ export function FunilColuna({
       ref={setNodeRef}
       aria-label={`${rotulo}: ${quantidade}`}
       className={cn(
-        "flex w-[82vw] max-w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border-t-4 transition-[box-shadow,outline-color] duration-150 md:w-[290px] md:max-w-none xl:w-auto",
+        "flex w-[82vw] max-w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-[#E3E7ED] border-t-4 transition-[box-shadow,outline-color] duration-150 md:w-[290px] md:max-w-none xl:w-auto",
         sobre && "outline-2 outline-offset-2 outline-dashed outline-hub-tinta",
       )}
       style={{ background: visual.fundo, borderTopColor: visual.cor }}
@@ -64,7 +64,7 @@ export function FunilColuna({
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-[15px] font-semibold">{rotulo}</h2>
           <span
-            className="inline-grid h-[22px] min-w-6 place-items-center rounded-full bg-white px-2 text-[12.5px] font-semibold tabular-nums"
+            className="inline-grid h-[22px] min-w-6 place-items-center rounded-full bg-[#F1F4F8] px-2 text-[12.5px] font-semibold tabular-nums"
             style={{ color: visual.texto }}
           >
             {quantidade}
@@ -76,10 +76,10 @@ export function FunilColuna({
             <b className="whitespace-nowrap font-semibold tabular-nums">{moeda(somaCents)}</b>
           )}
         </div>
-        <span aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-white/80">
+        <span aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-[#EEF1F5]">
           <span
             className="block h-1 rounded-full"
-            style={{ width: `${Math.max(0, Math.min(100, pesoPct))}%`, background: visual.cor }}
+            style={{ width: `${Math.max(0, Math.min(100, pesoPct))}%`, background: "#2A2D33" }}
           />
         </span>
       </header>
@@ -98,7 +98,7 @@ export function FunilColuna({
           <button
             type="button"
             onClick={() => setTodos(true)}
-            className={`${classeAcaoTexto} self-start bg-white`}
+            className={`${classeAcaoTexto} self-start`}
           >
             Ver todas ({itens.length}) ⌄
           </button>

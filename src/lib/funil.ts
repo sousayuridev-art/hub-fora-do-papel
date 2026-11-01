@@ -70,8 +70,8 @@ export const rotuloDiagnostico: Record<Diagnostico, string> = {
 /** Filtros de Vendas (RD2-2). `cor` é o ponto ao lado do nome. */
 export const filtrosFunil: { id: FiltroFunil; rotulo: string; cor?: string }[] = [
   { id: "todos", rotulo: "Todas" },
-  { id: "novos", rotulo: "Novo cliente", cor: "var(--color-tipo-vendas-p)" },
-  { id: "adicionais", rotulo: "Serviço adicional", cor: "var(--color-tipo-pedidos-p)" },
+  { id: "novos", rotulo: "Novo cliente" },
+  { id: "adicionais", rotulo: "Serviço adicional" },
   { id: "vencidos", rotulo: "Passo vencido", cor: "var(--color-sit-risco-t)" },
   { id: "este_mes", rotulo: "Entraram este mês" },
   { id: "fechados", rotulo: "Fechados" },
