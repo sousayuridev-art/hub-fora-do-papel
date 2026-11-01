@@ -29,7 +29,7 @@ import { usePainelNaUrl } from "@/hooks/usePainelNaUrl";
 import type { Modulo } from "@/lib/projetos";
 import { ProjetoHoras } from "@/components/projetos/ProjetoHoras";
 import { ProjetoLinhaDoTempo } from "@/components/projetos/ProjetoLinhaDoTempo";
-import { ProjetoNumeros } from "@/components/projetos/ProjetoNumeros";
+import { ProjetoResumo } from "@/components/projetos/ProjetoResumo";
 import { ProjetoPedidos } from "@/components/projetos/ProjetoPedidos";
 import { QuadroCiclo } from "@/components/projetos/QuadroCiclo";
 import { useMutacoesProjeto } from "@/components/projetos/useMutacoesProjeto";
@@ -179,9 +179,6 @@ function Projeto() {
           />
         }
       />
-      <ProjetoNumeros d={d} />
-      {!d.projeto.canceled_at && <ProjetoDestrava projetoId={id} aoAgir={agirDestrava} />}
-      <SaudeEntrega saude={d.saude} />
       {d.projeto.kind === "sob_medida" ? (
         <ProjetoModulos
           d={d}
@@ -206,79 +203,93 @@ function Projeto() {
         />
       )}
 
-      {aba === "andamento" && (
-        <div className="flex flex-col gap-6">
-          <AguardandoCliente
-            d={d}
-            aoPedirAprovacao={() => {
-              setFaseDoPedido(null);
-              setTituloDoPedido(null);
-              setPainel("aprovacao");
-            }}
-            aoNovaPendencia={() => setPainel("pendencia")}
-            aoMarcarPendencia={(pid, feita) => m.marcar.mutate({ id: pid, feita })}
-            aoRemoverPendencia={(pid) => m.removerPend.mutate(pid)}
-            aoCancelarAprovacao={(aid) => m.cancelar.mutate(aid)}
-            remetente={remetente}
-            aoReenviar={(titulo, faseId) => {
-              setFaseDoPedido(faseId);
-              setTituloDoPedido(titulo);
-              setPainel("aprovacao");
-            }}
-          />
-          <QuadroCiclo
-            projetoId={id}
-            tarefas={tarefas}
-            hoje={d.hoje}
-            codigoPedido={(t) =>
-              t.request_id ? (d.pedidos.find((p) => p.id === t.request_id)?.code ?? null) : null
-            }
-            ciclo={cicloAtual}
-            aoTrocarCiclo={setCiclo}
-            aoNovaTarefa={() => setPainel("tarefa")}
-            aoAbrir={(t) => painelTarefa.abrir(t.id)}
-            aoMover={(t, s) => m.mover.mutate({ id: t.id, situacao: s })}
-            aoRemover={(t) => m.removerTar(t)}
-          />
+      {/* RD2-4: trabalho à esquerda; resumo (andamento, horas, dinheiro, contato, pedidos) à direita */}
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="flex min-w-0 flex-col gap-5">
+          {!d.projeto.canceled_at && <ProjetoDestrava projetoId={id} aoAgir={agirDestrava} />}
+          <SaudeEntrega saude={d.saude} />
+          {aba === "andamento" && (
+            <div className="flex flex-col gap-6">
+              <AguardandoCliente
+                d={d}
+                aoPedirAprovacao={() => {
+                  setFaseDoPedido(null);
+                  setTituloDoPedido(null);
+                  setPainel("aprovacao");
+                }}
+                aoNovaPendencia={() => setPainel("pendencia")}
+                aoMarcarPendencia={(pid, feita) => m.marcar.mutate({ id: pid, feita })}
+                aoRemoverPendencia={(pid) => m.removerPend.mutate(pid)}
+                aoCancelarAprovacao={(aid) => m.cancelar.mutate(aid)}
+                remetente={remetente}
+                aoReenviar={(titulo, faseId) => {
+                  setFaseDoPedido(faseId);
+                  setTituloDoPedido(titulo);
+                  setPainel("aprovacao");
+                }}
+              />
+              <QuadroCiclo
+                projetoId={id}
+                tarefas={tarefas}
+                hoje={d.hoje}
+                codigoPedido={(t) =>
+                  t.request_id ? (d.pedidos.find((p) => p.id === t.request_id)?.code ?? null) : null
+                }
+                ciclo={cicloAtual}
+                aoTrocarCiclo={setCiclo}
+                aoNovaTarefa={() => setPainel("tarefa")}
+                aoAbrir={(t) => painelTarefa.abrir(t.id)}
+                aoMover={(t, s) => m.mover.mutate({ id: t.id, situacao: s })}
+                aoRemover={(t) => m.removerTar(t)}
+              />
+            </div>
+          )}
+          {aba === "pedidos" && <ProjetoPedidos pedidos={d.pedidos} />}
+          {aba === "horas" && (
+            <ProjetoHoras
+              d={d}
+              aoLancar={() => setPainel("horas")}
+              aoRemover={(hid, minutos) => m.removerH.mutate({ id: hid, minutos })}
+            />
+          )}
+          {aba === "encerramento" && (
+            <ProjetoEncerramento
+              d={d}
+              aoMarcar={(iid, feito) => m.encerramento.mutate({ id: iid, feito })}
+              aoIncluir={(titulo) => m.itemEncerramento.mutate(titulo)}
+              aoLancar={() => m.lancar.mutate(undefined)}
+              aoMudarData={(data) => m.atualizar.mutate({ lancamento: data ?? "" })}
+            />
+          )}
+          {aba === "encerramento" && d.projeto.canceled_at && (
+            <p className="rounded-2xl bg-sit-risco p-4 text-[14.5px] text-sit-risco-t">
+              Cancelado em {diaMes(d.projeto.canceled_at)}. Motivo: {d.projeto.cancel_reason}
+            </p>
+          )}
+          {aba === "encerramento" && !d.projeto.canceled_at && d.projeto.status !== "concluido" && (
+            <div className="flex flex-col gap-1 rounded-2xl border border-dashed border-[#E3B4AE] p-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-[14px] text-hub-suave">
+                O cliente desistiu ou o projeto foi criado por engano?
+              </p>
+              <button
+                type="button"
+                className="inline-flex min-h-11 items-center self-start px-2 text-[14.5px] font-medium text-sit-risco-t"
+                onClick={() => setCancelar(true)}
+              >
+                Cancelar projeto
+              </button>
+            </div>
+          )}
+          {aba === "linha" && <ProjetoLinhaDoTempo itens={d.linha} />}
         </div>
-      )}
-      {aba === "pedidos" && <ProjetoPedidos pedidos={d.pedidos} />}
-      {aba === "horas" && (
-        <ProjetoHoras
+        <ProjetoResumo
           d={d}
-          aoLancar={() => setPainel("horas")}
-          aoRemover={(hid, minutos) => m.removerH.mutate({ id: hid, minutos })}
+          tarefas={tarefas}
+          aoVerPedidos={() =>
+            void navigate({ search: (s) => ({ ...s, aba: "pedidos" }), replace: true })
+          }
         />
-      )}
-      {aba === "encerramento" && (
-        <ProjetoEncerramento
-          d={d}
-          aoMarcar={(iid, feito) => m.encerramento.mutate({ id: iid, feito })}
-          aoIncluir={(titulo) => m.itemEncerramento.mutate(titulo)}
-          aoLancar={() => m.lancar.mutate(undefined)}
-          aoMudarData={(data) => m.atualizar.mutate({ lancamento: data ?? "" })}
-        />
-      )}
-      {aba === "encerramento" && d.projeto.canceled_at && (
-        <p className="rounded-2xl bg-sit-risco p-4 text-[14.5px] text-sit-risco-t">
-          Cancelado em {diaMes(d.projeto.canceled_at)}. Motivo: {d.projeto.cancel_reason}
-        </p>
-      )}
-      {aba === "encerramento" && !d.projeto.canceled_at && d.projeto.status !== "concluido" && (
-        <div className="flex flex-col gap-1 rounded-2xl border border-dashed border-[#E3B4AE] p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[14px] text-hub-suave">
-            O cliente desistiu ou o projeto foi criado por engano?
-          </p>
-          <button
-            type="button"
-            className="inline-flex min-h-11 items-center self-start px-2 text-[14.5px] font-medium text-sit-risco-t"
-            onClick={() => setCancelar(true)}
-          >
-            Cancelar projeto
-          </button>
-        </div>
-      )}
-      {aba === "linha" && <ProjetoLinhaDoTempo itens={d.linha} />}
+      </div>
 
       <PedirAprovacaoPainel
         aberto={painel === "aprovacao"}

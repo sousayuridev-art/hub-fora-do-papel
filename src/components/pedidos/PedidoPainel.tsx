@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { Flame } from "lucide-react";
 
 import { CampoArea } from "@/components/hub/Campo";
 import { CampoNumero } from "@/components/hub/CampoNumero";
@@ -25,6 +26,8 @@ export type AcoesPedido = {
   aoIniciar: (p: PedidoLinha) => void;
   aoConcluir: (p: PedidoLinha) => void;
   aoRecusar: (p: PedidoLinha, motivo: string) => void;
+  /** Marca ou tira o urgente (RD2-4). */
+  aoUrgente?: (p: PedidoLinha, urgente: boolean) => void;
 };
 
 const amarelo = "h-11 bg-[#FFB020] text-hub-tinta hover:bg-[#F5A50F]";
@@ -160,9 +163,21 @@ export function PedidoPainel({
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap items-center gap-2">
             <Selo tom={tomSituacaoPedido[p.status]}>{rotuloSituacaoPedido[p.status]}</Selo>
+            {p.urgente && <Selo tom="risco">Urgente</Selo>}
             <span className="text-[13.5px] text-hub-suave">
               {origemDoPedido(p)} · {diaComHora(p.created_at)}
             </span>
+            {a.aoUrgente && p.status !== "pronto" && p.status !== "recusado" && (
+              <button
+                type="button"
+                aria-pressed={p.urgente ?? false}
+                className={`${classeAcaoTexto} ml-auto`}
+                onClick={() => a.aoUrgente?.(p, !p.urgente)}
+              >
+                <Flame className="size-4" aria-hidden="true" />
+                {p.urgente ? "Tirar urgente" : "Marcar como urgente"}
+              </button>
+            )}
           </div>
           {p.description && <p className="whitespace-pre-line text-[15px]">{p.description}</p>}
           <PedidoOnde p={p} />
