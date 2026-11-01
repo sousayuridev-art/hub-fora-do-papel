@@ -1,7 +1,7 @@
 -- RD2-8: lista de sites, atividade, no ar automático e espelho do portal (só leitura, só o dono do tenant).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(31);
+select plan(32);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -45,6 +45,7 @@ create temp table r as select public.sites_resumo() as v;
 select is((select jsonb_array_length(v -> 'itens') from r), 2, 'Só os sites do próprio tenant');
 select is((select v #>> '{itens,0,nome}' from r), 'Fora do Papel', 'O nosso site vem primeiro');
 select is((select v #>> '{itens,1,situacao}' from r), 'construcao', 'Fora do ar com projeto em andamento = em construção');
+select is((select v #>> '{itens,0,situacao}' from r), 'no_ar', 'Site sem cliente no ar = no ar');
 select is((select v #>> '{itens,1,capa,secao,props,titulo}' from r), 'Exames de vista', 'Capa = primeira seção publicada da página inicial');
 select is((select v #>> '{itens,1,capa,cor}' from r), 'oceano', 'Cor do site na capa');
 select ok((select (v #> '{itens,1,avisos}') ? 'contato_parado' from r), 'Aviso: contato sem resposta há mais de 2 dias');
