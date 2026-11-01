@@ -41,6 +41,8 @@ export function mensagemDeErro(e: unknown): string {
             " " +
             String((e as { code?: unknown }).code ?? "")
           : "";
+  if (/modo_leitura/.test(texto))
+    return "Modo leitura: aqui você só vê o portal do cliente, nada é gravado.";
   if (/failed to fetch|network|load failed/i.test(texto))
     return "Sem conexão com o servidor. Confira sua internet.";
   if (/rate limit|too many|429/i.test(texto))

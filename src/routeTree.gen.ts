@@ -44,6 +44,8 @@ import { Route as AppClientesIdRouteImport } from './routes/app/clientes/$id'
 import { Route as AppPaginasIdRouteImport } from './routes/app/paginas.$id'
 import { Route as AppProjetosIndexRouteImport } from './routes/app/projetos/index'
 import { Route as AppProjetosIdRouteImport } from './routes/app/projetos/$id'
+import { Route as AppSitesIndexRouteImport } from './routes/app/sites/index'
+import { Route as AppSitesIdRouteImport } from './routes/app/sites/$id'
 import { Route as PortalClientesContatosRouteImport } from './routes/portal/clientes/contatos'
 import { Route as PortalSiteArtigosRouteImport } from './routes/portal/site/artigos'
 import { Route as PortalSiteFotosRouteImport } from './routes/portal/site/fotos'
@@ -226,6 +228,16 @@ const AppProjetosIdRoute = AppProjetosIdRouteImport.update({
   path: '/projetos/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSitesIndexRoute = AppSitesIndexRouteImport.update({
+  id: '/sites/',
+  path: '/sites/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSitesIdRoute = AppSitesIdRouteImport.update({
+  id: '/sites/$id',
+  path: '/sites/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 const PortalClientesContatosRoute = PortalClientesContatosRouteImport.update({
   id: '/clientes/contatos',
   path: '/clientes/contatos',
@@ -291,12 +303,14 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/app/sites/$id': typeof AppSitesIdRoute
   '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
   '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
   '/app/projetos/': typeof AppProjetosIndexRoute
+  '/app/sites/': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
   '/portal/site/paginas/': typeof PortalSitePaginasIndexRoute
 }
@@ -332,12 +346,14 @@ export interface FileRoutesByTo {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/app/sites/$id': typeof AppSitesIdRoute
   '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
   '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes': typeof AppClientesIndexRoute
   '/app/projetos': typeof AppProjetosIndexRoute
+  '/app/sites': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
   '/portal/site/paginas': typeof PortalSitePaginasIndexRoute
 }
@@ -376,12 +392,14 @@ export interface FileRoutesById {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/app/sites/$id': typeof AppSitesIdRoute
   '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
   '/portal/site/fotos': typeof PortalSiteFotosRoute
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
   '/app/projetos/': typeof AppProjetosIndexRoute
+  '/app/sites/': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
   '/portal/site/paginas/': typeof PortalSitePaginasIndexRoute
 }
@@ -421,12 +439,14 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/app/sites/$id'
     | '/portal/clientes/contatos'
     | '/portal/site/artigos'
     | '/portal/site/fotos'
     | '/previa/proposta/$id'
     | '/app/clientes/'
     | '/app/projetos/'
+    | '/app/sites/'
     | '/portal/site/paginas/$id'
     | '/portal/site/paginas/'
   fileRoutesByTo: FileRoutesByTo
@@ -462,12 +482,14 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/app/sites/$id'
     | '/portal/clientes/contatos'
     | '/portal/site/artigos'
     | '/portal/site/fotos'
     | '/previa/proposta/$id'
     | '/app/clientes'
     | '/app/projetos'
+    | '/app/sites'
     | '/portal/site/paginas/$id'
     | '/portal/site/paginas'
   id:
@@ -505,12 +527,14 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/app/sites/$id'
     | '/portal/clientes/contatos'
     | '/portal/site/artigos'
     | '/portal/site/fotos'
     | '/previa/proposta/$id'
     | '/app/clientes/'
     | '/app/projetos/'
+    | '/app/sites/'
     | '/portal/site/paginas/$id'
     | '/portal/site/paginas/'
   fileRoutesById: FileRoutesById
@@ -777,6 +801,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjetosIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/sites/': {
+      id: '/app/sites/'
+      path: '/sites'
+      fullPath: '/app/sites/'
+      preLoaderRoute: typeof AppSitesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/sites/$id': {
+      id: '/app/sites/$id'
+      path: '/sites/$id'
+      fullPath: '/app/sites/$id'
+      preLoaderRoute: typeof AppSitesIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/portal/clientes/contatos': {
       id: '/portal/clientes/contatos'
       path: '/clientes/contatos'
@@ -839,8 +877,10 @@ interface AppRouteChildren {
   AppClientesIdRoute: typeof AppClientesIdRoute
   AppPaginasIdRoute: typeof AppPaginasIdRoute
   AppProjetosIdRoute: typeof AppProjetosIdRoute
+  AppSitesIdRoute: typeof AppSitesIdRoute
   AppClientesIndexRoute: typeof AppClientesIndexRoute
   AppProjetosIndexRoute: typeof AppProjetosIndexRoute
+  AppSitesIndexRoute: typeof AppSitesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -860,8 +900,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppClientesIdRoute: AppClientesIdRoute,
   AppPaginasIdRoute: AppPaginasIdRoute,
   AppProjetosIdRoute: AppProjetosIdRoute,
+  AppSitesIdRoute: AppSitesIdRoute,
   AppClientesIndexRoute: AppClientesIndexRoute,
   AppProjetosIndexRoute: AppProjetosIndexRoute,
+  AppSitesIndexRoute: AppSitesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

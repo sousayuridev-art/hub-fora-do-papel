@@ -19,7 +19,7 @@ import { ClientePropostas } from "@/components/clientes/ClientePropostas";
 import { ClienteProjetos } from "@/components/clientes/ClienteProjetos";
 import { ClienteAcessoPortal } from "@/components/clientes/ClienteAcessoPortal";
 import { ClientePecaDeOrigem } from "@/components/clientes/ClientePecaDeOrigem";
-import { ClienteSite } from "@/components/clientes/ClienteSite";
+import { ClienteSiteCartao } from "@/components/clientes/ClienteSiteCartao";
 import { ClienteFinanceiro } from "@/components/clientes/ClienteFinanceiro";
 import { ClienteAnotacoes } from "@/components/clientes/ClienteAnotacoes";
 import { ClienteLinhaDoTempo } from "@/components/clientes/ClienteLinhaDoTempo";
@@ -157,7 +157,7 @@ function Ficha() {
             <ClientePropostas clienteId={c.id} />
           </div>
           <div className="flex flex-col gap-4">
-            <ClienteSite clienteId={c.id} />
+            <ClienteSiteCartao clienteId={c.id} />
             <ClientePecaDeOrigem clienteId={c.id} />
             <Link
               to="/app/materiais"

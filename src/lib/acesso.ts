@@ -2,6 +2,7 @@ import { redirect } from "@tanstack/react-router";
 import { entradaPara } from "@/lib/volta";
 import type { QueryClient } from "@tanstack/react-query";
 
+import { conferirEspelho, instalarBarreira } from "@/lib/espelho";
 import { supabase } from "@/lib/supabase";
 
 export type Papel = "owner" | "client";
@@ -83,6 +84,22 @@ export async function exigirCodigo(caminho: string) {
   if (data.nextLevel === "aal2")
     throw redirect({ to: "/entrar/codigo", search: { volta: caminho } });
   throw redirect({ to: "/seguranca", search: { volta: caminho, ativar: true } });
+}
+
+/**
+ * Portal (/portal): pessoas do portal entram como sempre. O dono entra só com o espelho aberto
+ * ("Ver como o cliente", card RD2-8), com o código (aal2), e o banco só deixa ler.
+ */
+export async function exigirPortal(queryClient: QueryClient, caminho: string) {
+  const { session, acesso } = await carregarAcesso(queryClient);
+  // O espelho só vale para o dono que o abriu; qualquer outra pessoa o apaga ao entrar
+  const espelho = conferirEspelho(session?.user.id ?? null, acesso?.papel === "owner");
+  if (espelho) {
+    instalarBarreira();
+    await exigirCodigo(caminho);
+    return { acesso };
+  }
+  return exigirPapel(queryClient, "client", caminho);
 }
 
 /** Páginas que servem aos dois papéis (ex.: recibo): só exige estar logado com algum acesso. */

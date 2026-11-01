@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase";
 import { useAccess } from "@/hooks/useAccess";
+import { clienteDoEspelho } from "@/lib/espelho";
 import type { PerfilPortal } from "@/lib/acessoPortal";
 
 export type EmpresaPortal = { empresa: string; contato: string | null; perfil: PerfilPortal };
@@ -12,7 +13,8 @@ export type EmpresaPortal = { empresa: string; contato: string | null; perfil: P
  */
 export function useEmpresaPortal() {
   const { acesso } = useAccess();
-  const clientId = acesso?.clientId ?? null;
+  // No espelho (RD2-8), o dono vê o portal deste cliente
+  const clientId = acesso?.clientId ?? clienteDoEspelho();
   return useQuery({
     queryKey: ["portal", "empresa", clientId],
     enabled: Boolean(clientId),

@@ -10,6 +10,9 @@ import { acoesRapidas, gruposDoPortal, secoesDoPortal } from "@/components/layou
 import { useEmpresaPortal } from "@/hooks/useEmpresaPortal";
 import { usePendenciasPortal } from "@/hooks/usePendenciasPortal";
 import { useSitesPortal } from "@/hooks/useSitesPortal";
+import { FaixaEspelho } from "@/components/layout/FaixaEspelho";
+import { lerEspelho } from "@/lib/espelho";
+import { supabase } from "@/lib/supabase";
 
 type Props = {
   children: ReactNode;
@@ -37,6 +40,11 @@ export function PortalLayout({ children, barraDeAcao }: Props) {
     return () => window.removeEventListener("scroll", ver);
   }, []);
   const sobreACapa = noInicio && !rolou;
+  // "Ver como o cliente" (RD2-8): faixa no topo; sem espelho, registra o último acesso da pessoa
+  const [espelho] = useState(lerEspelho);
+  useEffect(() => {
+    if (!espelho) void supabase.rpc("portal_visto").then(() => undefined);
+  }, [espelho]);
   const perfil = empresa.data?.perfil ?? null;
   const secoes = secoesDoPortal(perfil);
   const sites = useSitesPortal();
@@ -44,7 +52,13 @@ export function PortalLayout({ children, barraDeAcao }: Props) {
 
   return (
     <div className="min-h-dvh overflow-x-clip bg-portal-fundo text-hub-tinta md:pl-[var(--menu-portal)] md:[--menu-portal:280px]">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-70 border-r border-menu-borda md:block">
+      {espelho && <FaixaEspelho espelho={espelho} />}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 hidden w-70 border-r border-menu-borda md:block",
+          espelho && "top-11",
+        )}
+      >
         <MenuPortal
           grupos={grupos}
           selos={selos}
@@ -58,7 +72,8 @@ export function PortalLayout({ children, barraDeAcao }: Props) {
       {/* Cabeçalho escuro (direção A, CX-5): no Início, transparente sobre a capa até rolar. */}
       <header
         className={cn(
-          "sticky top-0 z-30 border-b text-[#F5F5F2] transition-colors duration-200 md:hidden",
+          "sticky z-30 border-b text-[#F5F5F2] transition-colors duration-200 md:hidden",
+          espelho ? "top-11" : "top-0",
           sobreACapa ? "border-transparent bg-transparent" : "border-white/10 bg-hub-tinta",
         )}
       >

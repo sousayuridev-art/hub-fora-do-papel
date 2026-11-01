@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useAccess } from "@/hooks/useAccess";
+import { clienteDoEspelho } from "@/lib/espelho";
 import { chavesSitesCliente, sitesDoPortal, type SitePortal } from "@/lib/sitesCliente";
 
 /**
@@ -9,7 +10,8 @@ import { chavesSitesCliente, sitesDoPortal, type SitePortal } from "@/lib/sitesC
  */
 export function useSitesPortal() {
   const { acesso } = useAccess();
-  const clientId = acesso?.clientId ?? null;
+  // No espelho (RD2-8), o dono vê o portal deste cliente
+  const clientId = acesso?.clientId ?? clienteDoEspelho();
   const q = useQuery({
     queryKey: [...chavesSitesCliente.portal, clientId],
     queryFn: sitesDoPortal,

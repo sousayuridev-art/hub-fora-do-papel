@@ -27,9 +27,9 @@ function EditarPaginaHub() {
   const site = sites.data?.find((s) => s.id === pagina.data?.site_id);
   const navigate = Route.useNavigate();
   const voltar = () =>
-    site?.client_id
-      ? void navigate({ to: "/app/clientes/$id", params: { id: site.client_id } })
-      : void navigate({ to: "/app/site" });
+    site
+      ? void navigate({ to: "/app/sites/$id", params: { id: site.id }, search: { aba: "paginas" } })
+      : void navigate({ to: "/app/sites" });
 
   if (pagina.isError || sites.isError)
     return (
