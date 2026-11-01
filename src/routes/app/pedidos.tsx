@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search } from "lucide-react";
+import { Columns3, List, Plus, Search } from "lucide-react";
 import { z } from "zod";
 
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
@@ -9,7 +9,7 @@ import { CampoEscolha } from "@/components/hub/Campo";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { FiltrosChip } from "@/components/hub/FiltrosChip";
 import { PedidoPainel } from "@/components/pedidos/PedidoPainel";
-import { AlternarVista } from "@/components/pedidos/AlternarVista";
+import { AlternarVista } from "@/components/hub/AlternarVista";
 import { PedidosLista } from "@/components/pedidos/PedidosLista";
 import { PedidosQuadro } from "@/components/pedidos/PedidosQuadro";
 import { RegistrarPedidoPainel } from "@/components/pedidos/RegistrarPedidoPainel";
@@ -173,6 +173,10 @@ function Pedidos() {
         )}
         <AlternarVista
           vista={vista}
+          opcoes={[
+            { id: "quadro", rotulo: "Quadro", Icone: Columns3 },
+            { id: "lista", rotulo: "Lista", Icone: List },
+          ]}
           aoMudar={(v) =>
             void navigate({
               search: (s) => ({ ...s, vista: v === "quadro" ? undefined : v }),

@@ -1,13 +1,15 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search } from "lucide-react";
+import { LayoutGrid, List, Plus, Search } from "lucide-react";
 import { z } from "zod";
 
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { MateriaisCategorias, type Pasta } from "@/components/materiais/MateriaisCategorias";
 import { MateriaisFiltros, type OrigemMaterial } from "@/components/materiais/MateriaisFiltros";
+import { AlternarVista } from "@/components/hub/AlternarVista";
+import { MateriaisGrade } from "@/components/materiais/MateriaisGrade";
 import { MateriaisLista } from "@/components/materiais/MateriaisLista";
 import { MaterialFormPainel, type DadosMaterial } from "@/components/materiais/MaterialFormPainel";
 import { MaterialPainel } from "@/components/materiais/MaterialPainel";
@@ -40,6 +42,8 @@ const busca = z.object({
   pasta: z.enum(pastas).optional().catch(undefined),
   cliente: z.string().uuid().optional().catch(undefined),
   material: z.string().uuid().optional().catch(undefined),
+  /** Grade com miniaturas (padrão) ou lista (RD2-7). */
+  vista: z.enum(["grade", "lista"]).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/app/materiais")({
@@ -51,7 +55,7 @@ export const Route = createFileRoute("/app/materiais")({
 const semAcento = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function Materiais() {
-  const { pasta = "todos", cliente, material } = Route.useSearch();
+  const { pasta = "todos", cliente, material, vista = "grade" } = Route.useSearch();
   const navigate = Route.useNavigate();
   const q = useQuery({ queryKey: chavesMateriais.lista, queryFn: listarMateriais });
   const m = useMutacoesMateriais();
@@ -91,6 +95,8 @@ function Materiais() {
   }, [d?.itens, pasta, cliente, origem, termo]);
 
   const aberto = material ? (d?.itens.find((x) => x.id === material) ?? null) : null;
+  // Posição do aberto na lista filtrada, para passar ao anterior e ao próximo no painel
+  const posicao = aberto ? itens.findIndex((x) => x.id === aberto.id) : -1;
   // Abrir o material cria entrada no histórico; fechar pela tela não (RD-9)
   const painelMaterial = usePainelNaUrl(
     (id, o) => void navigate({ search: (s) => ({ ...s, material: id }), ...o }),
@@ -188,10 +194,25 @@ function Materiais() {
                 aoOrigem={setOrigem}
               />
             </div>
-            <h2 className="text-[17px] font-semibold">
-              {rotuloPasta(pasta)}
-              <span className="font-normal text-hub-suave"> · {itens.length}</span>
-            </h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-[17px] font-semibold">
+                {rotuloPasta(pasta)}
+                <span className="font-normal text-hub-suave"> · {itens.length}</span>
+              </h2>
+              <AlternarVista
+                vista={vista}
+                aoMudar={(v) =>
+                  void navigate({
+                    search: (s) => ({ ...s, vista: v === "grade" ? undefined : v }),
+                    replace: true,
+                  })
+                }
+                opcoes={[
+                  { id: "grade", rotulo: "Grade", Icone: LayoutGrid },
+                  { id: "lista", rotulo: "Lista", Icone: List },
+                ]}
+              />
+            </div>
             {itens.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-6 text-[15px] text-hub-suave">
                 {d.contagem.todos === 0 && pasta !== "lixeira"
@@ -200,6 +221,8 @@ function Materiais() {
                     ? "A lixeira está vazia."
                     : "Nada encontrado com esses filtros."}
               </p>
+            ) : vista === "grade" ? (
+              <MateriaisGrade itens={itens} aoAbrir={(x) => painelMaterial.abrir(x.id)} />
             ) : (
               <MateriaisLista itens={itens} aoAbrir={(x) => painelMaterial.abrir(x.id)} />
             )}
@@ -209,6 +232,11 @@ function Materiais() {
 
       <MaterialPainel
         m={aberto}
+        posicao={posicao >= 0 ? { atual: posicao + 1, total: itens.length } : null}
+        aoIr={(passo) => {
+          const alvo = itens[posicao + passo];
+          if (alvo) void navigate({ search: (s) => ({ ...s, material: alvo.id }), replace: true });
+        }}
         aoFechar={painelMaterial.fechar}
         aoEditar={(x) => {
           painelMaterial.fechar();

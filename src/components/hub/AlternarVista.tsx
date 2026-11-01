@@ -1,19 +1,17 @@
-import { Columns3, List } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-/** Quadro ou lista na tela de pedidos (RD2-4). */
-export function AlternarVista({
+/** Escolha de vista (Quadro | Lista, Grade | Lista), em botões com estado pressionado (RD2-4, RD2-7). */
+export function AlternarVista<T extends string>({
   vista,
   aoMudar,
+  opcoes,
 }: {
-  vista: "quadro" | "lista";
-  aoMudar: (v: "quadro" | "lista") => void;
+  vista: T;
+  aoMudar: (v: T) => void;
+  opcoes: { id: T; rotulo: string; Icone: LucideIcon }[];
 }) {
-  const opcoes = [
-    { id: "quadro" as const, rotulo: "Quadro", Icone: Columns3 },
-    { id: "lista" as const, rotulo: "Lista", Icone: List },
-  ];
   return (
     <div
       role="group"

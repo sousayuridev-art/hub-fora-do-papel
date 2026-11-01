@@ -1,7 +1,17 @@
 import { useState } from "react";
-import { Copy, Download, ExternalLink, Pencil, RotateCcw, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Download,
+  ExternalLink,
+  Pencil,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 
 import { IconeMaterial } from "@/components/materiais/IconeMaterial";
+import { MaterialPrevia } from "@/components/materiais/MaterialPrevia";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { Selo } from "@/components/hub/Selo";
 import { classeBotaoSecundario } from "@/lib/estilos";
@@ -10,6 +20,7 @@ import {
   abrirArquivo,
   rotuloCategoria,
   tamanhoLegivel,
+  tipoDePrevia,
   tipoLegivel,
   type Material,
 } from "@/lib/materiais";
@@ -18,12 +29,17 @@ import { erro, mensagemDeErro, ok } from "@/lib/notify";
 /** Painel de um material: ver, baixar ou copiar; editar; lixeira e exclusão. */
 export function MaterialPainel({
   m,
+  posicao = null,
+  aoIr,
   aoFechar,
   aoEditar,
   aoLixeira,
   aoExcluir,
 }: {
   m: Material | null;
+  /** "3 de 18" e as setas para o anterior e o próximo da lista (RD2-7). */
+  posicao?: { atual: number; total: number } | null;
+  aoIr?: (passo: -1 | 1) => void;
   aoFechar: () => void;
   aoEditar: (m: Material) => void;
   aoLixeira: (m: Material, excluir: boolean) => void;
@@ -57,6 +73,7 @@ export function MaterialPainel({
           aoFechar();
         }
       }}
+      largo={m ? tipoDePrevia(m) !== null : false}
       titulo={m?.titulo ?? ""}
       descricao={m ? `${tipoLegivel(m)} · ${rotuloCategoria[m.categoria]}` : undefined}
     >
@@ -93,6 +110,33 @@ export function MaterialPainel({
           )}
           {m.descricao && <p className="text-[14.5px] text-hub-suave">{m.descricao}</p>}
 
+          {posicao && aoIr && posicao.total > 1 && (
+            <div className="flex items-center gap-1 text-[13.5px] text-hub-suave">
+              <button
+                type="button"
+                aria-label="Material anterior"
+                disabled={posicao.atual <= 1}
+                onClick={() => aoIr(-1)}
+                className="grid size-11 place-items-center rounded-lg hover:bg-[#F1F4F8] disabled:opacity-35 md:size-9"
+              >
+                <ChevronLeft className="size-4" aria-hidden="true" />
+              </button>
+              <span className="tabular-nums">
+                {posicao.atual} de {posicao.total}
+              </span>
+              <button
+                type="button"
+                aria-label="Próximo material"
+                disabled={posicao.atual >= posicao.total}
+                onClick={() => aoIr(1)}
+                className="grid size-11 place-items-center rounded-lg hover:bg-[#F1F4F8] disabled:opacity-35 md:size-9"
+              >
+                <ChevronRight className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          )}
+          <MaterialPrevia m={m} />
+
           {m.tipo === "texto" && (
             <pre className="max-h-72 overflow-y-auto whitespace-pre-wrap rounded-xl bg-hub-fundo p-4 font-sans text-[14.5px] leading-relaxed">
               {m.texto}
@@ -110,7 +154,7 @@ export function MaterialPainel({
                   className={classeBotaoSecundario}
                   onClick={() => void abrir(false)}
                 >
-                  <ExternalLink className="size-4" aria-hidden="true" /> Ver
+                  <ExternalLink className="size-4" aria-hidden="true" /> Abrir em nova aba
                 </button>
                 <button
                   type="button"
