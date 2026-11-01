@@ -31,10 +31,10 @@ export function ClienteFinanceiro({ clienteId }: { clienteId: string }) {
   return (
     <section
       aria-labelledby="fin-cliente-t"
-      className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-white p-5"
+      className="flex flex-col gap-3 rounded-2xl border border-[#E3E7ED] bg-white p-5"
     >
-      <h2 id="fin-cliente-t" className="font-titulo text-lg font-bold">
-        Financeiro
+      <h2 id="fin-cliente-t" className="text-[15.5px] font-semibold">
+        Contrato e dinheiro
       </h2>
       <dl className="grid grid-cols-2 gap-3 text-[14.5px]">
         <div>

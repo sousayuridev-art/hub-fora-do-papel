@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { MessageCircle, MoreHorizontal } from "lucide-react";
 
 import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
-import { Selo } from "@/components/hub/Selo";
+import { Selo, Sigla } from "@/components/hub/Selo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { situacaoDe } from "@/lib/clientes";
 import { classeBotaoSecundario } from "@/lib/estilos";
-import { dataLocal, diaMes, linkWhatsapp } from "@/lib/formatar";
+import { dataLocal, diaMes, linkWhatsapp, sigla } from "@/lib/formatar";
 import type { ClienteLinha } from "@/lib/funil";
 import { cn } from "@/lib/utils";
 
@@ -24,9 +24,17 @@ export function ClienteCabecalho({
   c,
   aoEditar,
   abas,
+  logo,
+  relacao,
+  aoLogo,
 }: {
   c: ClienteLinha;
   aoEditar: () => void;
+  /** Endereço da logo (RD2-5); sem ela, a sigla. */
+  logo?: string | undefined;
+  /** "Projeto + mensalidade" etc. no lugar da situação, para clientes (RD2-5). */
+  relacao?: string | null | undefined;
+  aoLogo?: () => void;
   /** Abas da ficha, presas à base do cabeçalho (card RD-9). */
   abas?: ReactNode;
 }) {
@@ -54,8 +62,23 @@ export function ClienteCabecalho({
           <span className="text-hub-tinta">{c.company_name}</span>
         </nav>
       }
-      titulo={c.company_name}
-      selo={<Selo tom={sit.tom}>{sit.texto}</Selo>}
+      titulo={
+        <span className="flex min-w-0 items-center gap-3">
+          <span className="[&>*]:size-11 [&>*]:rounded-xl [&>*]:text-[15px]">
+            <Sigla texto={sigla(c.company_name)} logo={logo} />
+          </span>
+          <span className="min-w-0">{c.company_name}</span>
+        </span>
+      }
+      selo={
+        relacao ? (
+          <span className="inline-flex whitespace-nowrap rounded-full bg-[#F1F4F8] px-2.5 py-0.5 text-[12.5px] font-medium text-[#2A2D33]">
+            {relacao}
+          </span>
+        ) : (
+          <Selo tom={sit.tom}>{sit.texto}</Selo>
+        )
+      }
       resumo={detalhes.join(" · ")}
       acao={
         <>
@@ -81,6 +104,11 @@ export function ClienteCabecalho({
               <DropdownMenuItem className="min-h-11" onSelect={aoEditar}>
                 Editar ficha
               </DropdownMenuItem>
+              {aoLogo && (
+                <DropdownMenuItem className="min-h-11" onSelect={aoLogo}>
+                  {logo ? "Trocar a logo" : "Pôr a logo"}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem className="min-h-11" asChild>
                 <Link to="/app/materiais" search={{ cliente: c.id }}>
                   Materiais deste cliente

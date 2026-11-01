@@ -8,18 +8,25 @@ import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { FaixaNumeros } from "@/components/hub/FaixaNumeros";
 import { FiltrosChip } from "@/components/hub/FiltrosChip";
+import { ClientesAtivosTabela } from "@/components/clientes/ClientesAtivosTabela";
 import { ClientesTabela } from "@/components/clientes/ClientesTabela";
+import { useLogos } from "@/components/clientes/useLogos";
 import { NovoContatoPainel } from "@/components/funil/NovoContatoPainel";
 import { Input } from "@/components/ui/input";
 import { classeAcaoPrincipal, classeLinkTexto } from "@/lib/estilos";
 import { moeda } from "@/lib/formatar";
 import {
+  chavesAgora,
+  clientesAgora,
   filtrosClientes,
+  gruposClientes,
   ordensClientes,
   passoAberto,
   resumoClientes,
   valorDe,
+  type AgoraCliente,
   type FiltroLista,
+  type GrupoCliente,
   type OrdemClientes,
 } from "@/lib/clientes";
 import type { ClienteLinha } from "@/lib/funil";
@@ -31,6 +38,8 @@ const busca = z.object({
     .optional()
     .catch(undefined),
   ordem: z.enum(["atividade", "prazo", "valor"]).optional().catch(undefined),
+  /** Clientes ativos (padrão), Contatos, Ex-clientes ou Arquivados (RD2-5). */
+  grupo: z.enum(["ativo", "contato", "ex", "arquivado"]).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/app/clientes/")({
@@ -55,6 +64,18 @@ function noFiltro(c: ClienteLinha, filtro: FiltroLista): boolean {
   return c.situacao === filtro;
 }
 
+/** Grupo da ficha: o do banco; enquanto ele não chega, uma aproximação pela situação. */
+function grupoDe(c: ClienteLinha, agora: Record<string, AgoraCliente> | undefined): GrupoCliente {
+  const g = agora?.[c.id]?.grupo;
+  if (g) return g;
+  if (c.situacao === "cliente") return "ativo";
+  if (c.situacao === "arquivado") return "arquivado";
+  return "contato";
+}
+
+/** Filtros que fazem sentido dentro de Contatos (Clientes e Arquivados viraram abas). */
+const filtrosDeContato = filtrosClientes.filter((o) => o.id !== "cliente" && o.id !== "arquivado");
+
 /** Ordem de exibição; "atividade" mantém a ordem do banco. */
 function ordenar(itens: ClienteLinha[], ordem: OrdemClientes): ClienteLinha[] {
   if (ordem === "atividade") return itens;
@@ -67,9 +88,11 @@ function ordenar(itens: ClienteLinha[], ordem: OrdemClientes): ClienteLinha[] {
 }
 
 function Clientes() {
-  const { filtro: f, ordem: o } = Route.useSearch();
+  const { filtro: f, ordem: o, grupo: g } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const filtro: FiltroLista = f ?? "todos";
+  const grupo: GrupoCliente = g ?? "ativo";
+  const filtro: FiltroLista =
+    grupo !== "contato" || f === "cliente" || f === "arquivado" ? "todos" : (f ?? "todos");
   const ordem: OrdemClientes = o ?? "atividade";
   const filtrar = (id: FiltroLista) =>
     void navigate({
@@ -85,6 +108,7 @@ function Clientes() {
     queryKey: [...chavesClientes.lista, "resumo"],
     queryFn: resumoClientes,
   });
+  const agora = useQuery({ queryKey: chavesAgora, queryFn: clientesAgora });
 
   // Filtro de exibição da lista já carregada (as contagens vêm do banco)
   const visiveis = useMemo(
@@ -92,6 +116,10 @@ function Clientes() {
       ordenar(
         (lista.data ?? []).filter(
           (c) =>
+            // "Para hoje" e "Vencidos" contam todos os passos abertos (mesma regra do banco)
+            (filtro === "hoje" ||
+              filtro === "vencidos" ||
+              grupoDe(c, agora.data?.itens) === grupo) &&
             noFiltro(c, filtro) &&
             (!termo ||
               normal(
@@ -100,9 +128,17 @@ function Clientes() {
         ),
         ordem,
       ),
-    [lista.data, filtro, termo, ordem],
+    [lista.data, filtro, termo, ordem, grupo, agora.data],
   );
   const r = resumo.data;
+  const ra = agora.data?.resumo;
+  const logos = useLogos(visiveis.map((c) => c.logo_path));
+  const escolherGrupo = (id: GrupoCliente) =>
+    void navigate({
+      search: (s) => ({ ...s, grupo: id === "ativo" ? undefined : id, filtro: undefined }),
+      replace: true,
+    });
+  const tabelaDeCliente = grupo === "ativo" || grupo === "ex";
 
   return (
     <div className="flex flex-col gap-5">
@@ -117,7 +153,60 @@ function Clientes() {
         }
       />
 
-      {resumo.isError ? (
+      <div
+        role="tablist"
+        aria-label="Quem mostrar"
+        className="flex max-w-full self-start overflow-x-auto rounded-xl bg-[#E9EDF2] p-1"
+      >
+        {gruposClientes.map((op) => (
+          <button
+            key={op.id}
+            type="button"
+            role="tab"
+            aria-selected={grupo === op.id}
+            onClick={() => escolherGrupo(op.id)}
+            className={
+              grupo === op.id
+                ? "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-white px-4 text-[14px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.08)] md:min-h-10"
+                : "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-4 text-[14px] text-[#4A4D54] hover:text-hub-tinta md:min-h-10"
+            }
+          >
+            {op.rotulo}
+            {ra && <span className="tabular-nums text-hub-suave">{ra[op.id]}</span>}
+          </button>
+        ))}
+      </div>
+
+      {grupo === "ativo" && ra && (
+        <p className="flex flex-wrap gap-x-6 gap-y-1 text-[14px]">
+          <span>
+            <b className="font-semibold">{moeda(ra.mensalidades_cents)}/mês</b>{" "}
+            <span className="text-hub-suave">em mensalidades</span>
+          </span>
+          <span>
+            <b className="font-semibold">{ra.projetos_andamento}</b>{" "}
+            <span className="text-hub-suave">
+              {ra.projetos_andamento === 1 ? "projeto em andamento" : "projetos em andamento"}
+            </span>
+          </span>
+          <span>
+            <b
+              className={
+                ra.clientes_em_atraso > 0 ? "font-semibold text-sit-risco-t" : "font-semibold"
+              }
+            >
+              {ra.clientes_em_atraso}
+            </b>{" "}
+            <span className="text-hub-suave">
+              {ra.clientes_em_atraso === 1
+                ? "cliente com cobrança atrasada"
+                : "clientes com cobrança atrasada"}
+            </span>
+          </span>
+        </p>
+      )}
+
+      {grupo !== "contato" ? null : resumo.isError ? (
         <EstadoErro
           titulo="Não foi possível carregar os números"
           aoTentarDeNovo={() => void resumo.refetch()}
@@ -155,16 +244,6 @@ function Clientes() {
               aoClicar: () => filtrar("negociacao"),
               ativo: filtro === "negociacao",
             },
-            {
-              rotulo: "Clientes ativos",
-              valor: r.cliente,
-              apoio:
-                r.mensalidades_cents > 0
-                  ? `${moeda(r.mensalidades_cents)} por mês em mensalidades`
-                  : "Nenhuma mensalidade ativa",
-              aoClicar: () => filtrar("cliente"),
-              ativo: filtro === "cliente",
-            },
           ]}
         />
       ) : (
@@ -187,17 +266,23 @@ function Clientes() {
             enterKeyHint="search"
           />
         </label>
-        <FiltrosChip<FiltroLista>
-          rotulo="Filtrar clientes"
-          opcoes={filtrosClientes.map((o) => ({ id: o.id, rotulo: o.rotulo, contagem: r?.[o.id] }))}
-          ativo={filtro}
-          aoEscolher={(id) =>
-            void navigate({
-              search: (s) => ({ ...s, filtro: id === "todos" ? undefined : id }),
-              replace: true,
-            })
-          }
-        />
+        {grupo === "contato" && (
+          <FiltrosChip<FiltroLista>
+            rotulo="Filtrar contatos"
+            opcoes={filtrosDeContato.map((o) => ({
+              id: o.id,
+              rotulo: o.rotulo,
+              contagem: o.id === "todos" ? ra?.contato : r?.[o.id],
+            }))}
+            ativo={filtro}
+            aoEscolher={(id) =>
+              void navigate({
+                search: (s) => ({ ...s, filtro: id === "todos" ? undefined : id }),
+                replace: true,
+              })
+            }
+          />
+        )}
         <label className="flex items-center gap-2 text-[13.5px] text-hub-suave lg:ml-auto">
           Ordenar por
           <select
@@ -236,7 +321,11 @@ function Clientes() {
         />
       ) : visiveis.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-8 text-center text-[15px] text-hub-suave">
-          {texto ? `Nada encontrado para "${texto}".` : "Nenhuma ficha neste filtro."}
+          {texto
+            ? `Nada encontrado para "${texto}".`
+            : grupo === "ativo"
+              ? "Nenhum cliente ativo ainda. Quem fecha negócio em Vendas aparece aqui."
+              : "Nenhuma ficha aqui."}
           {filtro !== "todos" && (
             <button
               type="button"
@@ -249,11 +338,15 @@ function Clientes() {
         </p>
       ) : (
         <>
-          <ClientesTabela itens={visiveis} />
+          {tabelaDeCliente ? (
+            <ClientesAtivosTabela itens={visiveis} agora={agora.data?.itens ?? {}} logos={logos} />
+          ) : (
+            <ClientesTabela itens={visiveis} logos={logos} />
+          )}
           {r && (
             <p className="flex flex-col gap-1 text-[14px] text-hub-suave sm:flex-row sm:justify-between">
               <span className="font-semibold text-hub-tinta">
-                {visiveis.length} de {lista.data.length}
+                {visiveis.length} {visiveis.length === 1 ? "ficha" : "fichas"}
               </span>
             </p>
           )}

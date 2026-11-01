@@ -91,7 +91,7 @@ export function Sigla({
 }: {
   texto: string;
   semente?: string;
-  logo?: string | null;
+  logo?: string | null | undefined;
   escuro?: boolean;
 }) {
   if (logo)
