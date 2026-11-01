@@ -15,6 +15,7 @@ import {
   type ModuloSite,
   type SiteDoHub,
 } from "@/lib/sitesCliente";
+import { chavesSitesHub } from "@/lib/sitesHub";
 
 const NOVO = "novo";
 
@@ -42,6 +43,7 @@ export function ClienteSite({ clienteId }: { clienteId: string }) {
   const falhou = (e: unknown) => mensagemDoSiteCliente(e) ?? mensagemDeErro(e);
   const recarregar = () => {
     void qc.invalidateQueries({ queryKey: chavesSitesCliente.hub });
+    void qc.invalidateQueries({ queryKey: chavesSitesHub.tudo });
   };
 
   const salvar = useMutation({

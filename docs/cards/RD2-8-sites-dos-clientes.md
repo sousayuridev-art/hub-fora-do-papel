@@ -1,11 +1,11 @@
-# RD2-8 · Sites: a central dos sites que entregamos · PRD + card (rascunho para aprovação)
+# RD2-8 · Sites: a central dos sites que entregamos · PRD + card
 
 > **Decisões do Yuri (01/11):**
 > - "Ver como o cliente" abre o **portal de verdade, em modo leitura** (não uma simulação).
 > - Situação do site decidida pelo Claude, com aval do Yuri: **No ar** = `sites.no_ar` (marca sozinho quando o projeto do cliente é lançado);
 >   **Em construção** = fora do ar com projeto em andamento; **Fora do ar** = o resto.
 > - Não há site de cliente fora do banco do Hub; todos entram com conteúdo.
-> **Telas:** canvas "Hub · redesign das áreas", quadros 12 (Sites, Página do site, Ver como o cliente). Aguardando aprovação.
+> **Telas:** canvas "Hub · redesign das áreas", quadros 12 (Sites, Página do site, Ver como o cliente). **Aprovadas em 01/11**, com um pedido: a imagem do cartão é a primeira seção do site.
 
 ## Problema
 O menu Sites abre direto o editor do site da Fora do Papel. Os sites dos clientes ficam num seletor pequeno e a ligação
@@ -16,7 +16,7 @@ não aparece reunido em lugar nenhum, então o Yuri não sabe quem usa o painel,
 ### Lista `/app/site` (vira a central)
 - Números: sites no ar, contatos sem resposta (com o mais antigo), publicações dos clientes em 30 dias, pedidos de ajuste dos sites abertos.
 - Abas: Todos, No ar, Em construção, Pedem atenção (contato sem resposta > 2 dias, cliente sem entrar > 14 dias, rascunho parado > 7 dias).
-- Cartão por site: miniatura, logo ou sigla, nome, domínio, situação, 3 números e o aviso mais importante. O da Fora do Papel primeiro.
+- Cartão por site: **a primeira seção publicada da página inicial** (os mesmos componentes de `src/secoes`, reduzidos; o site da Fora do Papel mostra o topo publicado), logo ou sigla, nome, domínio, situação, 3 números e o aviso mais importante. O da Fora do Papel primeiro.
 - "Novo site": nome, domínio, cliente (opcional) e módulos.
 
 ### Página do site `/app/sites/$id`
@@ -48,12 +48,22 @@ não aparece reunido em lugar nenhum, então o Yuri não sabe quem usa o painel,
 - Cliente sem ninguém no portal: "Ver como o cliente" funciona (mostra o portal que ele verá) e avisa "Ninguém da empresa entrou ainda".
 - Tentativa de gravar no espelho por chamada direta: o banco recusa (testes pgTAP).
 
+## Como ficou o espelho (implementação)
+- `portal_espelho_abrir(cliente, perfil)` grava em `portal_espelhos` e no `event_outbox`; vale 12 horas e só com o código (aal2).
+- No navegador (`src/lib/espelho.ts`), o espelho fica na aba e pertence a quem abriu: sair da conta, outra pessoa
+  na sessão ou entrar no `/app` apaga. Enquanto aberto, toda chamada fora da lista de leitura é barrada antes de sair
+  ("Modo leitura: nada é gravado"); envio ao Storage também.
+- Revisão de segurança (agente separado, 01/11): sem achado grave. Corrigido: espelho preso ao usuário, `my_access` liberado,
+  trava na migração para regra de perfil não coberta, recibo fechado no espelho como equipe, mais testes de escrita.
+- Limite conhecido: no espelho como equipe, Ajustes e Contatos usam a permissão de dono do site (mostram os e-mails da equipe,
+  que uma equipe real não vê). Não vaza nada que o dono já não veja.
+
 ## Critérios de aceite
-- [ ] Dono de outra agência não abre o espelho nem lê `sites_resumo` de outro tenant (pgTAP).
-- [ ] No espelho, `portal_aprovar`, `portal_contato_respondido` e `portal_pedido_criar` recusam o dono (pgTAP).
-- [ ] Espelho como equipe não mostra Pagamentos nem valores.
-- [ ] Lançar o projeto marca o site como no ar.
-- [ ] Build, lint, testes e conferência no computador e no celular.
+- [x] Dono de outra agência não abre o espelho nem lê o portal de outro tenant (pgTAP).
+- [x] No espelho, aprovar, pedir ajuste, decidir adicional, avisar pagamento, criar pedido, enviar arquivo e marcar pendência recusam o dono (pgTAP).
+- [x] Espelho como equipe não mostra Pagamentos nem valores (pgTAP + recibo barrado na tela).
+- [x] Lançar o projeto marca o site como no ar (pgTAP).
+- [x] Build, lint, testes (224) e conferência no computador e no celular.
 
 ## Métrica
 Saber em 10 segundos quais clientes precisam de ajuda com o site; contatos sem resposta há mais de 2 dias perto de zero.

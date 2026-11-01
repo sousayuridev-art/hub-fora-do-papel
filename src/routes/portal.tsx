@@ -3,7 +3,8 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { FonteCliente, linkGeist } from "@/components/layout/FonteCliente";
 import { PortalLayout } from "@/components/layout/PortalLayout";
 import { TelaCarregando } from "@/components/feedback/TelaCarregando";
-import { exigirPapel } from "@/lib/acesso";
+import { exigirPortal } from "@/lib/acesso";
+import { instalarBarreira, lerEspelho } from "@/lib/espelho";
 import { previaDoLink } from "@/lib/enderecoPublico";
 
 /** Portal do cliente (/portal). Só quem tem papel de cliente entra. */
@@ -17,7 +18,11 @@ export const Route = createFileRoute("/portal")({
     ),
     links: [linkGeist],
   }),
-  beforeLoad: ({ context, location }) => exigirPapel(context.queryClient, "client", location.href),
+  beforeLoad: ({ context, location }) => {
+    // Com espelho guardado, a barreira liga antes de qualquer leitura (na dúvida, barra)
+    if (lerEspelho()) instalarBarreira();
+    return exigirPortal(context.queryClient, location.href);
+  },
   pendingComponent: () => (
     <FonteCliente>
       <TelaCarregando />

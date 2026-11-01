@@ -81,7 +81,7 @@ export const menuOperador: GrupoMenu[] = [
       { rotulo: "Projetos", para: "/app/projetos", icone: FolderKanban },
       { rotulo: "Pedidos de ajuste", para: "/app/pedidos", icone: Inbox },
       // RD2-1: o conteúdo do site da Fora do Papel fica em "Sites" (CMS-2; os sites dos clientes entram no RD2-5)
-      { rotulo: "Sites", para: "/app/site", icone: Globe },
+      { rotulo: "Sites", para: "/app/sites", icone: Globe },
     ],
   },
   {
