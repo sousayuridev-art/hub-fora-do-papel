@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 
 /** Site do cliente ligado ao portal (card PC-1): módulos contratados decidem o menu. */
 
-export type ModuloSite = "paginas" | "artigos" | "portfolio" | "loja" | "contatos";
+export type ModuloSite = "paginas" | "artigos" | "portfolio" | "loja" | "contatos" | "catalogo";
 
 export const modulosSite: { id: ModuloSite; rotulo: string; ajuda: string }[] = [
   { id: "paginas", rotulo: "Páginas", ajuda: "Editar textos e fotos das páginas" },
@@ -10,6 +10,11 @@ export const modulosSite: { id: ModuloSite; rotulo: string; ajuda: string }[] = 
   { id: "portfolio", rotulo: "Portfólio", ajuda: "Trabalhos e casos" },
   { id: "loja", rotulo: "Loja", ajuda: "Produtos, vendas e cupons" },
   { id: "contatos", rotulo: "Contatos", ajuda: "Formulário e WhatsApp do site" },
+  {
+    id: "catalogo",
+    rotulo: "Catálogo",
+    ajuda: "Produtos com pedido pelo WhatsApp (editado pela Fora do Papel)",
+  },
 ];
 
 export type SitePortal = {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
+import { urlDaFoto } from "@/lib/catalogo";
 import type { CapaDoSite as Capa } from "@/lib/sitesHub";
 import { Capa as SecaoCapa, type CapaProps } from "@/secoes/Capa";
 import { Chamada, type ChamadaProps } from "@/secoes/Chamada";
@@ -56,6 +57,21 @@ export function CapaDoSite({ capa, altura = 150 }: { capa: Capa | null; altura?:
   const escala = largura > 0 ? largura / base : 0;
 
   const vazio = !capa || (capa.tipo === "secao" && !capa.secao);
+  if (capa?.tipo === "foto")
+    return (
+      <div
+        aria-hidden="true"
+        className="overflow-hidden border-b border-[#EEF1F5] bg-[#F5F7FA]"
+        style={{ height: altura }}
+      >
+        <img
+          src={urlDaFoto(capa.caminho) ?? ""}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+      </div>
+    );
   return (
     <div
       ref={caixa}
