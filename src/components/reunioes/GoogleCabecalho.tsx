@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { RefreshCw } from "lucide-react";
@@ -11,8 +12,9 @@ import { cn } from "@/lib/utils";
 /**
  * Ação do cabeçalho de Reuniões (card RD-4): situação da ligação com o Google e "Buscar agora".
  * Sem ligação (ou pedindo para ligar de novo), leva para Configurações.
+ * Com `acao` (ex.: "Marcar reunião", RD2-3), "Buscar agora" vira botão secundário.
  */
-export function GoogleCabecalho() {
+export function GoogleCabecalho({ acao }: { acao?: ReactNode } = {}) {
   const g = useQuery({ queryKey: chavesReunioes.google, queryFn: situacaoGoogle });
   const buscar = useBuscarAgora();
 
@@ -49,7 +51,7 @@ export function GoogleCabecalho() {
       {ligada ? (
         <button
           type="button"
-          className={classeAcaoPrincipal}
+          className={acao ? classeBotaoSecundario : classeAcaoPrincipal}
           disabled={buscar.isPending}
           onClick={() => buscar.mutate()}
         >
@@ -64,6 +66,7 @@ export function GoogleCabecalho() {
           {s.ligada ? "Ligar de novo" : "Ligar ao Google"}
         </Link>
       )}
+      {ligada && acao}
     </div>
   );
 }

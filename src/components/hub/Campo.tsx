@@ -19,7 +19,7 @@ export function CampoTexto({
 }: Base & {
   valor: string;
   aoMudar: (v: string) => void;
-  tipo?: "text" | "email" | "url" | "date";
+  tipo?: "text" | "email" | "url" | "date" | "time";
   placeholder?: string;
   maxLength?: number;
   autoComplete?: string;

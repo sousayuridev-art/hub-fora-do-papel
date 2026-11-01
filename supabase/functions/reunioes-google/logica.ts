@@ -236,3 +236,114 @@ export function inicioDaJanela(ultimaBusca: string | null, agora: number): strin
     : agora - 30 * 24 * 3600 * 1000;
   return new Date(base).toISOString();
 }
+
+// ---------------------------------------------------------------------
+// Agenda da semana e "Marcar reunião" (card RD2-3)
+// ---------------------------------------------------------------------
+
+/** Evento da Google Agenda como a lista de eventos devolve (só o que o Hub usa). */
+export type EventoLista = Omit<EventoAgenda, "attendees"> & {
+  status?: string;
+  start?: { dateTime?: string; date?: string };
+  end?: { dateTime?: string; date?: string };
+  location?: string;
+  attendees?: {
+    email?: string;
+    displayName?: string;
+    resource?: boolean;
+    self?: boolean;
+    responseStatus?: string;
+  }[];
+};
+
+export type EventoHub = {
+  id: string;
+  titulo: string;
+  inicio: string;
+  fim: string;
+  dia_inteiro: boolean;
+  meet: string | null;
+  local: string | null;
+  convidados: Convidado[];
+};
+
+const OITO_DIAS = 8 * 24 * 60 * 60 * 1000;
+
+/** Janela pedida pela tela: datas válidas, início antes do fim, no máximo 8 dias. */
+export function janelaValida(
+  inicio: unknown,
+  fim: unknown,
+): { inicio: string; fim: string } | null {
+  if (typeof inicio !== "string" || typeof fim !== "string") return null;
+  const i = Date.parse(inicio);
+  const f = Date.parse(fim);
+  if (!Number.isFinite(i) || !Number.isFinite(f) || f <= i || f - i > OITO_DIAS) return null;
+  return { inicio: new Date(i).toISOString(), fim: new Date(f).toISOString() };
+}
+
+/** Eventos do Google → eventos da agenda do Hub (sem cancelados; sem a própria pessoa nos convidados). */
+export function eventosParaAgenda(itens: EventoLista[]): EventoHub[] {
+  const out: EventoHub[] = [];
+  for (const e of itens) {
+    if (!e.id || e.status === "cancelled") continue;
+    const diaInteiro = !e.start?.dateTime && !!e.start?.date;
+    const inicio = e.start?.dateTime ?? (e.start?.date ? `${e.start.date}T00:00:00` : null);
+    const fim = e.end?.dateTime ?? (e.end?.date ? `${e.end.date}T00:00:00` : inicio);
+    if (!inicio || !fim) continue;
+    const convidados = convidadosDoEvento({
+      attendees: (e.attendees ?? []).filter((a) => !a.self),
+    });
+    out.push({
+      id: e.id.slice(0, 1024),
+      titulo: (e.summary ?? "").trim().slice(0, 200) || "Sem título",
+      inicio,
+      fim,
+      dia_inteiro: diaInteiro,
+      meet: e.hangoutLink?.startsWith("https://meet.google.com/") ? e.hangoutLink : null,
+      local: e.location?.slice(0, 200) ?? null,
+      convidados,
+    });
+    if (out.length >= 200) break;
+  }
+  return out;
+}
+
+const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
+
+/** Pedido de "Marcar reunião" → corpo do evento do Google, com Meet. Nulo se algo estiver errado. */
+export function eventoParaCriar(
+  p: unknown,
+  pedidoId: string,
+): { corpo: Record<string, unknown> } | { erro: string } {
+  if (!p || typeof p !== "object") return { erro: "pedido_invalido" };
+  const d = p as Record<string, unknown>;
+  const titulo = typeof d["titulo"] === "string" ? d["titulo"].trim().slice(0, 200) : "";
+  if (!titulo) return { erro: "titulo_obrigatorio" };
+  const janela = janelaValida(d["inicio"], d["fim"]);
+  if (!janela || Date.parse(janela.fim) - Date.parse(janela.inicio) > 8 * 3600 * 1000)
+    return { erro: "horario_invalido" };
+  const lista = Array.isArray(d["convidados"]) ? d["convidados"] : [];
+  const emails = [
+    ...new Set(
+      lista
+        .filter((x): x is string => typeof x === "string")
+        .map((x) => x.trim().toLowerCase())
+        .filter((x) => EMAIL.test(x)),
+    ),
+  ];
+  if (emails.length > 30) return { erro: "convidados_demais" };
+  const descricao =
+    typeof d["descricao"] === "string" ? d["descricao"].trim().slice(0, 2000) : undefined;
+  return {
+    corpo: {
+      summary: titulo,
+      ...(descricao ? { description: descricao } : {}),
+      start: { dateTime: janela.inicio },
+      end: { dateTime: janela.fim },
+      attendees: emails.map((email) => ({ email })),
+      conferenceData: {
+        createRequest: { requestId: pedidoId, conferenceSolutionKey: { type: "hangoutsMeet" } },
+      },
+    },
+  };
+}

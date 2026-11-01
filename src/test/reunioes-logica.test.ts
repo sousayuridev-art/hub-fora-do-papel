@@ -150,3 +150,67 @@ describe("RE-1 · Meet e Agenda", () => {
     expect(inicioDaJanela("2026-10-21T17:00:00Z", agora)).toBe("2026-10-19T17:00:00.000Z");
   });
 });
+
+describe("RD2-3 · agenda da semana e marcar reunião", () => {
+  it("aceita janela de até 8 dias e recusa o resto", async () => {
+    const { janelaValida } = await import("../../supabase/functions/reunioes-google/logica");
+    expect(janelaValida("2026-11-02T03:00:00Z", "2026-11-07T03:00:00Z")).not.toBeNull();
+    expect(janelaValida("2026-11-07T03:00:00Z", "2026-11-02T03:00:00Z")).toBeNull();
+    expect(janelaValida("2026-11-01T00:00:00Z", "2026-11-20T00:00:00Z")).toBeNull();
+    expect(janelaValida("ontem", "hoje")).toBeNull();
+  });
+
+  it("transforma eventos: tira cancelados e a própria pessoa, marca dia inteiro", async () => {
+    const { eventosParaAgenda } = await import("../../supabase/functions/reunioes-google/logica");
+    const r = eventosParaAgenda([
+      {
+        id: "a",
+        summary: "Conversa inicial",
+        start: { dateTime: "2026-11-03T13:00:00Z" },
+        end: { dateTime: "2026-11-03T13:30:00Z" },
+        hangoutLink: "https://meet.google.com/abc-defg-hij",
+        attendees: [
+          { email: "yuri@fdp.test", self: true },
+          { email: "Ana@Loja.test", displayName: "Ana" },
+        ],
+      },
+      { id: "b", status: "cancelled", start: { dateTime: "2026-11-03T15:00:00Z" } },
+      { id: "c", summary: "Feriado", start: { date: "2026-11-02" }, end: { date: "2026-11-03" } },
+      {
+        id: "d",
+        hangoutLink: "https://exemplo.test/x",
+        start: { dateTime: "2026-11-04T12:00:00Z" },
+        end: { dateTime: "2026-11-04T13:00:00Z" },
+      },
+    ]);
+    expect(r.map((e) => e.id)).toEqual(["a", "c", "d"]);
+    expect(r[0]?.convidados).toEqual([{ email: "ana@loja.test", nome: "Ana" }]);
+    expect(r[1]?.dia_inteiro).toBe(true);
+    expect(r[2]?.meet).toBeNull();
+    expect(r[2]?.titulo).toBe("Sem título");
+  });
+
+  it("monta o evento com Meet e só e-mails válidos", async () => {
+    const { eventoParaCriar } = await import("../../supabase/functions/reunioes-google/logica");
+    const ok = eventoParaCriar(
+      {
+        titulo: " Conversa inicial ",
+        inicio: "2026-11-03T13:00:00Z",
+        fim: "2026-11-03T13:30:00Z",
+        convidados: ["Ana@Loja.test", "ana@loja.test", "nao-e-email"],
+      },
+      "pedido-1",
+    );
+    expect("corpo" in ok && ok.corpo["summary"]).toBe("Conversa inicial");
+    expect("corpo" in ok && ok.corpo["attendees"]).toEqual([{ email: "ana@loja.test" }]);
+    expect(eventoParaCriar({ titulo: "", inicio: "x", fim: "y" }, "p")).toEqual({
+      erro: "titulo_obrigatorio",
+    });
+    expect(
+      eventoParaCriar(
+        { titulo: "Longa", inicio: "2026-11-03T08:00:00Z", fim: "2026-11-03T20:00:00Z" },
+        "p",
+      ),
+    ).toEqual({ erro: "horario_invalido" });
+  });
+});

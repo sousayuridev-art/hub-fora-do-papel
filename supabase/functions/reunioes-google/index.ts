@@ -5,6 +5,8 @@
  *   GET  /retorno   (o Google chama)             → guarda a permissão cifrada e volta ao Hub
  *   POST /buscar    (pg_cron a cada 15 min, ou o dono em "Buscar agora")
  *   POST /desligar  (dono)                       → revoga no Google e apaga a conexão
+ *   POST /agenda    (dono) {inicio, fim}         → eventos da Google Agenda na janela (card RD2-3)
+ *   POST /marcar    (dono) {titulo, inicio, fim, convidados[], descricao?} → cria o evento com Meet
  *
  * Segredos (só aqui): GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SUPABASE_SERVICE_ROLE_KEY.
  * Nunca escreva token, código ou segredo em log ou em resposta.
@@ -12,6 +14,10 @@
 import {
   type Convidado,
   type EventoAgenda,
+  type EventoLista,
+  eventoParaCriar,
+  eventosParaAgenda,
+  janelaValida,
   type FalaMeet,
   type ParticipanteMeet,
   acharEvento,
@@ -463,6 +469,92 @@ async function desligar(req: Request): Promise<Response> {
   return json(req, { ok: true });
 }
 
+/** Token de acesso da agência de quem pediu (sem travar a busca automática). */
+async function acessoDoDono(req: Request): Promise<string | null> {
+  const { tenant } = await donoDaAgencia(req);
+  const linhas = await rpc<{ token_cipher: string }[]>(
+    "google_conexao_ler",
+    { p_tenant: tenant },
+    null,
+  );
+  const c = linhas[0];
+  if (!c) return null;
+  const refresh = await decifrar(
+    c.token_cipher,
+    await chaveDoSegredo(env("GOOGLE_CLIENT_SECRET")),
+    tenant,
+  ).catch(() => {
+    throw new ErroGoogle("religar", "Não foi possível ler a permissão guardada. Ligue de novo.");
+  });
+  return await tokenDeAcesso(refresh);
+}
+
+async function lerCorpo(req: Request): Promise<Record<string, unknown>> {
+  const texto = await req.text();
+  if (texto.length > 20000) throw new ErroBanco(400, "pedido_grande");
+  try {
+    const j: unknown = texto ? JSON.parse(texto) : {};
+    return j && typeof j === "object" ? (j as Record<string, unknown>) : {};
+  } catch {
+    throw new ErroBanco(400, "pedido_invalido");
+  }
+}
+
+async function agenda(req: Request): Promise<Response> {
+  const corpo = await lerCorpo(req);
+  const janela = janelaValida(corpo["inicio"], corpo["fim"]);
+  if (!janela) return json(req, { erro: "janela_invalida" }, 400);
+  try {
+    const acesso = await acessoDoDono(req);
+    if (!acesso) return json(req, { ligada: false, eventos: [] });
+    const q = new URLSearchParams({
+      timeMin: janela.inicio,
+      timeMax: janela.fim,
+      singleEvents: "true",
+      orderBy: "startTime",
+      maxResults: "250",
+    });
+    const itens = await todasAsPaginas<EventoLista>(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?${q.toString()}`,
+      "items",
+      acesso,
+      2,
+    );
+    return json(req, { ligada: true, eventos: eventosParaAgenda(itens) });
+  } catch (e) {
+    if (e instanceof ErroGoogle)
+      return json(req, { erro: e.message, religar: e.codigo === "religar" }, 409);
+    throw e;
+  }
+}
+
+async function marcar(req: Request): Promise<Response> {
+  const pedido = eventoParaCriar(await lerCorpo(req), crypto.randomUUID());
+  if ("erro" in pedido) return json(req, { erro: pedido.erro }, 400);
+  try {
+    const acesso = await acessoDoDono(req);
+    if (!acesso) return json(req, { erro: "google_desligado" }, 409);
+    const res = await fetch(
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${acesso}`, "Content-Type": "application/json" },
+        body: JSON.stringify(pedido.corpo),
+      },
+    );
+    if (res.status === 401 || res.status === 403) {
+      throw new ErroGoogle("religar", "O Google negou a criação do evento. Ligue de novo.");
+    }
+    if (!res.ok) throw new ErroGoogle("falha", `Google respondeu ${res.status}.`);
+    const criado = eventosParaAgenda([(await res.json()) as EventoLista])[0] ?? null;
+    return json(req, { evento: criado });
+  } catch (e) {
+    if (e instanceof ErroGoogle)
+      return json(req, { erro: e.message, religar: e.codigo === "religar" }, 409);
+    throw e;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   const rota = new URL(req.url).pathname.split("/").filter(Boolean).pop();
@@ -472,6 +564,8 @@ Deno.serve(async (req) => {
     if (rota === "conectar") return await conectar(req);
     if (rota === "buscar") return await buscar(req);
     if (rota === "desligar") return await desligar(req);
+    if (rota === "agenda") return await agenda(req);
+    if (rota === "marcar") return await marcar(req);
     return json(req, { erro: "rota" }, 404);
   } catch (e) {
     if (e instanceof ErroBanco) {
