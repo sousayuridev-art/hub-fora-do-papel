@@ -246,6 +246,45 @@ export async function abrirArquivo(
   window.open(data.signedUrl, "_blank", "noopener");
 }
 
+/** Tipo de prévia que o painel mostra sem baixar (RD2-7). SVG, texto e Office nunca abrem no Hub. */
+export type TipoPrevia = "imagem" | "pdf" | "video" | "audio";
+export function tipoDePrevia(m: Pick<Material, "tipo" | "mime">): TipoPrevia | null {
+  if (m.tipo !== "arquivo" || !m.mime) return null;
+  if (["image/png", "image/jpeg", "image/webp", "image/gif"].includes(m.mime)) return "imagem";
+  if (m.mime === "application/pdf") return "pdf";
+  if (m.mime === "video/mp4") return "video";
+  if (m.mime === "audio/mpeg") return "audio";
+  return null;
+}
+
+/** Endereço temporário (10 minutos) para a prévia dentro do painel. */
+export async function enderecoDaPrevia(caminho: string): Promise<string> {
+  const { data, error } = await supabase.storage.from("materiais").createSignedUrl(caminho, 600);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+/** Miniaturas das imagens (até 3 MB cada) numa chamada só, por 10 minutos (RD2-7). */
+export async function miniaturas(itens: Material[]): Promise<Record<string, string>> {
+  const caminhos = itens
+    .filter((m) => tipoDePrevia(m) === "imagem" && m.caminho && (m.tamanho ?? 0) <= 3 * 1024 * 1024)
+    .map((m) => m.caminho as string);
+  if (caminhos.length === 0) return {};
+  const { data, error } = await supabase.storage.from("materiais").createSignedUrls(caminhos, 600);
+  if (error) throw error;
+  const mapa: Record<string, string> = {};
+  for (const d of data ?? []) if (d.path && d.signedUrl) mapa[d.path] = d.signedUrl;
+  return mapa;
+}
+
+/** Sigla do tipo na miniatura: PDF, DOCX, XLSX, PNG… */
+export function siglaDoTipo(m: Pick<Material, "tipo" | "arquivo">): string {
+  if (m.tipo === "texto") return "TEXTO";
+  if (m.tipo === "link") return "LINK";
+  const ext = m.arquivo?.split(".").pop()?.toUpperCase();
+  return ext && ext.length <= 5 ? ext : "ARQUIVO";
+}
+
 export function mensagemDoMaterial(e: unknown): string | null {
   const texto =
     e instanceof Error ? e.message : ((e as { message?: string } | null)?.message ?? "");
