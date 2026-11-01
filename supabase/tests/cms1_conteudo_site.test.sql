@@ -74,7 +74,7 @@ reset role;
 select is((select array_agg(p.proname::text order by p.proname) from pg_proc p
             where p.pronamespace = 'public'::regnamespace and p.proname ~ '^_?site_'
               and has_function_privilege('anon', p.oid, 'execute')),
-  array['site_contato_registrar', 'site_publico_artigo', 'site_publico_artigos', 'site_publico_blocos', 'site_publico_catalogo', 'site_publico_negocio',
+  array['site_catalogo_publicado', 'site_contato_registrar', 'site_publico_artigo', 'site_publico_artigos', 'site_publico_blocos', 'site_publico_catalogo', 'site_publico_negocio',
         'site_publico_pagina',
         'site_registrar_contato'],
   'Anônimo só executa as RPCs públicas do site (e o contato do SITE-1)');

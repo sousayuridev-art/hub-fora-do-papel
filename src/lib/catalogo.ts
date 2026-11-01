@@ -162,10 +162,11 @@ export const apagarDepoimento = (id: string) =>
   rpc<void>("site_catalogo_depoimento_apagar", { p_id: id });
 export const salvarConfig = (site: string, c: ConfigCatalogo) =>
   rpc<ConfigCatalogo>("site_catalogo_config_salvar", { p_site: site, p_dados: c });
-export const publicarCatalogo = (site: string) =>
+/** `baseFotos`: URL pública do bucket site-midia (as fotos vão ao contrato do site com URL https). */
+export const publicarCatalogo = (site: string, baseFotos: string) =>
   rpc<{ publicado: boolean; versao?: number; repetido?: boolean; problemas: string[] }>(
     "site_catalogo_publicar",
-    { p_site: site },
+    { p_site: site, p_base_fotos: baseFotos },
   );
 
 /** Endereço público da foto (bucket site-midia). */
@@ -190,12 +191,18 @@ export const slotsFoto: { id: SlotFoto; rotulo: string; maiorLado: number }[] = 
 ];
 
 /** Regras do formulário de produto (as mesmas do banco), para avisar no campo antes de salvar. */
-export function problemasDoProduto(
-  p: DadosProduto,
-): Partial<Record<"nome" | "categoria" | "promo_pct" | "fotos", string>> {
-  const e: Partial<Record<"nome" | "categoria" | "promo_pct" | "fotos", string>> = {};
+type CampoProduto = "nome" | "categoria" | "preco" | "tamanhos" | "cores" | "promo_pct" | "fotos";
+
+export function problemasDoProduto(p: DadosProduto): Partial<Record<CampoProduto, string>> {
+  // Mesmas regras do contrato do site (validarCatalogo): preço > 0, pelo menos 1 tamanho e 1 cor
+  const e: Partial<Record<CampoProduto, string>> = {};
   if (p.nome.trim().length < 2) e.nome = "Dê um nome com pelo menos 2 letras.";
   if (!p.categoria) e.categoria = "Escolha a categoria.";
+  if (p.preco_cents == null || p.preco_cents <= 0) e.preco = "Informe o preço.";
+  if (p.tamanhos.length === 0) e.tamanhos = "Inclua pelo menos um tamanho.";
+  if (p.cores.length === 0) e.cores = "Inclua pelo menos uma cor.";
+  else if (p.cores.some((c) => !c.nome.trim() || !/^#[0-9a-fA-F]{6}$/.test(c.tom)))
+    e.cores = "Toda cor precisa de nome.";
   if (p.selo === "promo" && (p.promo_pct == null || p.promo_pct < 1 || p.promo_pct > 90))
     e.promo_pct = "Informe o desconto da promoção (de 1% a 90%).";
   if (p.fotos.length > 4) e.fotos = "No máximo 4 fotos.";
@@ -216,6 +223,10 @@ export function mensagemDoCatalogo(e: unknown): string | null {
     catalogo_desligado:
       "O catálogo não está ligado neste site. Ligue em “O que o cliente pode editar”.",
     nome_invalido: "Use um nome com letras ou números.",
+    html_sem_contrato: "Esse arquivo não é o site do catálogo (faltam os marcadores __CG_DATA__).",
+    html_sem_remoto: "Esse arquivo é de uma versão antiga do site (falta o bloco __CG_REMOTE__).",
+    sem_base: "Envie o HTML do site (o arquivo em produção) antes de gerar o arquivo.",
+    sem_publicacao: "Publique o catálogo antes de gerar o arquivo do site.",
   };
   const chave = Object.keys(mapa).find((k) => texto.includes(k));
   return chave ? (mapa[chave] ?? null) : null;

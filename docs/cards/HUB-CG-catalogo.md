@@ -9,13 +9,25 @@
 >    Isso substitui o card 04 original (geração do arquivo) e o P2 de fotos em storage.
 > 3. Nomes no padrão do banco do site (`site_catalogo_*`, em português).
 
-## Estado (01/11)
-- [x] HUB-CG-01: banco, RPCs com evento, validação de publicação, leitura pública, contagem por categoria em view. pgTAP `hub_cg_01.test.sql` (24).
+## Estado (01/11, fim do dia)
+- [x] HUB-CG-01: banco, RPCs com evento, contagem por categoria em view. pgTAP `hub_cg_01.test.sql`.
 - [x] HUB-CG-02: Produtos (lista virtualizada, painel com preço em centavos, tamanhos, cores, selo, até 4 fotos de até 900 px).
-- [x] HUB-CG-03: Categorias (capa até 800 px, apagar só vazia), Depoimentos (com aviso de autorização), Ajustes da loja (WhatsApp, endereço, horário, Instagram, Promoções, marcas) e fotos do site (capa 1400, fachada 1200, Instagram 700).
-- [x] HUB-CG-04 (novo formato): Publicar valida no banco, grava a versão (uma por vez; sem mudança não cria versão) e mostra o histórico.
-- [ ] **Importação inicial** e **site da CG lendo o banco**: dependem de `INTEGRACAO-CATALOGO-CG.md`, `catalogo-cg.mjs` e do HTML em produção (não recebidos).
-  O banco já tem `site_catalogo_importar(site, dados)` (idempotente) no formato de `site_publico_catalogo`; falta converter a saída do `extrairCatalogo` (fotos data-URL → arquivos no bucket) e o trecho do site.
+- [x] HUB-CG-03: Categorias, Depoimentos, Ajustes da loja e fotos do site.
+- [x] HUB-CG-04: Publicar valida no banco **com as mesmas regras do `validarCatalogo`** (preço > 0, ≥ 1 tamanho e 1 cor, endereço,
+      horário e Instagram), grava a versão nos dois formatos (Hub e contrato) e mostra o histórico.
+- [x] Contrato (`docs/integracoes/catalogo-cg/`): porta TS em `src/lib/catalogoCg.ts`, testada contra o módulo original.
+- [x] Importação do HTML em produção (aba Publicar › Arquivo do site): fotos data-URL viram arquivos no bucket; dados entram numa
+      chamada só (`site_catalogo_importar`, substitui tudo). Conferido com o arquivo real: os dados voltam idênticos e o validador não acusa nada.
+- [x] Site lendo o banco: `site_catalogo_publicado(dominio)` devolve o objeto do contrato puro; o arquivo gerado pelo Hub sai com o
+      bloco `__CG_REMOTE__` preenchido (GET com a chave publishable). Conferido a 360 px: banco no ar mostra o preço novo sem trocar
+      o arquivo; banco fora do ar cai na reserva embutida sem erro no console.
+- Fotos no arquivo gerado são URLs https (o arquivo cai de 1,1 MB para ~70 KB). Offline, o site abre e fecha pedido, mas sem fotos.
+
+## Para o Yuri
+1. Página do cliente CG › Projetos e propostas › ligar um site com o domínio do catálogo e o módulo **Catálogo**.
+2. Sites › CG › aba **Publicar** › "Importar do site em produção" › escolher o HTML em produção › Importar.
+3. Conferir produtos e ajustes › "Validar e publicar".
+4. "Baixar o arquivo do site" › trocar o arquivo no projeto Lovable do catálogo (uma vez; depois, cada publicação aparece sozinha).
 
 ## Formato publicado (o que o site lê)
 ```json

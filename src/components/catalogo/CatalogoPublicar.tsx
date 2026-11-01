@@ -8,6 +8,8 @@ import {
   publicacoesCatalogo,
   publicarCatalogo,
 } from "@/lib/catalogo";
+import { CatalogoArquivo } from "@/components/catalogo/CatalogoArquivo";
+import { baseDasFotos } from "@/lib/catalogoSite";
 import { classeAcaoPrincipal, classeAcaoTexto } from "@/lib/estilos";
 import { diaComHora } from "@/lib/formatar";
 import { chavesSitesHub } from "@/lib/sitesHub";
@@ -28,7 +30,7 @@ export function CatalogoPublicar({ siteId, dominio }: { siteId: string; dominio:
     queryFn: () => publicacoesCatalogo(siteId),
   });
   const publicar = useMutation({
-    mutationFn: () => publicarCatalogo(siteId),
+    mutationFn: () => publicarCatalogo(siteId, baseDasFotos()),
     onSuccess: (r) => {
       if (r.publicado) ok(`Versão ${r.versao} publicada. O site atualiza em até 5 minutos.`);
       else if (r.repetido) ok("Nada mudou desde a última publicação.");
