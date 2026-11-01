@@ -174,8 +174,8 @@ export function ProdutoPainel({
           rotulo="Preço"
           valor={d.preco_cents}
           aoMudar={(v) => mudar({ preco_cents: v })}
-          ajuda="Deixe vazio para mostrar “Consulte” no site."
         />
+        {tentou && <Erro texto={erros.preco} />}
 
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-[14px] font-medium">Tamanhos</legend>
@@ -214,6 +214,7 @@ export function ProdutoPainel({
           </div>
         </fieldset>
 
+        {tentou && <Erro texto={erros.tamanhos} />}
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-[14px] font-medium">Cores</legend>
           {d.cores.map((c, i) => (
@@ -262,6 +263,7 @@ export function ProdutoPainel({
           >
             Incluir cor
           </Button>
+          {tentou && <Erro texto={erros.cores} />}
         </fieldset>
 
         <fieldset className="flex flex-col gap-2">

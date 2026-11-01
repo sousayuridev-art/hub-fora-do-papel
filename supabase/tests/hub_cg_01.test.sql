@@ -52,13 +52,19 @@ select throws_ok($$ select public.site_catalogo_produto_salvar('30000000-0000-00
   '42501', 'catalogo_desligado', 'Site sem o módulo catálogo não recebe produto');
 
 -- Publicação: bloqueada sem WhatsApp; depois publica uma vez só
-select is((public.site_catalogo_publicar('30000000-0000-0000-0000-000000000001') ->> 'publicado')::boolean, false, 'Sem WhatsApp não publica');
-select ok((public.site_catalogo_publicar('30000000-0000-0000-0000-000000000001') -> 'problemas') ? 'Informe o WhatsApp da loja (com DDD) em Ajustes da loja.', 'Problema explicado em português');
+select is((public.site_catalogo_publicar('30000000-0000-0000-0000-000000000001', 'https://exemplo.supabase.co/storage/v1/object/public/site-midia/') ->> 'publicado')::boolean, false, 'Sem WhatsApp não publica');
+select ok((public.site_catalogo_publicar('30000000-0000-0000-0000-000000000001', 'https://exemplo.supabase.co/storage/v1/object/public/site-midia/') -> 'problemas') ? 'Informe o WhatsApp da loja (com DDD) em Ajustes da loja.', 'Problema explicado em português');
 select lives_ok($$ select public.site_catalogo_config_salvar('30000000-0000-0000-0000-000000000001',
-  '{"whatsapp": "(79) 99999-0001", "instagram": "@cgmoda", "marcas": ["B", "A", "A"], "fotos": {"hero": "30000000-0000-0000-0000-000000000001/hero.webp"}}') $$, 'Ajustes da loja salvos');
+  '{"whatsapp": "(79) 99999-0001", "instagram": "@cgmoda", "endereco": "Rua X, 1", "horario": "Seg a sáb", "marcas": ["B", "A", "A"], "fotos": {"hero": "30000000-0000-0000-0000-000000000001/hero.webp"}}') $$, 'Ajustes da loja salvos');
+-- deixa o catálogo dentro do contrato: preço, tamanho e cor em todos os produtos
+select public.site_catalogo_produto_apagar((select id from public.site_catalogo_produtos where nome = 'Sem preço'));
+select public.site_catalogo_produto_salvar('30000000-0000-0000-0000-000000000001',
+  jsonb_build_object('id', (select v ->> 'id' from p), 'nome', 'Polo Azul', 'categoria', 'camisas-polo', 'preco_cents', 1999000,
+                     'tamanhos', '["P"]'::jsonb, 'cores', '[{"nome": "Azul", "tom": "#1F3A93"}]'::jsonb,
+                     'fotos', '["30000000-0000-0000-0000-000000000001/polo.webp"]'::jsonb));
 select is((select whatsapp from public.site_catalogo_config where site_id = '30000000-0000-0000-0000-000000000001'), '79999990001', 'WhatsApp só com números');
-select is((public.site_catalogo_publicar('30000000-0000-0000-0000-000000000001') ->> 'versao')::int, 1, 'Publica a versão 1');
-select is((public.site_catalogo_publicar('30000000-0000-0000-0000-000000000001') ->> 'repetido')::boolean, true, 'Publicar de novo sem mudança não cria versão');
+select is((public.site_catalogo_publicar('30000000-0000-0000-0000-000000000001', 'https://exemplo.supabase.co/storage/v1/object/public/site-midia/') ->> 'versao')::int, 1, 'Publica a versão 1');
+select is((public.site_catalogo_publicar('30000000-0000-0000-0000-000000000001', 'https://exemplo.supabase.co/storage/v1/object/public/site-midia/') ->> 'repetido')::boolean, true, 'Publicar de novo sem mudança não cria versão');
 select is((public.site_catalogo_editor('30000000-0000-0000-0000-000000000001') ->> 'mudou')::boolean, false, 'Editor sabe que nada mudou');
 select lives_ok($$ select public.site_catalogo_depoimento_salvar('30000000-0000-0000-0000-000000000001',
   '{"texto": "Atendimento ótimo </script><script>alert(1)</script> 👍", "autor": "Cliente real"}') $$, 'Depoimento com </script> e emoji grava');
