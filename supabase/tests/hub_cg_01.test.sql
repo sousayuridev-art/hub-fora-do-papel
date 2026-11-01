@@ -1,7 +1,7 @@
 -- HUB-CG-01: catálogo preso ao site, escrita só por RPC, preço em centavos, publicação validada, leitura pública.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(25);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'yuri@foradopapel.test'),
@@ -19,8 +19,11 @@ insert into public.sites (id, tenant_id, client_id, nome, dominio, modulos) valu
   ('30000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'Catálogo CG', 'cg.test', '{catalogo}'),
   ('30000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', null, 'Sem catálogo', 'outro.test', '{paginas}');
 
+update public.sites set no_ar = false where id = '30000000-0000-0000-0000-000000000001';
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
+select is((select i ->> 'situacao' from jsonb_array_elements(public.sites_resumo() -> 'itens') i where i ->> 'dominio' = 'cg.test'),
+  'construcao', 'Site de cliente fora do ar, sem projeto = em construção (RD2-8b)');
 
 create temp table k as select public.site_catalogo_categoria_salvar('30000000-0000-0000-0000-000000000001', '{"nome": "Camisas Polo"}') as v;
 select is((select v ->> 'slug' from k), 'camisas-polo', 'Slug nasce do nome (sem acento, com hífen)');

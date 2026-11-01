@@ -5,6 +5,8 @@
 > - Situação do site decidida pelo Claude, com aval do Yuri: **No ar** = `sites.no_ar` (marca sozinho quando o projeto do cliente é lançado);
 >   **Em construção** = fora do ar com projeto em andamento; **Fora do ar** = o resto.
 > - Não há site de cliente fora do banco do Hub; todos entram com conteúdo.
+> - **Ajuste (RD2-8b, 01/11):** site de cliente que ainda não está no ar = **Em construção**, com ou sem projeto em andamento
+>   (pedido do Yuri para a CG). "Fora do ar" fica para site sem cliente que não está no ar.
 > **Telas:** canvas "Hub · redesign das áreas", quadros 12 (Sites, Página do site, Ver como o cliente). **Aprovadas em 01/11**, com um pedido: a imagem do cartão é a primeira seção do site.
 
 ## Problema
