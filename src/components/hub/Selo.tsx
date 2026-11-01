@@ -79,29 +79,13 @@ export function SeloTipo({
   );
 }
 
-/** Tons da sigla (RD2-1): os fundos claros das situações, escolhidos pelo nome. */
-const tonsSigla = [
-  "bg-sit-info text-sit-info-t",
-  "bg-sit-atencao text-sit-atencao-t",
-  "bg-sit-ok text-sit-ok-t",
-  "bg-tipo-pedidos text-tipo-pedidos-t",
-  "bg-tipo-dinheiro text-tipo-dinheiro-t",
-] as const;
-
-/** Mesmo nome, mesma cor, em qualquer tela. */
-export function corDaSigla(nome: string): string {
-  let h = 0;
-  for (const c of nome.trim().toLowerCase()) h = (h * 31 + (c.codePointAt(0) ?? 0)) >>> 0;
-  return tonsSigla[h % tonsSigla.length] ?? tonsSigla[0];
-}
-
 /**
- * Sigla da empresa num quadrado. A cor sai do nome (`semente`, padrão: o próprio texto);
- * com `logo`, mostra a imagem no lugar. `escuro` destaca clientes ativos na lista.
+ * Sigla da empresa num quadrado cinza (RD2, 29/10: menos cor; a cor fica para as situações).
+ * Com `logo`, mostra a imagem no lugar. `escuro` destaca clientes ativos na lista.
+ * `semente` fica para compatibilidade e não muda a cor.
  */
 export function Sigla({
   texto,
-  semente,
   logo,
   escuro = false,
 }: {
@@ -124,7 +108,7 @@ export function Sigla({
       aria-hidden="true"
       className={cn(
         "flex size-9 shrink-0 items-center justify-center rounded-lg font-rotulo text-[13px] font-semibold",
-        escuro ? "bg-hub-tinta text-white" : corDaSigla(semente ?? texto),
+        escuro ? "bg-hub-tinta text-white" : "bg-[#EEF1F5] text-[#2A2D33]",
       )}
     >
       {texto}

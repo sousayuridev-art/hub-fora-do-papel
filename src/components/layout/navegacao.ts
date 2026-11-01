@@ -43,6 +43,8 @@ export type ItemMenu = {
   exato?: boolean;
   /** Tela ainda não construída: o menu mostra "Em breve". */
   emBreve?: boolean;
+  /** Outras rotas que acendem este item (ex.: Propostas dentro de Vendas). */
+  tambem?: string[];
   /** Número ao lado do nome (contas do banco). */
   contador?: "tarefas_atrasadas";
 };
@@ -61,10 +63,10 @@ export const menuOperador: GrupoMenu[] = [
   {
     titulo: "Vender",
     itens: [
-      { rotulo: "Funil de vendas", para: "/app/pipeline", icone: KanbanSquare },
+      // RD2-2: funil e propostas numa área só (abas Oportunidades e Propostas)
+      { rotulo: "Vendas", para: "/app/pipeline", icone: KanbanSquare, tambem: ["/app/propostas"] },
       { rotulo: "Clientes", para: "/app/clientes", icone: Users },
       { rotulo: "Reuniões", para: "/app/reunioes", icone: Video },
-      { rotulo: "Propostas", para: "/app/propostas", icone: FileText },
       { rotulo: "Tráfego pago", para: "/app/trafego", icone: Megaphone },
     ],
   },

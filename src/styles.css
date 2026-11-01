@@ -148,7 +148,8 @@
  * Hub: fundo #F5F5F2 · Portal: fundo #F7F7F4 · tinta #0E1013 · destaque #FFB020 só na ação principal.
  */
 @theme inline {
-  --color-hub-fundo: oklch(0.966 0.004 106.5);
+  /* RD2 (29/10): branco gelo, escolha do Yuri */
+  --color-hub-fundo: #f5f7fa;
   --color-portal-fundo: oklch(0.975 0.003 106.5);
   --color-hub-tinta: oklch(0.155 0.006 264.5);
   --color-hub-borda: oklch(0.938 0.006 106.5);
