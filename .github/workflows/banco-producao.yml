@@ -37,10 +37,10 @@ jobs:
           version: latest
 
       - name: Ligar ao projeto de produção
-        run: supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+        run: supabase link --project-ref "$PROJECT_REF"
 
       - name: Migrações (coluna Local = repositório, Remote = produção)
-        run: supabase migration list --password "$SUPABASE_DB_PASSWORD"
+        run: supabase migration list --linked --password "$SUPABASE_DB_PASSWORD"
 
       # Card RE-0: confere só os NOMES dos segredos das funções; o valor nunca é lido nem impresso.
       - name: Segredos das funções (só os nomes)
@@ -53,11 +53,11 @@ jobs:
 
       - name: Simular (nada é gravado)
         if: inputs.modo == 'verificar'
-        run: supabase db push --dry-run --password "$SUPABASE_DB_PASSWORD"
+        run: supabase db push --linked --dry-run --password "$SUPABASE_DB_PASSWORD"
 
       - name: Aplicar no banco de produção
         if: inputs.modo == 'aplicar'
-        run: supabase db push --password "$SUPABASE_DB_PASSWORD"
+        run: supabase db push --linked --password "$SUPABASE_DB_PASSWORD"
 
       # Card RE-1: função do Google Meet. Sem verificação de JWT porque o Google chama /retorno;
       # as rotas do dono conferem o login dentro da função.
@@ -83,4 +83,4 @@ jobs:
 
       - name: Situação depois de aplicar
         if: inputs.modo == 'aplicar'
-        run: supabase migration list --password "$SUPABASE_DB_PASSWORD"
+        run: supabase migration list --linked --password "$SUPABASE_DB_PASSWORD"
