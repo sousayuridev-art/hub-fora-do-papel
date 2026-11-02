@@ -95,16 +95,28 @@ export function mensagemProposta(
   );
 }
 
-/** 2. Convite do portal. */
+/**
+ * 2. Convite do portal (SEG-2: entrada com e-mail e senha). Com `link` (primeiro acesso gerado no
+ * Hub), a pessoa cria a senha por ele; sem link, cria pela tela de entrada ("Primeiro acesso ou esqueceu a senha?").
+ */
 export function mensagemConvite(
-  b: Base & { empresa: string; email: string; portal: string },
+  b: Base & { empresa: string; email: string; portal: string; link?: string | undefined },
 ): Mensagem {
+  const comoEntrar = b.link
+    ? [
+        "Crie sua senha por este link (ele vale uma vez só):",
+        b.link,
+        `Depois, é só entrar em ${b.portal} com o e-mail ${b.email} e a sua senha.`,
+      ]
+    : [
+        b.portal,
+        `Entre com o e-mail ${b.email}. No primeiro acesso, toque em "Primeiro acesso ou esqueceu a senha?" e siga o link que chega no seu e-mail.`,
+      ];
   return montar(
     b,
     [
       "Seu portal já está pronto. Por lá você acompanha o projeto, aprova cada entrega e faz pedidos de ajuste:",
-      b.portal,
-      `Use o e-mail ${b.email}. Não tem senha: o acesso chega por e-mail.`,
+      ...comoEntrar,
     ],
     `Seu portal da ${b.empresa} está pronto`,
     [
@@ -114,9 +126,17 @@ export function mensagemConvite(
       "- aprovações com seu nome, data e hora",
       "- pedidos de ajuste e arquivos",
       "",
-      `Entrar no portal: ${b.portal}`,
-      "",
-      `Use o e-mail ${b.email}. O link de acesso vale por 1 hora; depois, é só pedir outro na tela de entrada.`,
+      ...(b.link
+        ? [
+            `Crie sua senha por este link (ele vale uma vez só): ${b.link}`,
+            "",
+            `Depois, entre em ${b.portal} com o e-mail ${b.email} e a sua senha.`,
+          ]
+        : [
+            `Entrar no portal: ${b.portal}`,
+            "",
+            `Use o e-mail ${b.email}. No primeiro acesso, toque em "Primeiro acesso ou esqueceu a senha?" para receber o link no seu e-mail.`,
+          ]),
     ],
   );
 }

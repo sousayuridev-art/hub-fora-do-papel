@@ -75,6 +75,12 @@ jobs:
         continue-on-error: true
         run: supabase functions deploy marketing-ia --project-ref "$PROJECT_REF" --use-api
 
+      # Card SEG-2: link de primeiro acesso ao portal (gera o link sem e-mail; só para conta sem senha).
+      - name: Publicar função do primeiro acesso ao portal
+        if: inputs.modo == 'aplicar'
+        continue-on-error: true
+        run: supabase functions deploy portal-acesso --project-ref "$PROJECT_REF" --use-api
+
       - name: Situação depois de aplicar
         if: inputs.modo == 'aplicar'
         run: supabase migration list --password "$SUPABASE_DB_PASSWORD"

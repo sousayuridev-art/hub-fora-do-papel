@@ -31,6 +31,7 @@ import { Route as AppTarefasRouteImport } from './routes/app/tarefas'
 import { Route as AppTrafegoRouteImport } from './routes/app/trafego'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as EntrarCodigoRouteImport } from './routes/entrar_.codigo'
+import { Route as EntrarSenhaRouteImport } from './routes/entrar_.senha'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as PortalAjustesRouteImport } from './routes/portal/ajustes'
 import { Route as PortalAprovacoesRouteImport } from './routes/portal/aprovacoes'
@@ -163,6 +164,11 @@ const EntrarCodigoRoute = EntrarCodigoRouteImport.update({
   path: '/entrar/codigo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EntrarSenhaRoute = EntrarSenhaRouteImport.update({
+  id: '/entrar_/senha',
+  path: '/entrar/senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortalIndexRoute = PortalIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/entrar/codigo': typeof EntrarCodigoRoute
+  '/entrar/senha': typeof EntrarSenhaRoute
   '/portal/ajustes': typeof PortalAjustesRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
@@ -334,6 +341,7 @@ export interface FileRoutesByTo {
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/entrar/codigo': typeof EntrarCodigoRoute
+  '/entrar/senha': typeof EntrarSenhaRoute
   '/portal/ajustes': typeof PortalAjustesRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
@@ -380,6 +388,7 @@ export interface FileRoutesById {
   '/app/trafego': typeof AppTrafegoRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/entrar_/codigo': typeof EntrarCodigoRoute
+  '/entrar_/senha': typeof EntrarSenhaRoute
   '/portal/ajustes': typeof PortalAjustesRoute
   '/portal/aprovacoes': typeof PortalAprovacoesRoute
   '/portal/arquivos': typeof PortalArquivosRoute
@@ -427,6 +436,7 @@ export interface FileRouteTypes {
     | '/app/trafego'
     | '/auth/callback'
     | '/entrar/codigo'
+    | '/entrar/senha'
     | '/portal/ajustes'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/app/trafego'
     | '/auth/callback'
     | '/entrar/codigo'
+    | '/entrar/senha'
     | '/portal/ajustes'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
@@ -515,6 +526,7 @@ export interface FileRouteTypes {
     | '/app/trafego'
     | '/auth/callback'
     | '/entrar_/codigo'
+    | '/entrar_/senha'
     | '/portal/ajustes'
     | '/portal/aprovacoes'
     | '/portal/arquivos'
@@ -549,6 +561,7 @@ export interface RootRouteChildren {
   SemAcessoRoute: typeof SemAcessoRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   EntrarCodigoRoute: typeof EntrarCodigoRoute
+  EntrarSenhaRoute: typeof EntrarSenhaRoute
   PropostaTokenRoute: typeof PropostaTokenRoute
   ReciboIdRoute: typeof ReciboIdRoute
   PreviaPropostaIdRoute: typeof PreviaPropostaIdRoute
@@ -708,6 +721,13 @@ declare module '@tanstack/react-router' {
       path: '/entrar/codigo'
       fullPath: '/entrar/codigo'
       preLoaderRoute: typeof EntrarCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar_/senha': {
+      id: '/entrar_/senha'
+      path: '/entrar/senha'
+      fullPath: '/entrar/senha'
+      preLoaderRoute: typeof EntrarSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal/': {
@@ -949,6 +969,7 @@ const rootRouteChildren: RootRouteChildren = {
   SemAcessoRoute: SemAcessoRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   EntrarCodigoRoute: EntrarCodigoRoute,
+  EntrarSenhaRoute: EntrarSenhaRoute,
   PropostaTokenRoute: PropostaTokenRoute,
   ReciboIdRoute: ReciboIdRoute,
   PreviaPropostaIdRoute: PreviaPropostaIdRoute,
