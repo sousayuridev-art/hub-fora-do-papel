@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Mail, Send, X } from "lucide-react";
+import { Copy, KeyRound, Mail, Send, X } from "lucide-react";
 
 import {
   acessosDoPortal,
   cancelarConvite,
   chavesAcessoPortal,
   convidarParaPortal,
+  gerarPrimeiroAcesso,
   mensagemDoAcesso,
   mudarPerfil,
   nomeDoPerfil,
+  quemTemSenha,
   removerAcesso,
   type AcessosPortal,
   type PerfilPortal,
@@ -23,8 +25,9 @@ import { useSession } from "@/hooks/useSession";
 import { erro, mensagemDeErro, ok } from "@/lib/notify";
 
 /**
- * Acesso ao portal: o dono convida pelo e-mail; a pessoa entra com o link de acesso
- * enviado para esse e-mail e fica ligada à empresa. Convite vale 30 dias.
+ * Acesso ao portal: o dono convida pelo e-mail; a pessoa entra com e-mail e senha (SEG-2).
+ * No primeiro acesso, o Hub gera um link (sem e-mail) que o Yuri manda pelo WhatsApp; por ele a
+ * pessoa cria a própria senha. Convite vale 30 dias.
  */
 export function ClienteAcessoPortal({
   clienteId,
@@ -49,9 +52,16 @@ export function ClienteAcessoPortal({
   const [confirmar, setConfirmar] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<PerfilPortal>("equipe");
   const [podeAprovar, setPodeAprovar] = useState(true);
-  const [enviarConvite, setEnviarConvite] = useState<AcessosPortal["convites"][number] | null>(
-    null,
-  );
+  const [enviar, setEnviar] = useState<{
+    email: string;
+    perfil: PerfilPortal;
+    link: string | null;
+  } | null>(null);
+  const senhas = useQuery({
+    queryKey: chavesAcessoPortal.senhas(clienteId),
+    queryFn: () => quemTemSenha(clienteId),
+    enabled: (dados.data?.pessoas.length ?? 0) > 0,
+  });
   // O primeiro acesso de uma empresa é de quem contratou (o banco também exige: CX-0).
   const semResponsavel =
     dados.data !== undefined &&
@@ -128,6 +138,21 @@ export function ClienteAcessoPortal({
     },
     onSettled: recarregar,
   });
+  // Link de primeiro acesso: gerado na hora, só para quem ainda não tem senha (o banco confere).
+  const gerarLink = useMutation({
+    mutationFn: (v: { email: string; perfil: PerfilPortal }) =>
+      gerarPrimeiroAcesso(clienteId, v.email),
+    onSuccess: (link, v) => setEnviar({ ...v, link }),
+    onError: (e, v) => {
+      if (e instanceof Error && e.message === "ja_tem_senha") {
+        // Já tem senha: a mensagem vai sem link (entra com e-mail e senha)
+        ok("Essa pessoa já criou a senha. A mensagem vai só com o endereço do portal.");
+        setEnviar({ ...v, link: null });
+        return;
+      }
+      erro(falhou(e), { tentarDeNovo: () => gerarLink.mutate(v) });
+    },
+  });
   const remover = useMutation({
     mutationFn: (u: string) => removerAcesso(clienteId, u),
     onSuccess: () => {
@@ -151,7 +176,8 @@ export function ClienteAcessoPortal({
           Acesso ao portal
         </h2>
         <p className="text-[14px] text-hub-suave">
-          O cliente entra com o e-mail convidado e recebe um link de acesso, sem senha.
+          O cliente entra com e-mail e senha. No primeiro acesso, envie o link para ele criar a
+          senha.
         </p>
       </div>
 
@@ -182,8 +208,21 @@ export function ClienteAcessoPortal({
                 <span className="text-[13px]">
                   Entra desde {diaMes(p.desde)}
                   {p.perfil === "equipe" && !p.pode_aprovar ? ". Não aprova entregas" : ""}
+                  {senhas.data?.[p.user_id] === false ? ". Ainda não criou a senha" : ""}
                 </span>
               </span>
+              {senhas.data?.[p.user_id] === false && (
+                <button
+                  type="button"
+                  aria-label={`Gerar link para ${p.nome ?? p.email} criar a senha`}
+                  title="Gerar link para criar a senha"
+                  disabled={gerarLink.isPending}
+                  className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/60 disabled:opacity-40"
+                  onClick={() => gerarLink.mutate({ email: p.email, perfil: p.perfil })}
+                >
+                  <KeyRound className="size-4" aria-hidden="true" />
+                </button>
+              )}
               <label className="sr-only" htmlFor={`perfil-${p.user_id}`}>
                 Perfil de {p.nome ?? p.email}
               </label>
@@ -233,8 +272,10 @@ export function ClienteAcessoPortal({
                 <button
                   type="button"
                   aria-label={`Enviar o convite de ${c.email}`}
-                  className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/60"
-                  onClick={() => setEnviarConvite(c)}
+                  title="Gerar o link de primeiro acesso e enviar"
+                  disabled={gerarLink.isPending}
+                  className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/60 disabled:opacity-40"
+                  onClick={() => gerarLink.mutate({ email: c.email, perfil: c.perfil })}
                 >
                   <Send className="size-4" aria-hidden="true" />
                 </button>
@@ -314,23 +355,29 @@ export function ClienteAcessoPortal({
       >
         <Copy className="size-4" aria-hidden="true" /> Copiar endereço do portal
       </button>
-      {enviarConvite && (
+      {enviar && (
         <EnviarParaPainel
           aberto
-          aoMudar={(v) => !v && setEnviarConvite(null)}
-          nome={enviarConvite.perfil === "responsavel" ? contato : null}
-          whatsapp={enviarConvite.perfil === "responsavel" ? whatsapp : null}
-          email={enviarConvite.email}
-          link={endereco}
-          previa={{ titulo: `Portal da ${empresa}`, linha: "Acompanhe o projeto · Fora do Papel" }}
+          aoMudar={(v) => !v && setEnviar(null)}
+          nome={enviar.perfil === "responsavel" ? contato : null}
+          whatsapp={enviar.perfil === "responsavel" ? whatsapp : null}
+          email={enviar.email}
+          link={enviar.link ?? endereco}
+          previa={{ titulo: `Portal da ${empresa}`, linha: "Crie sua senha · Fora do Papel" }}
+          aviso={
+            enviar.link
+              ? "O link vale uma vez só e vence em pouco tempo. Se vencer, gere outro aqui."
+              : undefined
+          }
           gerar={(nota) =>
             mensagemConvite({
-              contato: enviarConvite.perfil === "responsavel" ? contato : null,
+              contato: enviar.perfil === "responsavel" ? contato : null,
               remetente,
               nota,
               empresa,
-              email: enviarConvite.email,
+              email: enviar.email,
               portal: endereco,
+              link: enviar.link ?? undefined,
             })
           }
         />

@@ -10,6 +10,8 @@ import { supabase } from "@/lib/supabase";
 const buscaCallback = z.object({
   code: z.string().optional().catch(undefined),
   token_hash: z.string().optional().catch(undefined),
+  /** Tipo do token: "email" (link do e-mail) ou o do link de primeiro acesso gerado no Hub (SEG-2). */
+  type: z.enum(["email", "magiclink", "invite", "signup"]).optional().catch(undefined),
   volta: caminhoInterno,
 });
 
@@ -20,12 +22,12 @@ export const Route = createFileRoute("/auth/callback")({
 });
 
 /**
- * Volta do link mágico.
+ * Volta dos links (e-mail para criar ou trocar a senha, e primeiro acesso gerado no Hub: SEG-2).
  * - token_hash (padrão em produção): vale em qualquer navegador ou aparelho, mesmo abrindo o e-mail no celular.
  * - code (PKCE): só vale no mesmo navegador que pediu o link; mantido para o Supabase local.
  */
 function Callback() {
-  const { code, token_hash: tokenHash, volta } = Route.useSearch();
+  const { code, token_hash: tokenHash, type, volta } = Route.useSearch();
   const navigate = useNavigate();
   const [falhou, setFalhou] = useState(false);
 
@@ -34,7 +36,10 @@ function Callback() {
     async function concluir() {
       try {
         if (tokenHash) {
-          const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type ?? "email",
+          });
           if (error) throw error;
         } else if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -42,7 +47,11 @@ function Callback() {
         }
         const { data } = await supabase.auth.getSession();
         if (!data.session) throw new Error("sessão ausente");
-        if (ativo) await navigate({ to: "/entrar", search: { volta }, replace: true });
+        if (!ativo) return;
+        // Criar a senha não depende de a pessoa já estar ligada a uma empresa
+        if (volta && /^\/entrar\/senha(\?|$)/.test(volta))
+          await navigate({ href: volta, replace: true });
+        else await navigate({ to: "/entrar", search: { volta }, replace: true });
       } catch {
         if (ativo) setFalhou(true);
       }
@@ -51,13 +60,13 @@ function Callback() {
     return () => {
       ativo = false;
     };
-  }, [code, tokenHash, volta, navigate]);
+  }, [code, tokenHash, type, volta, navigate]);
 
   if (falhou) {
     return (
       <TelaErro
         titulo="Este link não vale mais"
-        mensagem="Links de acesso valem por 1 hora e só uma vez. Peça um novo na tela de entrada."
+        mensagem="O link já foi usado ou venceu. Peça outro na tela de entrada."
         aoTentarDeNovo={() => void navigate({ to: entradaPara(volta), search: { volta } })}
       />
     );

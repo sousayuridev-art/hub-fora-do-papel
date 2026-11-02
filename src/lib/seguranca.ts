@@ -95,6 +95,22 @@ export async function enviarLinkRecuperacao(email: string) {
   if (error) throw error;
 }
 
+/**
+ * Cliente (SEG-2): "Criar ou trocar a senha". Link no e-mail (mesmo modelo do Supabase usado antes
+ * para entrar), que abre a tela "Crie sua senha". `shouldCreateUser` continua ligado como no link
+ * antigo: quem foi convidado pelo aceite da proposta (CX-4) ainda não tem conta, e a resposta é a
+ * mesma para qualquer e-mail (não revela quem tem conta). Sem convite, a pessoa cai em "Sem acesso".
+ */
+export async function enviarLinkDeSenha(email: string) {
+  const retorno = new URL("/auth/callback", window.location.origin);
+  retorno.searchParams.set("volta", "/entrar/senha?tipo=nova");
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: retorno.toString(), shouldCreateUser: true },
+  });
+  if (error) throw error;
+}
+
 /** Força da senha em 3 níveis, sem bibliotecas pesadas. */
 export function forcaDaSenha(s: string): { nivel: 0 | 1 | 2 | 3; texto: string } {
   if (s.length < SENHA_MINIMA)
