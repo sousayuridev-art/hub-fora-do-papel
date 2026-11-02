@@ -46,3 +46,8 @@ Convites aceitos em até 48 horas e pedidos de "não consigo entrar" no WhatsApp
 
 ## Arquivos
 `supabase/migrations/20261102100000_seg2_entrada_com_senha.sql`, `supabase/tests/seg2_entrada_com_senha.test.sql`, `supabase/functions/portal-acesso/`, `.github/workflows/banco-producao.yml`, `src/routes/entrar.tsx`, `src/routes/entrar_.senha.tsx`, `src/routes/auth/callback.tsx`, `src/lib/seguranca.ts`, `src/lib/acessoPortal.ts`, `src/lib/mensagens.ts`, `src/components/clientes/ClienteAcessoPortal.tsx`, `src/test/seg-2.test.ts`.
+
+## Relecture de segurança, rodada 2
+- Fechado (N1): conta que alguém criou pelo cadastro público com uma senha que conhece não vira porta de entrada. Antes de gerar o link para conta existente, a função troca a senha dela por uma aleatória (com a chave de serviço) e só então gera o link. Em produção a confirmação de e-mail está ligada (conferido nas configurações públicas do Auth em 02/11), então o cadastro público não abre conta confirmada sozinho.
+- Limite conhecido (N2), a resolver antes de existir um segundo tenant: a conta que recebe link fica presa ao tenant de quem gerou, sem caminho para soltar. Com um tenant só, não tem efeito. Proposta para quando chegar a hora: soltar a trava com uma prova de acesso ao e-mail que o link gerado não fabrica (código de reautenticação do Auth).
+- Exceção à regra do `tenant_id` (N3): `portal_senha_criada` é dado da conta, não do tenant. Tem RLS ligada, nenhum acesso direto, e só funções `security definer` leem. Precisa do ok do Yuri.

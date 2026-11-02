@@ -107,16 +107,25 @@ begin
   insert into public.event_outbox (tenant_id, event, payload)
   values (t, 'portal.primeiro_acesso',
           jsonb_build_object('client_id', p_cliente, 'por', auth.uid(), 'conta_nova', u.id is null));
-  return jsonb_build_object('email', v, 'existe', u.id is not null, 'tenant_id', t);
+  -- usuario e agora vão só para a função de servidor (ela não repassa ao navegador)
+  return jsonb_build_object('email', v, 'existe', u.id is not null, 'tenant_id', t,
+                            'usuario', u.id, 'agora', now());
 end;
 $$;
 revoke all on function public.portal_primeiro_acesso(uuid, text) from public, anon;
 grant execute on function public.portal_primeiro_acesso(uuid, text) to authenticated;
 
 -- Gravada pela função de servidor (chave de serviço) com o id da conta que o Auth devolveu.
-create or replace function public.portal_conta_origem_gravar(p_usuario uuid, p_tenant uuid)
+-- p_desde: quando a função trocou a senha da conta existente por uma aleatória (rodada 2, N1:
+-- derruba senha posta por terceiros no cadastro público). Essa troca dispara o gatilho; a marca
+-- criada a partir daí é apagada, porque não foi a pessoa que criou a senha.
+create or replace function public.portal_conta_origem_gravar(p_usuario uuid, p_tenant uuid,
+                                                             p_desde timestamptz default null)
 returns void language plpgsql volatile security definer set search_path = public as $$
 begin
+  if p_desde is not null then
+    delete from public.portal_senha_criada where user_id = p_usuario and criada_em >= p_desde;
+  end if;
   insert into public.portal_conta_origem (user_id, tenant_id) values (p_usuario, p_tenant)
     on conflict (user_id) do nothing;
   if exists (select 1 from public.portal_conta_origem where user_id = p_usuario and tenant_id <> p_tenant) then
@@ -124,8 +133,8 @@ begin
   end if;
 end;
 $$;
-revoke all on function public.portal_conta_origem_gravar(uuid, uuid) from public, anon, authenticated;
-grant execute on function public.portal_conta_origem_gravar(uuid, uuid) to service_role;
+revoke all on function public.portal_conta_origem_gravar(uuid, uuid, timestamptz) from public, anon, authenticated;
+grant execute on function public.portal_conta_origem_gravar(uuid, uuid, timestamptz) to service_role;
 
 -- Aceite de convite: conta presa a um tenant só aceita convites dele ---------------------------------
 create or replace function public.portal_aceitar_convite()

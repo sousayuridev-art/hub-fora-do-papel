@@ -75,7 +75,21 @@ async function rpc<T>(nome: string, args: Record<string, unknown>, jwt: string |
   return (corpo ? JSON.parse(corpo) : null) as T;
 }
 
-type Preparo = { erro?: string; email?: string; existe?: boolean; tenant_id?: string };
+type Preparo = {
+  erro?: string;
+  email?: string;
+  existe?: boolean;
+  tenant_id?: string;
+  usuario?: string | null;
+  agora?: string;
+};
+
+/** Valor aleatório de 48 bytes: ninguém o conhece; só derruba credencial posta por terceiros. */
+function valorAleatorio(): string {
+  const b = new Uint8Array(48);
+  crypto.getRandomValues(b);
+  return btoa(String.fromCharCode(...b));
+}
 
 async function gerar(req: Request): Promise<Response> {
   const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
@@ -93,7 +107,26 @@ async function gerar(req: Request): Promise<Response> {
   if (typeof p.email !== "string" || typeof p.tenant_id !== "string")
     return json(req, { erro: "falha" }, 502);
 
-  // 2. O Auth gera o link sem mandar e-mail
+  // 2. Conta que já existe (e em que a pessoa nunca criou senha): troca a senha por uma aleatória.
+  //    Fecha o caso de alguém ter criado a conta pelo cadastro público com uma senha que conhece.
+  if (p.existe === true) {
+    if (typeof p.usuario !== "string") return json(req, { erro: "falha" }, 502);
+    const troca = await fetch(`${SUPA}/auth/v1/admin/users/${p.usuario}`, {
+      method: "PUT",
+      headers: {
+        apikey: SERVICO,
+        Authorization: `Bearer ${SERVICO}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password: valorAleatorio() }),
+    });
+    if (!troca.ok) {
+      console.error("portal-acesso: troca", troca.status);
+      return json(req, { erro: "falha" }, 502);
+    }
+  }
+
+  // 3. O Auth gera o link sem mandar e-mail
   const res = await fetch(`${SUPA}/auth/v1/admin/generate_link`, {
     method: "POST",
     headers: {
@@ -113,11 +146,20 @@ async function gerar(req: Request): Promise<Response> {
     return json(req, { erro: "falha" }, 502);
   }
 
-  // 3. A conta fica presa a este tenant (convites de outro tenant não são aceitos por ela).
+  if (p.existe === true && link.usuario !== p.usuario) {
+    console.error("portal-acesso: conta diferente da conferida");
+    return json(req, { erro: "falha" }, 502);
+  }
+
+  // 4. A conta fica presa a este tenant (convites de outro tenant não são aceitos por ela).
   //    Se a conta já for de outro tenant, o link não sai daqui.
   await rpc<null>(
     "portal_conta_origem_gravar",
-    { p_usuario: link.usuario, p_tenant: p.tenant_id },
+    {
+      p_usuario: link.usuario,
+      p_tenant: p.tenant_id,
+      p_desde: p.existe === true ? (p.agora ?? null) : null,
+    },
     null,
   );
   return json(req, { token_hash: link.token_hash, tipo: link.tipo });

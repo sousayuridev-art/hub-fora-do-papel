@@ -2,7 +2,7 @@
 -- pedido pelo dono com código; conta que recebeu link fica presa ao tenant de quem gerou.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(23);
 
 -- Toda conta criada pelo link do e-mail tem senha aleatória no Auth: encrypted_password não decide nada
 insert into auth.users (id, email, encrypted_password) values
@@ -52,8 +52,8 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated","aal":"aal2"}', true);
 
-select is(public.portal_primeiro_acesso('20000000-0000-0000-0000-000000000001', ' Nova@Clinica.test '),
-  '{"email": "nova@clinica.test", "existe": false, "tenant_id": "10000000-0000-0000-0000-000000000001"}'::jsonb,
+select is(public.portal_primeiro_acesso('20000000-0000-0000-0000-000000000001', ' Nova@Clinica.test ') - 'agora',
+  '{"email": "nova@clinica.test", "existe": false, "tenant_id": "10000000-0000-0000-0000-000000000001", "usuario": null}'::jsonb,
   'convidado sem conta: conta nova');
 select is(public.portal_primeiro_acesso('20000000-0000-0000-0000-000000000001', 'marta@clinica.test')->>'existe', 'true',
   'quem entrava pelo link do e-mail e nunca criou senha recebe link');
@@ -76,7 +76,7 @@ select is((select count(*)::int from public.event_outbox where event = 'portal.p
 select is(public.portal_acesso_tem_senha('20000000-0000-0000-0000-000000000001'),
   '{"00000000-0000-0000-0000-0000000000c1": false, "00000000-0000-0000-0000-0000000000c2": true}'::jsonb,
   'o Hub sabe quem já criou a senha');
-select throws_ok($$select public.portal_conta_origem_gravar('00000000-0000-0000-0000-0000000000c4', '10000000-0000-0000-0000-000000000001')$$,
+select throws_ok($$select public.portal_conta_origem_gravar('00000000-0000-0000-0000-0000000000c4', '10000000-0000-0000-0000-000000000001', null)$$,
   '42501', null, 'só a função de servidor prende a conta ao tenant');
 
 -- Sem código (aal1): nada
@@ -93,10 +93,14 @@ select throws_ok($$select public.portal_acesso_tem_senha('20000000-0000-0000-000
 
 -- Conta presa ao tenant 1 (link gerado por ele): convite do tenant 2 chega depois e é ignorado
 reset role;
-select public.portal_conta_origem_gravar('00000000-0000-0000-0000-0000000000c4', '10000000-0000-0000-0000-000000000001');
+-- A função troca a credencial da conta por uma aleatória (gatilho marca) e grava a origem (desmarca)
+update auth.users set encrypted_password = 'valor-da-funcao' where id = '00000000-0000-0000-0000-0000000000c4';
+select public.portal_conta_origem_gravar('00000000-0000-0000-0000-0000000000c4', '10000000-0000-0000-0000-000000000001', now());
+select ok(not exists (select 1 from public.portal_senha_criada where user_id = '00000000-0000-0000-0000-0000000000c4'),
+  'troca feita pela função não conta como senha criada');
 insert into public.portal_invites (tenant_id, client_id, email, profile) values
   ('10000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000009', 'solta@nada.test', 'equipe');
-select throws_ok($$select public.portal_conta_origem_gravar('00000000-0000-0000-0000-0000000000c4', '10000000-0000-0000-0000-000000000002')$$,
+select throws_ok($$select public.portal_conta_origem_gravar('00000000-0000-0000-0000-0000000000c4', '10000000-0000-0000-0000-000000000002', null)$$,
   'conta_de_outro', 'conta presa a um tenant não muda de dono');
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c4","role":"authenticated","aal":"aal1"}', true);
