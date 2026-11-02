@@ -117,11 +117,9 @@ export function mensagemDoAcesso(e: unknown): string | null {
     precisa_responsavel:
       "A empresa precisa de ao menos um responsável pelo contrato. Promova outra pessoa antes.",
     perfil_invalido: "Escolha o perfil: responsável pelo contrato ou equipe.",
-    ja_tem_senha:
-      "Essa pessoa já criou a senha. Se esqueceu, ela pode usar “Primeiro acesso ou esqueceu a senha?” na tela de entrada.",
+    usar_entrada:
+      "Não dá para gerar o link para esse e-mail. A pessoa entra pela tela de entrada, em “Primeiro acesso ou esqueceu a senha?”.",
     sem_convite: "Convide a pessoa antes de gerar o link.",
-    conta_de_outro:
-      "Esse e-mail já é usado em outra conta. Peça para a pessoa usar “Primeiro acesso ou esqueceu a senha?” na tela de entrada.",
     muitas_tentativas: "Muitos links gerados hoje. Tente de novo amanhã.",
     precisa_codigo: "Confirme o código do app antes de continuar.",
   };

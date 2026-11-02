@@ -144,9 +144,12 @@ export function ClienteAcessoPortal({
       gerarPrimeiroAcesso(clienteId, v.email),
     onSuccess: (link, v) => setEnviar({ ...v, link }),
     onError: (e, v) => {
-      if (e instanceof Error && e.message === "ja_tem_senha") {
-        // Já tem senha: a mensagem vai sem link (entra com e-mail e senha)
-        ok("Essa pessoa já criou a senha. A mensagem vai só com o endereço do portal.");
+      if (e instanceof Error && e.message === "usar_entrada") {
+        // Já criou a senha (ou a conta não é só desta empresa): a mensagem vai sem link, e a
+        // pessoa entra pela tela de entrada ("Primeiro acesso ou esqueceu a senha?").
+        ok(
+          "Sem link para esse e-mail: a mensagem vai com o endereço do portal e o caminho da entrada.",
+        );
         setEnviar({ ...v, link: null });
         return;
       }

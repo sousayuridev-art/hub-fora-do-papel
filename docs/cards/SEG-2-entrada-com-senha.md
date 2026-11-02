@@ -17,10 +17,15 @@ Hoje o cliente só entra com o link mágico, que chega por e-mail a cada acesso:
 
 ## Segurança (regra que impede tomar a conta de alguém)
 - Só o dono do tenant, com o código do app (aal2), e só para e-mail com convite aberto ou acesso desta empresa.
-- Só conta **sem senha**, que **não é dona** de nenhum tenant e **não tem acesso em outro tenant**. Quem já tem senha usa "Primeiro acesso ou esqueceu a senha?".
-- Cada link gerado vai para `event_outbox` (`portal.primeiro_acesso`, sem e-mail); no máximo 30 por dia por tenant.
+- Só conta em que a pessoa **nunca criou senha**. A marca é nossa (`portal_senha_criada`, por gatilho na troca de senha em `auth.users`): o Auth grava uma senha aleatória em toda conta criada pelo link do e-mail, então `encrypted_password` não serve para isso.
+- Recusa conta dona de algum tenant, com acesso em outro tenant, com convite aberto de outro tenant ou já presa a outro tenant.
+- A conta que recebe o link fica **presa ao tenant** de quem gerou (`portal_conta_origem`, gravada pela função com a chave de serviço): o aceite de convite ignora convites de outros tenants para ela. Assim, abrir a conta de um e-mail alheio não dá acesso ao que outro tenant convidar depois.
+- Recusas têm uma resposta só ("usar_entrada") e contam no limite de 30 pedidos por dia por tenant (com trava contra pedidos simultâneos), para não servir de sonda.
+- Cada pedido vai para `event_outbox` (`portal.primeiro_acesso` ou `portal.primeiro_acesso_recusado`, sem e-mail).
+- Na tela "Crie sua senha", conta com app de código vai para a tela de segurança; se o nível da sessão não puder ser lido, a tela não abre.
 - O link vale uma vez e vence no prazo do Auth (configuração do Supabase).
 - Limite conhecido: quem gera o link (o Yuri) poderia abrir o link antes do cliente. É o mesmo poder que ele já tem sobre o Hub; o registro em `event_outbox` deixa o rastro.
+- Relecture de segurança feita por agente separado (rodada 1); correções acima incorporadas.
 
 ## Casos de borda
 - Cliente antigo (entrava pelo link mágico, sem senha): usa "Primeiro acesso ou esqueceu a senha?" ou recebe o link do Yuri.
@@ -33,7 +38,7 @@ Hoje o cliente só entra com o link mágico, que chega por e-mail a cada acesso:
 - [ ] Senha errada mostra o erro na tela, sem toast.
 - [ ] "Primeiro acesso ou esqueceu a senha?" manda o e-mail; o link abre "Crie sua senha"; ao salvar, abre o portal.
 - [ ] No Hub, enviar um convite gera o link e abre o painel com a mensagem; o link abre "Crie sua senha" sem pedir e-mail.
-- [ ] Gerar link para quem já tem senha, para conta de outro tenant ou sem convite é recusado (teste `seg2_entrada_com_senha.test.sql`).
+- [ ] Gerar link para quem já criou senha, para conta de outro tenant, para e-mail com convite de outro tenant ou sem convite é recusado; conta presa ao tenant não aceita convite de outro (teste `seg2_entrada_com_senha.test.sql`).
 - [ ] Nada de chave de serviço, token ou e-mail em log ou no navegador além do token do link.
 
 ## Métrica de sucesso

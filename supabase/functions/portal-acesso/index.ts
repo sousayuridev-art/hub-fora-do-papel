@@ -51,12 +51,16 @@ function json(req: Request, corpo: unknown, status = 200): Response {
   });
 }
 
-/** RPC com o login de quem pediu: o banco decide se pode. */
-async function preparar(jwt: string, cliente: string, email: string) {
-  const res = await fetch(`${SUPA}/rest/v1/rpc/portal_primeiro_acesso`, {
+/** Chama uma RPC com o login de quem pediu (jwt) ou como servidor (null). */
+async function rpc<T>(nome: string, args: Record<string, unknown>, jwt: string | null): Promise<T> {
+  const res = await fetch(`${SUPA}/rest/v1/rpc/${nome}`, {
     method: "POST",
-    headers: { apikey: ANON, Authorization: `Bearer ${jwt}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ p_cliente: cliente, p_email: email }),
+    headers: {
+      apikey: jwt ? ANON : SERVICO,
+      Authorization: `Bearer ${jwt ?? SERVICO}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(args),
   });
   const corpo = await res.text();
   if (!res.ok) {
@@ -68,8 +72,10 @@ async function preparar(jwt: string, cliente: string, email: string) {
     }
     throw new ErroBanco(res.status, msg);
   }
-  return JSON.parse(corpo) as { email: string; existe: boolean };
+  return (corpo ? JSON.parse(corpo) : null) as T;
 }
+
+type Preparo = { erro?: string; email?: string; existe?: boolean; tenant_id?: string };
 
 async function gerar(req: Request): Promise<Response> {
   const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
@@ -77,8 +83,17 @@ async function gerar(req: Request): Promise<Response> {
   const pedido = lerPedido(await req.json().catch(() => null));
   if (!pedido) return json(req, { erro: "email_invalido" }, 400);
 
-  const ok = await preparar(jwt, pedido.cliente, pedido.email);
+  // 1. O banco decide (com o login do dono) e registra o pedido, atendido ou recusado
+  const p = await rpc<Preparo>(
+    "portal_primeiro_acesso",
+    { p_cliente: pedido.cliente, p_email: pedido.email },
+    jwt,
+  );
+  if (p.erro) return json(req, { erro: erroPublico(p.erro) }, 400);
+  if (typeof p.email !== "string" || typeof p.tenant_id !== "string")
+    return json(req, { erro: "falha" }, 502);
 
+  // 2. O Auth gera o link sem mandar e-mail
   const res = await fetch(`${SUPA}/auth/v1/admin/generate_link`, {
     method: "POST",
     headers: {
@@ -86,7 +101,7 @@ async function gerar(req: Request): Promise<Response> {
       Authorization: `Bearer ${SERVICO}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ type: tipoDoLink(ok.existe), email: ok.email }),
+    body: JSON.stringify({ type: tipoDoLink(p.existe === true), email: p.email }),
   });
   if (!res.ok) {
     console.error("portal-acesso: generate_link", res.status);
@@ -97,7 +112,15 @@ async function gerar(req: Request): Promise<Response> {
     console.error("portal-acesso: resposta sem token");
     return json(req, { erro: "falha" }, 502);
   }
-  return json(req, link);
+
+  // 3. A conta fica presa a este tenant (convites de outro tenant não são aceitos por ela).
+  //    Se a conta já for de outro tenant, o link não sai daqui.
+  await rpc<null>(
+    "portal_conta_origem_gravar",
+    { p_usuario: link.usuario, p_tenant: p.tenant_id },
+    null,
+  );
+  return json(req, { token_hash: link.token_hash, tipo: link.tipo });
 }
 
 Deno.serve(async (req) => {
@@ -110,7 +133,11 @@ Deno.serve(async (req) => {
       if (e.status >= 500) return json(req, { erro: "falha" }, 503);
       const erro = erroPublico(e.message);
       const status =
-        e.status === 401 || erro === "sem_permissao" || erro === "precisa_codigo" ? 403 : 400;
+        erro === "muitas_tentativas"
+          ? 429
+          : e.status === 401 || erro === "sem_permissao" || erro === "precisa_codigo"
+            ? 403
+            : 400;
       return json(req, { erro }, status);
     }
     console.error("portal-acesso: erro inesperado");

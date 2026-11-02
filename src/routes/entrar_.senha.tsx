@@ -33,8 +33,9 @@ export const Route = createFileRoute("/entrar_/senha")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/entrar" });
-    const n = await nivelDaSessao().catch(() => null);
-    if (n?.proximo === "aal2" || n?.atual === "aal2")
+    // Sem o nível da sessão, não decide às cegas: o erro aparece (a troca exige saber se há app de código)
+    const n = await nivelDaSessao();
+    if (n.proximo === "aal2" || n.atual === "aal2")
       throw redirect({ href: "/seguranca?acao=senha" });
     return { email: data.session.user.email ?? "" };
   },

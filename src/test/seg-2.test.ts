@@ -12,6 +12,7 @@ import {
 } from "../../supabase/functions/portal-acesso/logica";
 
 const HASH = "a".repeat(56);
+const CONTA = "00000000-0000-0000-0000-0000000000c1";
 
 describe("SEG-2 · função portal-acesso", () => {
   it("aceita só cliente (uuid) e e-mail válido, e normaliza o e-mail", () => {
@@ -30,30 +31,37 @@ describe("SEG-2 · função portal-acesso", () => {
     expect(tipoDoLink(true)).toBe("magiclink");
   });
 
-  it("da resposta do Auth sai só o token com hash e o tipo (nunca o código de 6 dígitos)", () => {
+  it("da resposta do Auth sai só o token, o tipo e o id da conta (nunca o código de 6 dígitos)", () => {
     const r = linkDaResposta({
-      id: "u",
+      id: CONTA,
       email: "m@c.com",
       action_link: "https://x/verify?token=...",
       email_otp: "123456",
       hashed_token: HASH,
       verification_type: "invite",
     });
-    expect(r).toEqual({ token_hash: HASH, tipo: "invite" });
+    expect(r).toEqual({ token_hash: HASH, tipo: "invite", usuario: CONTA });
     expect(JSON.stringify(r)).not.toContain("123456");
     expect(
-      linkDaResposta({ properties: { hashed_token: HASH, verification_type: "magiclink" } }),
-    ).toEqual({
-      token_hash: HASH,
-      tipo: "magiclink",
-    });
-    expect(linkDaResposta({ hashed_token: HASH, verification_type: "recovery" })).toBeNull();
-    expect(linkDaResposta({ hashed_token: "<script>", verification_type: "invite" })).toBeNull();
+      linkDaResposta({
+        user: { id: CONTA },
+        properties: { hashed_token: HASH, verification_type: "magiclink" },
+      }),
+    ).toEqual({ token_hash: HASH, tipo: "magiclink", usuario: CONTA });
+    // Sem o id da conta, o link não sai (não dá para prender a conta ao tenant)
+    expect(linkDaResposta({ hashed_token: HASH, verification_type: "invite" })).toBeNull();
+    expect(
+      linkDaResposta({ id: CONTA, hashed_token: HASH, verification_type: "recovery" }),
+    ).toBeNull();
+    expect(
+      linkDaResposta({ id: CONTA, hashed_token: "<script>", verification_type: "invite" }),
+    ).toBeNull();
   });
 
-  it("erros do banco viram códigos públicos; o resto vira falha", () => {
-    expect(erroPublico("ja_tem_senha")).toBe("ja_tem_senha");
-    expect(erroPublico("conta_de_outro")).toBe("conta_de_outro");
+  it("erros do banco viram códigos públicos; recusas têm uma resposta só", () => {
+    expect(erroPublico("usar_entrada")).toBe("usar_entrada");
+    expect(erroPublico("conta_de_outro")).toBe("usar_entrada");
+    expect(erroPublico("ja_tem_senha")).toBe("falha");
     expect(erroPublico("precisa_codigo")).toBe("precisa_codigo");
     expect(erroPublico("tenant_ambiguo")).toBe("sem_permissao");
     expect(erroPublico('relation "x" does not exist')).toBe("falha");
@@ -107,8 +115,7 @@ describe("SEG-2 · link e mensagem", () => {
   });
 
   it("erros novos têm texto em português", () => {
-    expect(mensagemDoAcesso(new Error("ja_tem_senha"))).toMatch(/já criou a senha/);
-    expect(mensagemDoAcesso(new Error("conta_de_outro"))).toMatch(/outra conta/);
+    expect(mensagemDoAcesso(new Error("usar_entrada"))).toMatch(/tela de entrada/);
     expect(mensagemDoAcesso(new Error("sem_convite"))).toMatch(/Convide/);
   });
 });
