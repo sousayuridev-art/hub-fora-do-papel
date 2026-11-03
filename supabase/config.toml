@@ -429,3 +429,6 @@ verify_jwt = false
 # Card MK-3: só o dono chama; o login é conferido na porta (JWT) e de novo dentro da função.
 [functions.marketing-ia]
 verify_jwt = true
+
+[functions.sistema-pedidos]
+verify_jwt = false

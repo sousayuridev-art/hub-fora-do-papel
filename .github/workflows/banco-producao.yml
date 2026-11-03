@@ -81,6 +81,13 @@ jobs:
         continue-on-error: true
         run: supabase functions deploy portal-acesso --project-ref "$PROJECT_REF" --use-api --yes
 
+      # Card SIS-2: pedidos de ajuste vindos dos sistemas que entregamos. Sem JWT: quem chama é o
+      # servidor do sistema do cliente, com a chave de integração (conferida no banco).
+      - name: Publicar função dos pedidos pelo sistema
+        if: inputs.modo == 'aplicar'
+        continue-on-error: true
+        run: supabase functions deploy sistema-pedidos --project-ref "$PROJECT_REF" --no-verify-jwt --use-api --yes
+
       - name: Situação depois de aplicar
         if: inputs.modo == 'aplicar'
         run: supabase migration list --linked --password "$SUPABASE_DB_PASSWORD"
