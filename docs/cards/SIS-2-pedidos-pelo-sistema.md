@@ -25,7 +25,10 @@ Todo pedido de ajuste num lugar só (o Hub), com triagem (dentro do combinado, m
 - Logs sem chave, texto do pedido ou nome de pessoa.
 
 ## Importação dos pedidos abertos
-`POST /pedidos` com `externo_id` (id no sistema), `situacao` (recebido, em análise ou fazendo) e `criado_em` mantém a situação e a data de origem. Repetir a importação devolve o mesmo pedido (sem duplicar).
+`POST /pedidos` com `externo_id` (id no sistema), `situacao` e `criado_em` só vale nas **24 horas depois de gerar a chave**. A situação aceita é só "recebido" ou "em análise" (o que estava "em andamento" no sistema entra em análise, para o Yuri classificar). A data de origem vale até 1 ano para trás. Repetir a importação devolve o mesmo pedido (sem duplicar). Fora da janela, `situacao` é recusada e `criado_em` é ignorado.
+
+## Relecture de segurança (rodada 1)
+Corrigido: importação só na janela de 24 h e sem pular a triagem; limites do dia contados por momento que o banco grava (`sis_recebido_em`, `inserida_em`), com trava por sistema; erros com o código HTTP certo (404, 429); corpo lido em pedaços com limite; tempo máximo nas chamadas; limpeza de print solto com registro. Anotado para depois: chave de idempotência em criações sem `externo_id`.
 
 ## Critérios de aceite
 - [ ] Gerar a chave mostra a chave uma vez, com o endereço e os nomes dos segredos.

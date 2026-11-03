@@ -58,11 +58,14 @@ function json(corpo: unknown, status = 200): Response {
   });
 }
 
+const TEMPO_MAXIMO_MS = 10_000;
+
 async function rpc<T>(nome: string, args: Record<string, unknown>): Promise<T> {
   const res = await fetch(`${SUPA}/rest/v1/rpc/${nome}`, {
     method: "POST",
     headers: { ...cabecalhos, "Content-Type": "application/json" },
     body: JSON.stringify(args),
+    signal: AbortSignal.timeout(TEMPO_MAXIMO_MS),
   });
   const corpo = await res.text();
   if (!res.ok) {
@@ -79,11 +82,36 @@ async function rpc<T>(nome: string, args: Record<string, unknown>): Promise<T> {
 
 type Sistema = { sistema_id: string; tenant_id: string };
 
+/** Lê o corpo em pedaços e para ao passar do limite (não confia no Content-Length). */
+async function lerAteLimite(req: Request, limite: number): Promise<Uint8Array<ArrayBuffer> | null> {
+  if (!req.body) return new Uint8Array(new ArrayBuffer(0));
+  const leitor = req.body.getReader();
+  const partes: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await leitor.read();
+    if (done) break;
+    total += value.length;
+    if (total > limite) {
+      await leitor.cancel();
+      return null;
+    }
+    partes.push(value);
+  }
+  const tudo = new Uint8Array(new ArrayBuffer(total));
+  let i = 0;
+  for (const p of partes) {
+    tudo.set(p, i);
+    i += p.length;
+  }
+  return tudo;
+}
+
 async function lerJson(req: Request): Promise<unknown> {
-  const t = await req.text();
-  if (t.length > LIMITE_JSON) return null;
+  const bytes = await lerAteLimite(req, LIMITE_JSON);
+  if (!bytes) return null;
   try {
-    return JSON.parse(t);
+    return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return null;
   }
@@ -96,6 +124,7 @@ async function assinar(prints: { caminho: string }[]): Promise<Record<string, st
     method: "POST",
     headers: { ...cabecalhos, "Content-Type": "application/json" },
     body: JSON.stringify({ expiresIn: 600, paths: prints.map((p) => p.caminho) }),
+    signal: AbortSignal.timeout(TEMPO_MAXIMO_MS),
   });
   if (!res.ok) return {};
   const lista = (await res.json()) as { path?: string; signedURL?: string | null }[];
@@ -145,9 +174,8 @@ async function atender(req: Request, s: Sistema): Promise<Response> {
     case "print": {
       const tamanho = Number(req.headers.get("content-length") ?? "0");
       if (tamanho > TAMANHO_MAXIMO_PRINT) return json({ erro: "print_grande" }, 413);
-      const bytes = new Uint8Array(await req.arrayBuffer());
-      if (bytes.length === 0 || bytes.length > TAMANHO_MAXIMO_PRINT)
-        return json({ erro: "print_grande" }, 413);
+      const bytes = await lerAteLimite(req, TAMANHO_MAXIMO_PRINT);
+      if (!bytes || bytes.length === 0) return json({ erro: "print_grande" }, 413);
       const tipo = tipoDaImagem(bytes);
       if (!tipo) return json({ erro: "print_invalido" }, 415);
       const caminho = `${s.tenant_id}/${rota.pedido}/${crypto.randomUUID()}.${extensao[tipo]}`;
@@ -157,6 +185,7 @@ async function atender(req: Request, s: Sistema): Promise<Response> {
         method: "POST",
         headers: { ...cabecalhos, "Content-Type": tipo, "x-upsert": "false" },
         body: bytes,
+        signal: AbortSignal.timeout(TEMPO_MAXIMO_MS),
       });
       if (!up.ok) {
         console.error("sistema-pedidos: envio do print", up.status);
@@ -172,11 +201,17 @@ async function atender(req: Request, s: Sistema): Promise<Response> {
         });
         return json({ id: a.id, tipo: a.tipo }, 201);
       } catch (e) {
+        // Não deixa arquivo solto no bucket; se nem isso der, registra só o código
         await fetch(`${SUPA}/storage/v1/object/${BUCKET}`, {
           method: "DELETE",
           headers: { ...cabecalhos, "Content-Type": "application/json" },
           body: JSON.stringify({ prefixes: [caminho] }),
-        });
+          signal: AbortSignal.timeout(TEMPO_MAXIMO_MS),
+        })
+          .then((r) => {
+            if (!r.ok) console.error("sistema-pedidos: limpeza do print", r.status);
+          })
+          .catch(() => console.error("sistema-pedidos: limpeza do print sem resposta"));
         throw e;
       }
     }
@@ -194,9 +229,11 @@ Deno.serve(async (req) => {
     return await atender(req, s);
   } catch (e) {
     if (e instanceof ErroBanco) {
-      if (e.status >= 500) return json({ erro: "falha" }, 503);
       const erro = erroPublico(e.message);
-      return json({ erro }, statusDoErro(erro));
+      if (erro !== "falha") return json({ erro }, statusDoErro(erro));
+      // Duas criações iguais ao mesmo tempo: a segunda pode repetir e recebe o mesmo pedido
+      if (e.status === 409) return json({ erro: "repita" }, 409);
+      return json({ erro: "falha" }, e.status >= 500 ? 503 : 400);
     }
     console.error("sistema-pedidos: erro inesperado");
     return json({ erro: "falha" }, 500);

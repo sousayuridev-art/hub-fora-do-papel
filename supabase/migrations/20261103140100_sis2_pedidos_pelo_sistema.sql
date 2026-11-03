@@ -20,7 +20,9 @@ alter table public.requests
     check (solicitante is null or (jsonb_typeof(solicitante) = 'object' and length(solicitante::text) <= 400)),
   add column if not exists tipo text check (tipo is null or tipo in ('erro', 'melhoria')),
   add column if not exists prioridade text check (prioridade is null or prioridade in ('urgente', 'alta', 'media', 'baixa')),
-  add column if not exists externo_id text check (externo_id is null or (length(externo_id) between 1 and 80));
+  add column if not exists externo_id text check (externo_id is null or (length(externo_id) between 1 and 80)),
+  -- Quando chegou pelo sistema (o banco grava; o sistema não define). Conta nos limites do dia.
+  add column if not exists sis_recebido_em timestamptz;
 create unique index if not exists requests_sistema_externo on public.requests (sistema_id, externo_id)
   where externo_id is not null;
 create index if not exists requests_sistema_idx on public.requests (sistema_id, created_at desc)
@@ -47,7 +49,9 @@ create table public.request_mensagens (
   autor_nome  text not null check (length(trim(autor_nome)) between 1 and 80),
   autor_user  uuid references auth.users (id) on delete set null,
   texto       text not null check (length(trim(texto)) between 1 and 2000),
-  created_at  timestamptz not null default now()
+  created_at  timestamptz not null default now(),
+  -- Quando o banco recebeu (a importação pode trazer created_at antigo). Conta nos limites do dia.
+  inserida_em timestamptz not null default now()
 );
 create index request_mensagens_pedido_idx on public.request_mensagens (request_id, created_at);
 create index request_mensagens_tenant_idx on public.request_mensagens (tenant_id);
@@ -97,6 +101,8 @@ create table public.sistema_integracoes (
   tenant_id      uuid not null references public.tenants (id) on delete cascade,
   chave_hash     text not null unique check (chave_hash ~ '^[0-9a-f]{64}$'),
   prefixo        text not null check (length(prefixo) between 6 and 16),
+  -- Importação dos pedidos antigos (situação e data de origem) só vale até aqui (24 h depois da chave)
+  importacao_ate timestamptz not null default now() + interval '24 hours',
   criada_em      timestamptz not null default now(),
   criada_por     uuid references auth.users (id) on delete set null,
   ultimo_uso_em  timestamptz
@@ -125,7 +131,7 @@ begin
   values (s.id, t, public._hash_chave(k), left(k, 10), auth.uid())
   on conflict (sistema_id) do update
     set chave_hash = excluded.chave_hash, prefixo = excluded.prefixo, criada_em = now(),
-        criada_por = excluded.criada_por, ultimo_uso_em = null;
+        criada_por = excluded.criada_por, ultimo_uso_em = null, importacao_ate = now() + interval '24 hours';
   insert into public.event_outbox (tenant_id, event, payload)
   values (t, 'sistema.chave_gerada', jsonb_build_object('sistema_id', s.id, 'client_id', s.client_id, 'prefixo', left(k, 10)));
   return jsonb_build_object('chave', k, 'prefixo', left(k, 10));
@@ -235,7 +241,7 @@ returns jsonb language plpgsql stable security definer set search_path = public 
 declare r public.requests;
 begin
   select * into r from public.requests where id = p_pedido and sistema_id = p_sistema;
-  if r.id is null then raise exception 'pedido_inexistente' using errcode = 'P0002'; end if;
+  if r.id is null then raise exception 'pedido_inexistente' using errcode = 'PT404'; end if;
   return public._sis_pedido_json(r, true) || jsonb_build_object(
     'conversa', (select coalesce(jsonb_agg(jsonb_build_object('id', m.id, 'autor', m.autor,
                    'autor_nome', m.autor_nome, 'texto', m.texto, 'criado_em', m.created_at) order by m.created_at), '[]'::jsonb)
@@ -257,10 +263,13 @@ declare s public.sistemas; r public.requests;
         v_sit text := nullif(p_dados->>'situacao', '');
         v_nome text := left(trim(coalesce(p_dados #>> '{solicitante,nome}', '')), 80);
         v_quem text := left(trim(coalesce(p_dados #>> '{solicitante,id}', '')), 64);
-        v_criado timestamptz;
+        v_criado timestamptz; v_importando boolean;
 begin
   select * into s from public.sistemas where id = p_sistema;
   if s.id is null then raise exception 'sistema_inexistente' using errcode = 'P0002'; end if;
+  perform pg_advisory_xact_lock(hashtext('sis:' || p_sistema::text));
+  v_importando := v_ext is not null and exists (
+    select 1 from public.sistema_integracoes i where i.sistema_id = s.id and i.importacao_ate > now());
   if v_tipo is not null and v_tipo not in ('erro', 'melhoria') then raise exception 'tipo_invalido' using errcode = '22023'; end if;
   if v_prio not in ('urgente', 'alta', 'media', 'baixa') then raise exception 'prioridade_invalida' using errcode = '22023'; end if;
   if length(v_nome) = 0 then raise exception 'solicitante_obrigatorio' using errcode = '22023'; end if;
@@ -268,10 +277,11 @@ begin
     select * into r from public.requests where sistema_id = s.id and externo_id = v_ext;
     if r.id is not null then return public._sis_pedido_json(r, false); end if;
   end if;
-  if (select count(*) from public.requests where sistema_id = s.id and created_at > now() - interval '1 day') >= 100 then
-    raise exception 'muitos_pedidos' using errcode = '54000';
+  if (select count(*) from public.requests where sistema_id = s.id and sis_recebido_em > now() - interval '1 day') >= 100 then
+    raise exception 'muitos_pedidos' using errcode = 'PT429';
   end if;
-  if v_sit is not null and (v_ext is null or v_sit not in ('recebido', 'em_analise', 'fazendo')) then
+  -- Situação de origem só na importação (24 h depois da chave) e nunca adiante da triagem do Yuri
+  if v_sit is not null and (not v_importando or v_sit not in ('recebido', 'em_analise')) then
     raise exception 'situacao_invalida' using errcode = '22023';
   end if;
   begin
@@ -285,7 +295,9 @@ begin
     solicitante = jsonb_strip_nulls(jsonb_build_object('nome', v_nome, 'id', nullif(v_quem, ''))),
     tipo = v_tipo, prioridade = v_prio, urgente = (v_prio = 'urgente'), externo_id = v_ext,
     status = coalesce(v_sit::public.request_status, status),
-    created_at = case when v_ext is not null and v_criado is not null and v_criado < now() then v_criado else created_at end
+    sis_recebido_em = now(),
+    created_at = case when v_importando and v_criado is not null and v_criado < now()
+                       and v_criado > now() - interval '1 year' then v_criado else created_at end
   where id = r.id returning * into r;
   return public._sis_pedido_json(r, false);
 end;
@@ -298,12 +310,13 @@ declare r public.requests; m public.request_mensagens; v_criado timestamptz;
         v_texto text := left(trim(coalesce(p_dados->>'texto', '')), 2000);
 begin
   select * into r from public.requests where id = p_pedido and sistema_id = p_sistema for update;
-  if r.id is null then raise exception 'pedido_inexistente' using errcode = 'P0002'; end if;
+  if r.id is null then raise exception 'pedido_inexistente' using errcode = 'PT404'; end if;
   if length(v_nome) = 0 then raise exception 'solicitante_obrigatorio' using errcode = '22023'; end if;
   if length(v_texto) = 0 then raise exception 'texto_obrigatorio' using errcode = '22023'; end if;
+  perform pg_advisory_xact_lock(hashtext('sis:' || p_sistema::text));
   if (select count(*) from public.request_mensagens x join public.requests y on y.id = x.request_id
-       where y.sistema_id = p_sistema and x.created_at > now() - interval '1 day') >= 500 then
-    raise exception 'muitas_mensagens' using errcode = '54000';
+       where y.sistema_id = p_sistema and x.inserida_em > now() - interval '1 day') >= 500 then
+    raise exception 'muitas_mensagens' using errcode = 'PT429';
   end if;
   begin
     v_criado := nullif(p_dados->>'criado_em', '')::timestamptz;
@@ -311,7 +324,11 @@ begin
   end;
   insert into public.request_mensagens (tenant_id, request_id, autor, autor_nome, texto, created_at)
   values (r.tenant_id, r.id, 'cliente', v_nome, v_texto,
-          case when r.externo_id is not null and v_criado is not null and v_criado < now() then v_criado else now() end)
+          case when r.externo_id is not null and v_criado is not null and v_criado < now()
+                     and v_criado >= r.created_at
+                     and exists (select 1 from public.sistema_integracoes i
+                                  where i.sistema_id = p_sistema and i.importacao_ate > now())
+               then v_criado else now() end)
   returning * into m;
   update public.requests set updated_at = now() where id = r.id;
   insert into public.event_outbox (tenant_id, event, payload)
@@ -327,12 +344,12 @@ returns jsonb language plpgsql volatile security definer set search_path = publi
 declare r public.requests; a public.request_anexos;
 begin
   select * into r from public.requests where id = p_pedido and sistema_id = p_sistema for update;
-  if r.id is null then raise exception 'pedido_inexistente' using errcode = 'P0002'; end if;
+  if r.id is null then raise exception 'pedido_inexistente' using errcode = 'PT404'; end if;
   if split_part(p_caminho, '/', 1) <> r.tenant_id::text or split_part(p_caminho, '/', 2) <> r.id::text then
     raise exception 'caminho_invalido' using errcode = '22023';
   end if;
   if (select count(*) from public.request_anexos where request_id = r.id) >= 5 then
-    raise exception 'prints_demais' using errcode = '54000';
+    raise exception 'prints_demais' using errcode = 'PT429';
   end if;
   insert into public.request_anexos (tenant_id, request_id, caminho, tipo, tamanho, enviado_por)
   values (r.tenant_id, r.id, p_caminho, p_tipo, p_tamanho, 'cliente') returning * into a;
