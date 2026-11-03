@@ -200,63 +200,64 @@ export function ClienteAcessoPortal({
       ) : (
         <ul className="flex flex-col gap-2">
           {dados.data.pessoas.map((p) => (
+            // Duas linhas: quem é em cima, ações embaixo (cabe na coluna estreita da ficha)
             <li
               key={p.user_id}
-              className="flex items-center gap-2 rounded-xl bg-sit-ok px-3 py-2 text-sit-ok-t"
+              className="flex flex-col gap-2 rounded-xl bg-sit-ok px-3 py-2.5 text-sit-ok-t"
             >
-              <span className="min-w-0 flex-1">
+              <span className="min-w-0">
                 <span className="block truncate text-[14.5px] font-medium">
                   {p.nome ?? p.email}
                 </span>
-                <span className="text-[13px]">
+                <span className="block text-[13px]">
                   Entra desde {diaMes(p.desde)}
                   {p.perfil === "equipe" && !p.pode_aprovar ? ". Não aprova entregas" : ""}
                   {senhas.data?.[p.user_id] === false ? ". Ainda não criou a senha" : ""}
                 </span>
               </span>
-              {senhas.data?.[p.user_id] === false && (
-                <button
-                  type="button"
-                  aria-label={`Gerar link para ${p.nome ?? p.email} criar a senha`}
-                  title="Gerar link para criar a senha"
-                  disabled={gerarLink.isPending}
-                  className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-white/60 disabled:opacity-40"
-                  onClick={() => gerarLink.mutate({ email: p.email, perfil: p.perfil })}
+              <span className="flex flex-wrap items-center gap-2">
+                <label className="sr-only" htmlFor={`perfil-${p.user_id}`}>
+                  Perfil de {p.nome ?? p.email}
+                </label>
+                <select
+                  id={`perfil-${p.user_id}`}
+                  value={p.perfil}
+                  onChange={(e) =>
+                    trocar.mutate({ usuario: p.user_id, perfil: e.target.value as PerfilPortal })
+                  }
+                  className="h-11 min-w-0 flex-1 basis-44 rounded-lg border border-current/20 bg-white/70 px-2 text-[13.5px] font-medium text-hub-tinta"
                 >
-                  <KeyRound className="size-4" aria-hidden="true" />
-                </button>
-              )}
-              <label className="sr-only" htmlFor={`perfil-${p.user_id}`}>
-                Perfil de {p.nome ?? p.email}
-              </label>
-              <select
-                id={`perfil-${p.user_id}`}
-                value={p.perfil}
-                onChange={(e) =>
-                  trocar.mutate({ usuario: p.user_id, perfil: e.target.value as PerfilPortal })
-                }
-                className="h-11 rounded-lg border border-current/20 bg-white/70 px-2 text-[13.5px] font-medium text-hub-tinta"
-              >
-                <option value="responsavel">{nomeDoPerfil.responsavel}</option>
-                <option value="equipe">{nomeDoPerfil.equipe}</option>
-              </select>
-              {confirmar === p.user_id ? (
-                <button
-                  type="button"
-                  className="min-h-11 rounded-lg bg-[#9A1C12] px-3 text-[14px] font-semibold text-white"
-                  onClick={() => remover.mutate(p.user_id)}
-                >
-                  Confirmar
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={`${classeAcaoTexto}`}
-                  onClick={() => setConfirmar(p.user_id)}
-                >
-                  Tirar acesso
-                </button>
-              )}
+                  <option value="responsavel">{nomeDoPerfil.responsavel}</option>
+                  <option value="equipe">{nomeDoPerfil.equipe}</option>
+                </select>
+                {senhas.data?.[p.user_id] === false && (
+                  <button
+                    type="button"
+                    disabled={gerarLink.isPending}
+                    className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-white/70 px-3 text-[13.5px] font-medium text-hub-tinta hover:bg-white disabled:opacity-40"
+                    onClick={() => gerarLink.mutate({ email: p.email, perfil: p.perfil })}
+                  >
+                    <KeyRound className="size-4" aria-hidden="true" /> Link da senha
+                  </button>
+                )}
+                {confirmar === p.user_id ? (
+                  <button
+                    type="button"
+                    className="min-h-11 shrink-0 rounded-lg bg-[#9A1C12] px-3 text-[14px] font-semibold text-white"
+                    onClick={() => remover.mutate(p.user_id)}
+                  >
+                    Confirmar
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={`${classeAcaoTexto} shrink-0`}
+                    onClick={() => setConfirmar(p.user_id)}
+                  >
+                    Tirar acesso
+                  </button>
+                )}
+              </span>
             </li>
           ))}
           {dados.data.convites.map((c) => (
