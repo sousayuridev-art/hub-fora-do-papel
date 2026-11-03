@@ -45,6 +45,8 @@ import { Route as AppClientesIdRouteImport } from './routes/app/clientes/$id'
 import { Route as AppPaginasIdRouteImport } from './routes/app/paginas.$id'
 import { Route as AppProjetosIndexRouteImport } from './routes/app/projetos/index'
 import { Route as AppProjetosIdRouteImport } from './routes/app/projetos/$id'
+import { Route as AppSistemasIndexRouteImport } from './routes/app/sistemas/index'
+import { Route as AppSistemasIdRouteImport } from './routes/app/sistemas/$id'
 import { Route as AppSitesIndexRouteImport } from './routes/app/sites/index'
 import { Route as AppSitesIdRouteImport } from './routes/app/sites/$id'
 import { Route as PortalClientesContatosRouteImport } from './routes/portal/clientes/contatos'
@@ -234,6 +236,16 @@ const AppProjetosIdRoute = AppProjetosIdRouteImport.update({
   path: '/projetos/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSistemasIndexRoute = AppSistemasIndexRouteImport.update({
+  id: '/sistemas/',
+  path: '/sistemas/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSistemasIdRoute = AppSistemasIdRouteImport.update({
+  id: '/sistemas/$id',
+  path: '/sistemas/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSitesIndexRoute = AppSitesIndexRouteImport.update({
   id: '/sites/',
   path: '/sites/',
@@ -310,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/app/sistemas/$id': typeof AppSistemasIdRoute
   '/app/sites/$id': typeof AppSitesIdRoute
   '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
@@ -317,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
   '/app/projetos/': typeof AppProjetosIndexRoute
+  '/app/sistemas/': typeof AppSistemasIndexRoute
   '/app/sites/': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
   '/portal/site/paginas/': typeof PortalSitePaginasIndexRoute
@@ -354,6 +368,7 @@ export interface FileRoutesByTo {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/app/sistemas/$id': typeof AppSistemasIdRoute
   '/app/sites/$id': typeof AppSitesIdRoute
   '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
@@ -361,6 +376,7 @@ export interface FileRoutesByTo {
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes': typeof AppClientesIndexRoute
   '/app/projetos': typeof AppProjetosIndexRoute
+  '/app/sistemas': typeof AppSistemasIndexRoute
   '/app/sites': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
   '/portal/site/paginas': typeof PortalSitePaginasIndexRoute
@@ -401,6 +417,7 @@ export interface FileRoutesById {
   '/app/clientes/$id': typeof AppClientesIdRoute
   '/app/paginas/$id': typeof AppPaginasIdRoute
   '/app/projetos/$id': typeof AppProjetosIdRoute
+  '/app/sistemas/$id': typeof AppSistemasIdRoute
   '/app/sites/$id': typeof AppSitesIdRoute
   '/portal/clientes/contatos': typeof PortalClientesContatosRoute
   '/portal/site/artigos': typeof PortalSiteArtigosRoute
@@ -408,6 +425,7 @@ export interface FileRoutesById {
   '/previa/proposta/$id': typeof PreviaPropostaIdRoute
   '/app/clientes/': typeof AppClientesIndexRoute
   '/app/projetos/': typeof AppProjetosIndexRoute
+  '/app/sistemas/': typeof AppSistemasIndexRoute
   '/app/sites/': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
   '/portal/site/paginas/': typeof PortalSitePaginasIndexRoute
@@ -449,6 +467,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/app/sistemas/$id'
     | '/app/sites/$id'
     | '/portal/clientes/contatos'
     | '/portal/site/artigos'
@@ -456,6 +475,7 @@ export interface FileRouteTypes {
     | '/previa/proposta/$id'
     | '/app/clientes/'
     | '/app/projetos/'
+    | '/app/sistemas/'
     | '/app/sites/'
     | '/portal/site/paginas/$id'
     | '/portal/site/paginas/'
@@ -493,6 +513,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/app/sistemas/$id'
     | '/app/sites/$id'
     | '/portal/clientes/contatos'
     | '/portal/site/artigos'
@@ -500,6 +521,7 @@ export interface FileRouteTypes {
     | '/previa/proposta/$id'
     | '/app/clientes'
     | '/app/projetos'
+    | '/app/sistemas'
     | '/app/sites'
     | '/portal/site/paginas/$id'
     | '/portal/site/paginas'
@@ -539,6 +561,7 @@ export interface FileRouteTypes {
     | '/app/clientes/$id'
     | '/app/paginas/$id'
     | '/app/projetos/$id'
+    | '/app/sistemas/$id'
     | '/app/sites/$id'
     | '/portal/clientes/contatos'
     | '/portal/site/artigos'
@@ -546,6 +569,7 @@ export interface FileRouteTypes {
     | '/previa/proposta/$id'
     | '/app/clientes/'
     | '/app/projetos/'
+    | '/app/sistemas/'
     | '/app/sites/'
     | '/portal/site/paginas/$id'
     | '/portal/site/paginas/'
@@ -821,6 +845,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjetosIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/sistemas/': {
+      id: '/app/sistemas/'
+      path: '/sistemas'
+      fullPath: '/app/sistemas/'
+      preLoaderRoute: typeof AppSistemasIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/sistemas/$id': {
+      id: '/app/sistemas/$id'
+      path: '/sistemas/$id'
+      fullPath: '/app/sistemas/$id'
+      preLoaderRoute: typeof AppSistemasIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/sites/': {
       id: '/app/sites/'
       path: '/sites'
@@ -897,9 +935,11 @@ interface AppRouteChildren {
   AppClientesIdRoute: typeof AppClientesIdRoute
   AppPaginasIdRoute: typeof AppPaginasIdRoute
   AppProjetosIdRoute: typeof AppProjetosIdRoute
+  AppSistemasIdRoute: typeof AppSistemasIdRoute
   AppSitesIdRoute: typeof AppSitesIdRoute
   AppClientesIndexRoute: typeof AppClientesIndexRoute
   AppProjetosIndexRoute: typeof AppProjetosIndexRoute
+  AppSistemasIndexRoute: typeof AppSistemasIndexRoute
   AppSitesIndexRoute: typeof AppSitesIndexRoute
 }
 
@@ -920,9 +960,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppClientesIdRoute: AppClientesIdRoute,
   AppPaginasIdRoute: AppPaginasIdRoute,
   AppProjetosIdRoute: AppProjetosIdRoute,
+  AppSistemasIdRoute: AppSistemasIdRoute,
   AppSitesIdRoute: AppSitesIdRoute,
   AppClientesIndexRoute: AppClientesIndexRoute,
   AppProjetosIndexRoute: AppProjetosIndexRoute,
+  AppSistemasIndexRoute: AppSistemasIndexRoute,
   AppSitesIndexRoute: AppSitesIndexRoute,
 }
 
