@@ -1,4 +1,5 @@
 import {
+  AppWindow,
   BarChart3,
   Briefcase,
   Clock,
@@ -82,6 +83,8 @@ export const menuOperador: GrupoMenu[] = [
       { rotulo: "Pedidos de ajuste", para: "/app/pedidos", icone: Inbox },
       // RD2-1: o conteúdo do site da Fora do Papel fica em "Sites" (CMS-2; os sites dos clientes entram no RD2-5)
       { rotulo: "Sites", para: "/app/sites", icone: Globe },
+      // SIS-1: sistemas sob medida, no mesmo formato da central de Sites
+      { rotulo: "Sistemas", para: "/app/sistemas", icone: AppWindow },
     ],
   },
   {
