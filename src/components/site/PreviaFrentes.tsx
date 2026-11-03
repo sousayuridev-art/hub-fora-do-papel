@@ -2,10 +2,10 @@ import { Check } from "lucide-react";
 
 import { frentesFixas, type BlocoFrente } from "@/lib/paginasSite";
 
-/** As 4 frentes como no site: a primeira larga e escura, as outras em cartões claros. */
+/** As 3 frentes como no site: a primeira larga e escura, as outras em cartões claros. */
 export function PreviaFrentes({ valor, celular }: { valor: BlocoFrente[]; celular: boolean }) {
   return (
-    <section className={`grid gap-4 p-5 sm:p-8 ${celular ? "grid-cols-1" : "grid-cols-3"}`}>
+    <section className={`grid gap-4 p-5 sm:p-8 ${celular ? "grid-cols-1" : "grid-cols-2"}`}>
       {frentesFixas.map((fixa, i) => {
         const f = valor.find((x) => x.id === fixa.id);
         if (!f) return null;
@@ -15,7 +15,7 @@ export function PreviaFrentes({ valor, celular }: { valor: BlocoFrente[]; celula
             key={fixa.id}
             className={`flex min-w-0 flex-col gap-3 rounded-[20px] border p-6 ${
               escuro
-                ? `border-[#0b0e14] bg-[#0b0e14] text-white ${celular ? "" : "col-span-3"}`
+                ? `border-[#0b0e14] bg-[#0b0e14] text-white ${celular ? "" : "col-span-2"}`
                 : "border-[#e2e2dc] bg-white"
             }`}
           >
