@@ -73,14 +73,14 @@ select isnt(public._site_bloco_erro('inicio.frentes', (select jsonb_set(valor, '
   null, 'Frentes: título com 41 é recusado');
 select isnt(public._site_bloco_erro('inicio.frentes', (select jsonb_set(valor, '{2,frase}', to_jsonb(repeat('f', 161))) from t where nome = 'frentes_cheias')),
   null, 'Frentes: frase com 161 é recusada');
-select isnt(public._site_bloco_erro('inicio.frentes', (select jsonb_set(valor, '{3,topicos,0}', to_jsonb(repeat('x', 91))) from t where nome = 'frentes_cheias')),
+select isnt(public._site_bloco_erro('inicio.frentes', (select jsonb_set(valor, '{2,topicos,0}', to_jsonb(repeat('x', 91))) from t where nome = 'frentes_cheias')),
   null, 'Frentes: tópico com 91 é recusado');
 select isnt(public._site_bloco_erro('inicio.frentes', (select jsonb_set(valor, '{0,topicos}', (valor #> '{0,topicos}') || '"sétimo"') from t where nome = 'frentes_cheias')),
   null, 'Frentes: 7 tópicos é recusado');
 select isnt(public._site_bloco_erro('inicio.frentes', (select jsonb_set(valor, '{0,topicos}', '[]') from t where nome = 'frentes_cheias')),
   null, 'Frentes: sem tópico é recusado');
-select isnt(public._site_bloco_erro('inicio.frentes', (select valor - 3 from t where nome = 'frentes_cheias')),
-  null, 'Frentes: 3 frentes é recusado');
+select isnt(public._site_bloco_erro('inicio.frentes', (select valor - 2 from t where nome = 'frentes_cheias')),
+  null, 'Frentes: 2 frentes é recusado (CMS-5: são exatamente 3)');
 select isnt(public._site_bloco_erro('inicio.frentes', (select jsonb_set(valor, '{1,id}', '"sistemas"') from t where nome = 'frentes_cheias')),
   null, 'Frentes: frente repetida é recusada');
 select isnt(public._site_bloco_erro('inicio.frentes', (select jsonb_set(valor, '{0,assunto}', '"x"') from t where nome = 'frentes_cheias')),

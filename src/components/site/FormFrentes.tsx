@@ -6,7 +6,7 @@ import { mover, remover, trocar } from "@/lib/editorArtigo";
 import { frentesFixas, LIMITES, type BlocoFrente } from "@/lib/paginasSite";
 
 /**
- * As 4 frentes (card CMS-4). Ordem, número, ícone, destino de "Quero algo assim" e o
+ * As 3 frentes (cards CMS-4 e CMS-5). Ordem, número, ícone, destino de "Quero algo assim" e o
  * assunto do formulário são fixos; aqui mudam só os textos.
  */
 export function FormFrentes({
@@ -26,7 +26,13 @@ export function FormFrentes({
         const mudar = (novo: Partial<BlocoFrente>) =>
           aoMudar(trocar(valor, i, (x) => ({ ...x, ...novo })));
         return (
-          <ItemPagina key={fixa.id} titulo={fixa.rotulo} nome={fixa.rotulo} indice={i} total={4}>
+          <ItemPagina
+            key={fixa.id}
+            titulo={fixa.rotulo}
+            nome={fixa.rotulo}
+            indice={i}
+            total={frentesFixas.length}
+          >
             <CampoContador
               rotulo="Situação (quem visita, em primeira pessoa)"
               valor={f.situacao}

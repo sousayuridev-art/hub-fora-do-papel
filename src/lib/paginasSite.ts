@@ -5,7 +5,7 @@
  * Sem imports com "@/": o script `scripts/importar-paginas.ts` usa este arquivo pelo bun.
  */
 
-export type FrenteId = "sistemas" | "ia" | "sites" | "automacoes";
+export type FrenteId = "sistemas" | "sites" | "automacoes";
 export type GrupoPergunta = "preco" | "trabalho" | "depois";
 
 export type BlocoTopo = { linha: string; titulo: string; apoio: string; link_sites: string };
@@ -54,7 +54,7 @@ export const rotuloBloco: Record<ChaveBloco, { titulo: string; resumo: string }>
   },
   "inicio.frentes": {
     titulo: "O que fazemos",
-    resumo: "As 4 frentes: situação, título, frase e tópicos.",
+    resumo: "As 3 frentes: situação, título, frase e tópicos.",
   },
   perguntas: {
     titulo: "Perguntas frequentes",
@@ -77,9 +77,8 @@ export const LIMITES = {
 
 export const frentesFixas: { id: FrenteId; rotulo: string }[] = [
   { id: "sistemas", rotulo: "01 · Sistemas sob medida (destaque)" },
-  { id: "ia", rotulo: "02 · Inteligência artificial" },
-  { id: "sites", rotulo: "03 · Sites" },
-  { id: "automacoes", rotulo: "04 · Automações" },
+  { id: "sites", rotulo: "02 · Sites" },
+  { id: "automacoes", rotulo: "03 · Automações e inteligência artificial" },
 ];
 
 export const gruposPerguntas: { id: GrupoPergunta; rotulo: string }[] = [
@@ -148,7 +147,7 @@ function problemasTopo(v: unknown): string[] {
 }
 
 function problemasFrentes(v: unknown): string[] {
-  if (!Array.isArray(v) || v.length !== 4) return ["São exatamente 4 frentes."];
+  if (!Array.isArray(v) || v.length !== 3) return ["São exatamente 3 frentes."];
   const p: string[] = [];
   const L = LIMITES.frente;
   const vistos = new Set<string>();

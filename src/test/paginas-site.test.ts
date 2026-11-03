@@ -26,7 +26,7 @@ const topo: BlocoTopo = {
   apoio: "Apoio.",
   link_sites: "Precisa só de um site?",
 };
-const frentes: BlocoFrente[] = (["sistemas", "ia", "sites", "automacoes"] as const).map((id) => ({
+const frentes: BlocoFrente[] = (["sistemas", "sites", "automacoes"] as const).map((id) => ({
   id,
   situacao: a(LIMITES.frente.situacao),
   titulo: a(LIMITES.frente.titulo),
@@ -77,22 +77,26 @@ describe("Topo", () => {
 });
 
 describe("Frentes", () => {
-  it("aceita as 4 frentes no limite", () => {
+  it("aceita as 3 frentes no limite", () => {
     expect(problemasDoBloco("inicio.frentes", frentes)).toEqual([]);
   });
-  it("recusa limite estourado, 7 tópicos, nenhum tópico, frente repetida e 3 frentes", () => {
+  it("recusa limite estourado, 7 tópicos, nenhum tópico, frente repetida e número de frentes diferente de 3", () => {
     const com = (i: number, f: Partial<BlocoFrente>) =>
       frentes.map((x, j) => (j === i ? { ...x, ...f } : x));
     expect(problemasDoBloco("inicio.frentes", com(0, { situacao: a(91) }))).not.toEqual([]);
     expect(problemasDoBloco("inicio.frentes", com(1, { titulo: a(41) }))).not.toEqual([]);
     expect(problemasDoBloco("inicio.frentes", com(2, { frase: a(161) }))).not.toEqual([]);
-    expect(problemasDoBloco("inicio.frentes", com(3, { topicos: [a(91)] }))).not.toEqual([]);
+    expect(problemasDoBloco("inicio.frentes", com(2, { topicos: [a(91)] }))).not.toEqual([]);
     expect(problemasDoBloco("inicio.frentes", com(0, { topicos: Array(7).fill("x") }))).not.toEqual(
       [],
     );
+    expect(problemasDoBloco("inicio.frentes", frentes.slice(0, 2))).not.toEqual([]);
+    expect(
+      problemasDoBloco("inicio.frentes", [...frentes, { ...frentes[0]!, id: "ia" as never }]),
+    ).not.toEqual([]);
+    expect(problemasDoBloco("inicio.frentes", com(1, { id: "sistemas" }))).not.toEqual([]);
     expect(problemasDoBloco("inicio.frentes", com(0, { topicos: [] }))).not.toEqual([]);
     expect(problemasDoBloco("inicio.frentes", com(1, { id: "sistemas" }))).not.toEqual([]);
-    expect(problemasDoBloco("inicio.frentes", frentes.slice(0, 3))).not.toEqual([]);
   });
 });
 
@@ -147,10 +151,9 @@ describe("Quem somos", () => {
 });
 
 describe("Formulário", () => {
-  it("chave sem valor no banco começa em branco, com as 4 frentes", () => {
+  it("chave sem valor no banco começa em branco, com as 3 frentes", () => {
     expect(valorParaForm("inicio.frentes", undefined).map((f) => f.id)).toEqual([
       "sistemas",
-      "ia",
       "sites",
       "automacoes",
     ]);
