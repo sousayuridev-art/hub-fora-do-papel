@@ -131,7 +131,8 @@ begin
   values (s.id, t, public._hash_chave(k), left(k, 10), auth.uid())
   on conflict (sistema_id) do update
     set chave_hash = excluded.chave_hash, prefixo = excluded.prefixo, criada_em = now(),
-        criada_por = excluded.criada_por, ultimo_uso_em = null, importacao_ate = now() + interval '24 hours';
+        criada_por = excluded.criada_por, ultimo_uso_em = null;
+  -- Trocar a chave (ex.: depois de um vazamento) não reabre a janela de importação
   insert into public.event_outbox (tenant_id, event, payload)
   values (t, 'sistema.chave_gerada', jsonb_build_object('sistema_id', s.id, 'client_id', s.client_id, 'prefixo', left(k, 10)));
   return jsonb_build_object('chave', k, 'prefixo', left(k, 10));
