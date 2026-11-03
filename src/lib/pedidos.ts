@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 export type SituacaoPedido =
   "recebido" | "em_analise" | "aguardando_cliente" | "fazendo" | "pronto" | "recusado";
 export type Classificacao = "escopo" | "mensalidade" | "adicional";
-export type Origem = "portal" | "painel" | "whatsapp" | "reuniao" | "hub";
+export type Origem = "portal" | "painel" | "sistema" | "whatsapp" | "reuniao" | "hub";
 
 /** Onde o cliente estava ao pedir (card PC-2). */
 export type ContextoPedido = { pagina?: string; secao?: string; tela?: string };
@@ -19,7 +19,7 @@ export type AnexoPedido = {
 };
 
 /** Origens que o Hub registra; portal e painel são só do cliente. */
-export type OrigemDoHub = Exclude<Origem, "portal" | "painel">;
+export type OrigemDoHub = Exclude<Origem, "portal" | "painel" | "sistema">;
 
 export type Pedido = {
   id: string;
@@ -53,6 +53,14 @@ export type PedidoLinha = Pedido & {
   site_dominio: string | null;
   contexto: ContextoPedido | null;
   anexos: AnexoPedido[];
+  /** Pedido que veio de um sistema que entregamos (SIS-2). */
+  sistema_id?: string | null;
+  sistema_nome?: string | null;
+  solicitante?: { nome: string; id?: string } | null;
+  tipo?: "erro" | "melhoria" | null;
+  prioridade?: "urgente" | "alta" | "media" | "baixa" | null;
+  mensagens?: number;
+  prints?: number;
 };
 
 export type ResumoPedidos = {
@@ -100,14 +108,18 @@ export const rotuloClassificacao: Record<Classificacao, string> = {
 export const rotuloOrigem: Record<Origem, string> = {
   portal: "Portal",
   painel: "Painel",
+  sistema: "Sistema",
   whatsapp: "WhatsApp",
   reuniao: "Reunião",
   hub: "Hub",
 };
 
 /** "Painel · Página inicial" quando o cliente disse a página; senão só a origem. */
-export function origemDoPedido(p: Pick<PedidoLinha, "origin" | "contexto">): string {
+export function origemDoPedido(
+  p: Pick<PedidoLinha, "origin" | "contexto"> & { sistema_nome?: string | null },
+): string {
   const pagina = p.contexto?.pagina;
+  if (p.origin === "sistema" && p.sistema_nome) return `Sistema · ${p.sistema_nome}`;
   return p.origin === "painel" && pagina ? `Painel · ${pagina}` : rotuloOrigem[p.origin];
 }
 

@@ -9,6 +9,7 @@ import { CabecalhoPagina } from "@/components/hub/CabecalhoPagina";
 import { EstadoErro } from "@/components/hub/EstadoErro";
 import { useLogos } from "@/components/clientes/useLogos";
 import { SeloSituacaoSistema } from "@/components/sistemas/SistemaCartao";
+import { SistemaIntegracao } from "@/components/sistemas/SistemaIntegracao";
 import { SistemaPainel } from "@/components/sistemas/SistemaPainel";
 import { SistemaServicos } from "@/components/sistemas/SistemaServicos";
 import { SistemaVisaoGeral } from "@/components/sistemas/SistemaVisaoGeral";
@@ -16,7 +17,7 @@ import { classeAcaoPrincipal, classeBotaoSecundario } from "@/lib/estilos";
 import { chavesSistemas, sistemasResumo } from "@/lib/sistemas";
 
 const busca = z.object({
-  aba: z.enum(["visao", "infra"]).optional().catch(undefined),
+  aba: z.enum(["visao", "infra", "integracao"]).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/app/sistemas/$id")({
@@ -98,12 +99,15 @@ function Sistema() {
             opcoes={[
               { id: "visao", rotulo: "Visão geral" },
               { id: "infra", rotulo: "Infraestrutura", contagem: s.servicos },
+              { id: "integracao", rotulo: "Integração" },
             ]}
           />
         }
       />
 
-      {aba === "infra" ? (
+      {aba === "integracao" ? (
+        <SistemaIntegracao sistemaId={s.id} clienteId={s.client_id} />
+      ) : aba === "infra" ? (
         <SistemaServicos
           sistemaId={s.id}
           custoNosso={s.custo_nosso_cents}

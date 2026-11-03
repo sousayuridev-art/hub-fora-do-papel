@@ -6,6 +6,7 @@ import { CampoArea } from "@/components/hub/Campo";
 import { CampoNumero } from "@/components/hub/CampoNumero";
 import { PainelLateral } from "@/components/hub/PainelLateral";
 import { Selo } from "@/components/hub/Selo";
+import { PedidoConversa } from "@/components/pedidos/PedidoConversa";
 import { PedidoOnde } from "@/components/pedidos/PedidoOnde";
 import { Button } from "@/components/ui/button";
 import { diaComHora, moeda } from "@/lib/formatar";
@@ -181,6 +182,7 @@ export function PedidoPainel({
           </div>
           {p.description && <p className="whitespace-pre-line text-[15px]">{p.description}</p>}
           <PedidoOnde p={p} />
+          {(p.origin === "sistema" || (p.mensagens ?? 0) > 0) && <PedidoConversa p={p} />}
           {p.project_id && (
             <Link
               to="/app/projetos/$id"
