@@ -150,7 +150,8 @@ export function SistemaIntegracao({
 
           <div className="flex flex-col gap-2">
             <span className="text-[13.5px] text-hub-suave">
-              Endereço do Hub (segredo <b>HUB_PEDIDOS_URL</b> no sistema)
+              Endereço do Hub (o Orga CRM já vem com ele; outros sistemas usam o segredo{" "}
+              <b>HUB_PEDIDOS_URL</b>)
             </span>
             <div className="flex items-center gap-2 rounded-lg bg-hub-fundo p-2">
               <code className="min-w-0 flex-1 break-all text-[13px]">{endereco}</code>
