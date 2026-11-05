@@ -1,4 +1,6 @@
 -- Tarefas de quinta 05/11 e sexta 06/11 (pedido do Yuri em 05/11): 17 tarefas internas na Central de Tarefas (/app/tarefas).
+-- Versão 20261103145900 de propósito: fica entre a última migração aplicada (20261103140100) e a do CMS-5 (20261103150000),
+-- que ainda não está em produção. Assim as duas podem ser aplicadas em qualquer ordem, sem --include-all.
 -- Só dados: não muda tabela nem função. Entram como tipo "interna" (sem projeto), com a frente em "área".
 -- Idempotente: uma tarefa com o mesmo título, do tipo interna, não é gravada de novo.
 -- Só grava se houver um único dono (tenant) no Hub; senão avisa e não grava nada.
