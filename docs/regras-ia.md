@@ -3,7 +3,7 @@
 Decididas em 21/10/2026. Valem para o Hub, o site e todo sistema de cliente.
 
 ## 1. Onde a API entra
-- Só dentro dos produtos: funções do Hub e dos sistemas de clientes (resumir reunião, classificar solicitação, responder no WhatsApp com revisão humana).
+- Só dentro dos produtos: funções do Hub e dos sistemas de clientes (resumir reunião, classificar solicitação, responder no WhatsApp pela regra do item 6).
 - Nunca no desenvolvimento. O Claude Code usa a assinatura do Claude; não configurar `ANTHROPIC_API_KEY` na máquina nem no Claude Code.
 
 ## 2. Uma área por projeto
@@ -29,10 +29,25 @@ Decididas em 21/10/2026. Valem para o Hub, o site e todo sistema de cliente.
 - Teto mensal no código, além do limite do Console: aos 80% avisa no Painel; aos 100% para e avisa. Nada de chamada sem teto.
 - Antes de colocar em produção, medir o custo por uso (por reunião, por conversa, por solicitação) num piloto.
 
-## 6. IA sugere, pessoa decide
-- Nada que afete o cliente sai sem revisão humana: tarefa, escopo, valor, mensagem ao cliente, aprovação.
-- Toda sugestão mostra de onde veio (trecho, minuto, documento). Sem fonte, não sugere.
-- A IA nunca define preço.
+## 6. IA envia sozinha o que está na base aprovada; o resto, uma pessoa decide
+Decidido pelo Yuri em 05/11/2026 (antes: "IA sugere, pessoa decide", de 21/10/2026). Card AT-0.
+
+**A IA pode enviar sozinha** só a resposta a uma pergunta que está na **base aprovada** do cliente:
+- base aprovada = perguntas e respostas escritas ou aprovadas pelo dono do negócio (horário, endereço, como funciona, link do site, formas de pagamento aceitas);
+- a IA escolhe qual resposta aprovada serve e só ajusta a abertura (cumprimento e nome da pessoa); o conteúdo sai como foi aprovado, sem acrescentar fato;
+- sem resposta aprovada que sirva, ou com dúvida, não envia: vira sugestão para uma pessoa.
+
+**Uma pessoa decide sempre** (a IA só sugere, com a fonte):
+- preço, desconto, disponibilidade, data, reserva, prazo, escopo e valor que não estejam escritos na base aprovada;
+- reclamação, cancelamento, cobrança, saúde, dados pessoais e qualquer assunto sensível;
+- tudo que é interno: tarefa, escopo de projeto, aprovação, proposta.
+
+**Sempre:**
+- A IA nunca define preço; só repete o que está escrito numa resposta aprovada.
+- Quem fala com um robô sabe disso: a primeira resposta automática da conversa se apresenta como assistente virtual, e "falar com uma pessoa" funciona a qualquer momento.
+- Quando uma pessoa da equipe entra na conversa, a IA para de enviar sozinha nela.
+- Toda resposta, automática ou sugerida, fica registrada com a pergunta, a resposta aprovada usada e o horário. Sem fonte, não envia nem sugere.
+- O envio sozinho é ligado por cliente e por assunto, pelo dono do negócio. Desligado é o padrão.
 
 ## 7. Dados e LGPD
 - Mandar para a IA só o necessário; tirar dados sensíveis que não ajudam (saúde, documentos, dados de terceiros).
