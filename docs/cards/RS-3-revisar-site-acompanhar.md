@@ -44,9 +44,10 @@ Rota `/portal/site/revisar/ajuste/$id`:
 
 - Aparece só quando todos os ajustes estão aprovados ou fechados (recusados ou com orçamento resolvido).
 - Três confirmações obrigatórias:
-  1. "Conferi todas as páginas no celular e no computador."
-  2. "Os textos, as fotos e os contatos estão certos."
-  3. "Sei que, depois de aprovado, mudanças viram serviço adicional."
+  1. "Vi todas as páginas do site."
+  2. "Os ajustes que pedi foram feitos ou combinados."
+  3. "Autorizo colocar o site no ar."
+  (textos do canvas, tela 09; o aviso de que mudanças depois da aprovação viram serviço adicional fica na frase acima das confirmações)
 - O botão "Aprovar o site" fica no bloco de aceite e nunca aprova direto da barra.
 - **Só o responsável pelo contrato com `can_approve`** (CX-0) vê o bloco de aceite.
 - Pessoa da equipe vê o aviso: "Quem aprova o site é [nome do responsável]. Avisamos que está tudo pronto."
