@@ -69,6 +69,9 @@ export function PedidoConversa({ p }: { p: PedidoLinha }) {
   }
 
   const doSistema = p.origin === "sistema";
+  // Revisão do site (RS-1): a resposta aparece no portal do cliente, no ajuste
+  const daRevisao = p.origin === "revisao";
+  const comCliente = doSistema || daRevisao;
   const detalhes = [
     p.solicitante?.nome ? `Pedido por ${p.solicitante.nome}` : null,
     p.tipo ? rotuloTipoPedido[p.tipo] : null,
@@ -115,7 +118,7 @@ export function PedidoConversa({ p }: { p: PedidoLinha }) {
       )}
 
       <h3 id={`conversa-${p.id}`} className="text-[14px] font-semibold">
-        Conversa{doSistema ? " com a equipe do cliente" : ""}
+        Conversa{comCliente ? " com a equipe do cliente" : ""}
       </h3>
       {conversa.isError ? (
         <p className="text-[13.5px] text-sit-risco-t">Não foi possível carregar a conversa.</p>
@@ -125,7 +128,9 @@ export function PedidoConversa({ p }: { p: PedidoLinha }) {
         <p className="text-[13.5px] text-hub-suave">
           {doSistema
             ? "Ninguém escreveu ainda. A sua resposta aparece no sistema do cliente."
-            : "Sem conversa neste pedido."}
+            : daRevisao
+              ? "Ninguém escreveu ainda. A sua resposta aparece no portal, junto do ajuste."
+              : "Sem conversa neste pedido."}
         </p>
       ) : (
         <ol className="flex flex-col gap-2">
@@ -154,7 +159,7 @@ export function PedidoConversa({ p }: { p: PedidoLinha }) {
         </ol>
       )}
 
-      {doSistema && (
+      {comCliente && (
         <form onSubmit={aoEnviar} className="flex items-end gap-2">
           <label htmlFor={`resposta-${p.id}`} className="sr-only">
             Responder à equipe do cliente

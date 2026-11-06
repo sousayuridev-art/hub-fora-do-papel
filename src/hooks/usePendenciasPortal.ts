@@ -9,6 +9,8 @@ export type PendenciasPortal = {
   arquivos: number;
   /** Formulários do site sem resposta (PC-5). */
   contatos: number;
+  /** Ajustes da revisão do site para o cliente conferir (RS-1): selo de "Meu site". */
+  site: number;
 };
 
 /**
@@ -31,5 +33,6 @@ export function usePendenciasPortal(): PendenciasPortal {
     pagamentos: q.data?.pagamentos ?? 0,
     arquivos: 0,
     contatos: q.data?.contatos ?? 0,
+    site: q.data?.site ?? 0,
   };
 }

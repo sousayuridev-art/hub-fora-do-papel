@@ -182,7 +182,9 @@ export function PedidoPainel({
           </div>
           {p.description && <p className="whitespace-pre-line text-[15px]">{p.description}</p>}
           <PedidoOnde p={p} />
-          {(p.origin === "sistema" || (p.mensagens ?? 0) > 0) && <PedidoConversa p={p} />}
+          {(p.origin === "sistema" || p.origin === "revisao" || (p.mensagens ?? 0) > 0) && (
+            <PedidoConversa p={p} />
+          )}
           {p.project_id && (
             <Link
               to="/app/projetos/$id"

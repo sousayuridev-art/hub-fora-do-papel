@@ -35,7 +35,10 @@ const busca = z.object({
     .catch(undefined),
   pedido: z.string().uuid().optional().catch(undefined),
   cliente: z.string().uuid().optional().catch(undefined),
-  origem: z.enum(["portal", "painel", "whatsapp", "reuniao", "hub"]).optional().catch(undefined),
+  origem: z
+    .enum(["portal", "painel", "sistema", "revisao", "whatsapp", "reuniao", "hub"])
+    .optional()
+    .catch(undefined),
   /** Quadro por situação (padrão) ou lista (RD2-4). */
   vista: z.enum(["quadro", "lista"]).optional().catch(undefined),
   urgentes: z.boolean().optional().catch(undefined),

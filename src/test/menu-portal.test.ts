@@ -9,7 +9,7 @@ describe("PC-1 · menu do painel pelos módulos do site", () => {
   it("responsável com páginas, artigos e contatos: sem Loja, com Pagamentos", () => {
     expect(nomes(gruposDoPortal("responsavel", ["paginas", "artigos", "contatos"]))).toEqual([
       "-: Início",
-      "Meu site: Páginas, Artigos, Fotos e arquivos",
+      "Meu site: Revisar o site, Páginas, Artigos, Fotos e arquivos",
       "Clientes: Contatos, Desempenho",
       "Fora do Papel: Aprovações, Pedidos de ajuste, Pagamentos, Arquivos",
       "-: Ajustes",

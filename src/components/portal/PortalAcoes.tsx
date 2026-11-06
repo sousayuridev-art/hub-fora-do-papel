@@ -25,12 +25,15 @@ export function PortalAcoes({
   enviando,
   aoMarcarFeita,
   contatos = 0,
+  revisao = 0,
 }: {
   acoes: AcaoPortal[];
   enviando: boolean;
   aoMarcarFeita: (id: string) => void;
   /** Formulários do site sem resposta (PC-5). */
   contatos?: number;
+  /** Ajustes da revisão do site para conferir (RS-1); soma no selo de "Meu site". */
+  revisao?: number;
 }) {
   const decisoes = acoes.filter((a) => a.tipo === "aprovacao" || a.tipo === "adicional");
   const outras = acoes.filter((a) => a.tipo === "pendencia");
@@ -43,10 +46,24 @@ export function PortalAcoes({
         Precisa da sua atenção
       </h2>
 
-      {acoes.length === 0 && contatos === 0 && (
+      {acoes.length === 0 && contatos === 0 && revisao === 0 && (
         <p className="rounded-2xl border border-hub-borda bg-white p-5 text-[15px] text-hub-suave">
           Tudo em dia. Quando houver algo para você ver ou decidir, aparece aqui e avisamos você.
         </p>
+      )}
+
+      {revisao > 0 && (
+        <Link
+          to="/portal/site/revisar"
+          className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-hub-borda bg-white px-5 py-3 hover:border-hub-tinta"
+        >
+          <span className="text-[15px] font-medium">
+            {revisao === 1
+              ? "1 ajuste do site espera você conferir"
+              : `${revisao} ajustes do site esperam você conferir`}
+          </span>
+          <span className="shrink-0 text-[14px] font-semibold text-[#B86E00]">Conferir</span>
+        </Link>
       )}
 
       {contatos > 0 && (

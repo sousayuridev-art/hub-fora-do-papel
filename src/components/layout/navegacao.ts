@@ -2,37 +2,38 @@ import {
   AppWindow,
   BarChart3,
   Briefcase,
-  Clock,
-  ImagePlus,
-  PackagePlus,
-  PenLine,
-  Image,
-  LineChart,
-  MessagesSquare,
-  Newspaper,
-  Package,
-  ShoppingBag,
-  Ticket,
   CheckSquare,
   Clapperboard,
+  Clock,
   CreditCard,
   FileText,
   Folder,
   FolderKanban,
   Globe,
   Home,
+  Image,
+  ImagePlus,
   Inbox,
   KanbanSquare,
   LayoutDashboard,
   Library,
+  LineChart,
   ListChecks,
   Megaphone,
   MessageSquarePlus,
+  MessagesSquare,
+  Newspaper,
+  Package,
+  PackagePlus,
+  PenLine,
+  ScanEye,
   Settings,
+  ShoppingBag,
+  Ticket,
+  type LucideIcon,
   Users,
   Video,
   Wallet,
-  type LucideIcon,
 } from "lucide-react";
 
 import type { ModuloSite } from "@/lib/sitesCliente";
@@ -108,7 +109,7 @@ export const itemConfiguracoes: ItemMenu = {
 
 /** Seções do portal do cliente (menu de cima no computador, abas embaixo no celular). */
 export type SecaoPortal = ItemMenu & {
-  selo?: "inicio" | "aprovacoes" | "pagamentos" | "arquivos" | "contatos";
+  selo?: "inicio" | "aprovacoes" | "pagamentos" | "arquivos" | "contatos" | "site";
   /** Nome por extenso no menu do computador (o celular usa o rótulo curto). */
   rotuloLongo?: string;
   /** Só para o responsável pelo contrato (CX-0). A equipe vê 4 abas. */
@@ -171,7 +172,10 @@ export function gruposDoPortal(
     },
   ];
   if (modulos) {
-    const site: SecaoPortal[] = [];
+    // Revisão do site (RS-2): marcar ajustes, conferir e aprovar; selo = ajustes para conferir
+    const site: SecaoPortal[] = [
+      { rotulo: "Revisar o site", para: "/portal/site/revisar", icone: ScanEye, selo: "site" },
+    ];
     if (tem("paginas"))
       site.push({
         rotulo: "Páginas",

@@ -145,7 +145,7 @@ export function PortalTabsSite({
           <IconeAba icone={Home} total={selos.inicio} />
           Início
         </Link>
-        {botaoAba("site", "Meu site", Globe)}
+        {botaoAba("site", "Meu site", Globe, selos.site)}
         <button
           type="button"
           className={cn(classeAba, "text-hub-tinta")}

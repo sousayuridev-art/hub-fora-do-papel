@@ -39,6 +39,8 @@ export const LEITURA = new Set([
   "portal_contatos",
   "portal_ajustes",
   "site_midia_lista",
+  // revisão do site (RS-1): só a leitura passa; marcar, enviar e aprovar ficam barrados
+  "portal_revisao",
   "recibo",
   // papel de quem está logado (o portal confere antes de abrir)
   "my_access",
@@ -56,6 +58,7 @@ export const COM_CLIENTE = new Set([
   "portal_arquivos",
   "portal_sites",
   "portal_minha_empresa",
+  "portal_revisao",
 ]);
 
 export const ERRO_LEITURA = "modo_leitura";

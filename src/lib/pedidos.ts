@@ -5,10 +5,19 @@ import { supabase } from "@/lib/supabase";
 export type SituacaoPedido =
   "recebido" | "em_analise" | "aguardando_cliente" | "fazendo" | "pronto" | "recusado";
 export type Classificacao = "escopo" | "mensalidade" | "adicional";
-export type Origem = "portal" | "painel" | "sistema" | "whatsapp" | "reuniao" | "hub";
+export type Origem = "portal" | "painel" | "sistema" | "revisao" | "whatsapp" | "reuniao" | "hub";
 
-/** Onde o cliente estava ao pedir (card PC-2). */
-export type ContextoPedido = { pagina?: string; secao?: string; tela?: string };
+/** Onde o cliente estava ao pedir (card PC-2); a revisão do site leva também o antes e o depois (RS-1). */
+export type ContextoPedido = {
+  pagina?: string;
+  secao?: string;
+  tela?: string;
+  tipo?: "texto" | "foto" | "tirar" | "mover" | "incluir" | "outro";
+  antes?: string;
+  depois?: string;
+  revisao?: number;
+  provavel_adicional?: boolean;
+};
 
 export type AnexoPedido = {
   id: string;
@@ -19,7 +28,7 @@ export type AnexoPedido = {
 };
 
 /** Origens que o Hub registra; portal e painel são só do cliente. */
-export type OrigemDoHub = Exclude<Origem, "portal" | "painel" | "sistema">;
+export type OrigemDoHub = Exclude<Origem, "portal" | "painel" | "sistema" | "revisao">;
 
 export type Pedido = {
   id: string;
@@ -61,6 +70,13 @@ export type PedidoLinha = Pedido & {
   prioridade?: "urgente" | "alta" | "media" | "baixa" | null;
   mensagens?: number;
   prints?: number;
+  /** Revisão do site (RS-1): número da revisão, posição do ajuste e o "Ficou bom" do cliente. */
+  rodada_id?: string | null;
+  revisao_numero?: number | null;
+  marcador_ordem?: number | null;
+  revisao_total?: number | null;
+  validado_em?: string | null;
+  refeito_vezes?: number;
 };
 
 export type ResumoPedidos = {
@@ -109,6 +125,7 @@ export const rotuloOrigem: Record<Origem, string> = {
   portal: "Portal",
   painel: "Painel",
   sistema: "Sistema",
+  revisao: "Revisão do site",
   whatsapp: "WhatsApp",
   reuniao: "Reunião",
   hub: "Hub",
@@ -120,6 +137,10 @@ export function origemDoPedido(
 ): string {
   const pagina = p.contexto?.pagina;
   if (p.origin === "sistema" && p.sistema_nome) return `Sistema · ${p.sistema_nome}`;
+  if (p.origin === "revisao") {
+    const n = p.contexto?.revisao;
+    return [n ? `Revisão ${n}` : "Revisão do site", pagina].filter(Boolean).join(" · ");
+  }
   return p.origin === "painel" && pagina ? `Painel · ${pagina}` : rotuloOrigem[p.origin];
 }
 

@@ -47,7 +47,7 @@ Rota `/portal/site/revisar/ajuste/$id`:
   1. "Vi todas as páginas do site."
   2. "Os ajustes que pedi foram feitos ou combinados."
   3. "Autorizo colocar o site no ar."
-  (textos do canvas, tela 09; o aviso de que mudanças depois da aprovação viram serviço adicional fica na frase acima das confirmações)
+     (textos do canvas, tela 09; o aviso de que mudanças depois da aprovação viram serviço adicional fica na frase acima das confirmações)
 - O botão "Aprovar o site" fica no bloco de aceite e nunca aprova direto da barra.
 - **Só o responsável pelo contrato com `can_approve`** (CX-0) vê o bloco de aceite.
 - Pessoa da equipe vê o aviso: "Quem aprova o site é [nome do responsável]. Avisamos que está tudo pronto."
@@ -71,3 +71,10 @@ As mesmas do RS-2:
 - [ ] **Aprovação:** aprovar o site sem as três confirmações não envia. Com as três, cria a aprovação "Aprovação final do site" no S3, que aparece em Aprovações no Hub e no portal.
 - [ ] **Orçamento pendente:** um ajuste com orçamento pendente impede a tela 09 e mostra qual falta.
 - [ ] `bun run build`, `bun run lint` e `bun run test` passam, com conferência no navegador em 390 e 1440 px.
+
+## Implementação (06/11/2026, versão 2 do canvas)
+
+- **Rotas:** `/portal/site/revisar/$pedido` mostra a pergunta "Ficou como você queria?", com Antes e Depois num toque e os botões "Ficou bom" e "Quero outra mudança". `/portal/site/revisar/aprovar` traz as três confirmações e o botão "Aprovar e colocar no ar".
+- **Depois de "Ficou bom":** a tela vai direto para o próximo ajuste a conferir.
+- **Aprovação:** a aprovação final fica no histórico de Aprovações (S3) e fecha a revisão. Quem é da equipe vê quem aprova.
+- **Início do portal:** "Precisa da sua atenção" mostra "N ajustes do site esperam você conferir".

@@ -86,6 +86,10 @@ export const tiposAceitos = [
   "application/zip",
   "video/mp4",
   "audio/mpeg",
+  // áudio gravado no navegador (revisão do site, RS-1)
+  "audio/webm",
+  "audio/mp4",
+  "audio/ogg",
 ];
 export const tamanhoMaximo = 25 * 1024 * 1024;
 

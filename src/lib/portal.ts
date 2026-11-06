@@ -15,6 +15,8 @@ export type PendenciasDoPortal = {
   pedidos_andamento: number;
   /** Formulários do site sem resposta (PC-5). Fica fora de "total": a tela soma. */
   contatos?: number;
+  /** Ajustes da revisão do site esperando o cliente conferir (RS-1). Fica fora de "total": a tela soma. */
+  site?: number;
 };
 
 export type AcaoPortal =

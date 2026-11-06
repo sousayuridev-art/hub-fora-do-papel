@@ -55,6 +55,9 @@ import { Route as PortalSiteFotosRouteImport } from './routes/portal/site/fotos'
 import { Route as PreviaPropostaIdRouteImport } from './routes/previa.proposta.$id'
 import { Route as PortalSitePaginasIndexRouteImport } from './routes/portal/site/paginas/index'
 import { Route as PortalSitePaginasIdRouteImport } from './routes/portal/site/paginas/$id'
+import { Route as PortalSiteRevisarIndexRouteImport } from './routes/portal/site/revisar/index'
+import { Route as PortalSiteRevisarPedidoRouteImport } from './routes/portal/site/revisar/$pedido'
+import { Route as PortalSiteRevisarAprovarRouteImport } from './routes/portal/site/revisar/aprovar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -286,6 +289,22 @@ const PortalSitePaginasIdRoute = PortalSitePaginasIdRouteImport.update({
   path: '/site/paginas/$id',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalSiteRevisarIndexRoute = PortalSiteRevisarIndexRouteImport.update({
+  id: '/site/revisar/',
+  path: '/site/revisar/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalSiteRevisarPedidoRoute = PortalSiteRevisarPedidoRouteImport.update({
+  id: '/site/revisar/$pedido',
+  path: '/site/revisar/$pedido',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalSiteRevisarAprovarRoute =
+  PortalSiteRevisarAprovarRouteImport.update({
+    id: '/site/revisar/aprovar',
+    path: '/site/revisar/aprovar',
+    getParentRoute: () => PortalRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -333,7 +352,10 @@ export interface FileRoutesByFullPath {
   '/app/sistemas/': typeof AppSistemasIndexRoute
   '/app/sites/': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
+  '/portal/site/revisar/$pedido': typeof PortalSiteRevisarPedidoRoute
+  '/portal/site/revisar/aprovar': typeof PortalSiteRevisarAprovarRoute
   '/portal/site/paginas/': typeof PortalSitePaginasIndexRoute
+  '/portal/site/revisar/': typeof PortalSiteRevisarIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -379,7 +401,10 @@ export interface FileRoutesByTo {
   '/app/sistemas': typeof AppSistemasIndexRoute
   '/app/sites': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
+  '/portal/site/revisar/$pedido': typeof PortalSiteRevisarPedidoRoute
+  '/portal/site/revisar/aprovar': typeof PortalSiteRevisarAprovarRoute
   '/portal/site/paginas': typeof PortalSitePaginasIndexRoute
+  '/portal/site/revisar': typeof PortalSiteRevisarIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -428,7 +453,10 @@ export interface FileRoutesById {
   '/app/sistemas/': typeof AppSistemasIndexRoute
   '/app/sites/': typeof AppSitesIndexRoute
   '/portal/site/paginas/$id': typeof PortalSitePaginasIdRoute
+  '/portal/site/revisar/$pedido': typeof PortalSiteRevisarPedidoRoute
+  '/portal/site/revisar/aprovar': typeof PortalSiteRevisarAprovarRoute
   '/portal/site/paginas/': typeof PortalSitePaginasIndexRoute
+  '/portal/site/revisar/': typeof PortalSiteRevisarIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -478,7 +506,10 @@ export interface FileRouteTypes {
     | '/app/sistemas/'
     | '/app/sites/'
     | '/portal/site/paginas/$id'
+    | '/portal/site/revisar/$pedido'
+    | '/portal/site/revisar/aprovar'
     | '/portal/site/paginas/'
+    | '/portal/site/revisar/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -524,7 +555,10 @@ export interface FileRouteTypes {
     | '/app/sistemas'
     | '/app/sites'
     | '/portal/site/paginas/$id'
+    | '/portal/site/revisar/$pedido'
+    | '/portal/site/revisar/aprovar'
     | '/portal/site/paginas'
+    | '/portal/site/revisar'
   id:
     | '__root__'
     | '/'
@@ -572,7 +606,10 @@ export interface FileRouteTypes {
     | '/app/sistemas/'
     | '/app/sites/'
     | '/portal/site/paginas/$id'
+    | '/portal/site/revisar/$pedido'
+    | '/portal/site/revisar/aprovar'
     | '/portal/site/paginas/'
+    | '/portal/site/revisar/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -915,6 +952,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalSitePaginasIdRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/site/revisar/': {
+      id: '/portal/site/revisar/'
+      path: '/site/revisar'
+      fullPath: '/portal/site/revisar/'
+      preLoaderRoute: typeof PortalSiteRevisarIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/site/revisar/$pedido': {
+      id: '/portal/site/revisar/$pedido'
+      path: '/site/revisar/$pedido'
+      fullPath: '/portal/site/revisar/$pedido'
+      preLoaderRoute: typeof PortalSiteRevisarPedidoRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/site/revisar/aprovar': {
+      id: '/portal/site/revisar/aprovar'
+      path: '/site/revisar/aprovar'
+      fullPath: '/portal/site/revisar/aprovar'
+      preLoaderRoute: typeof PortalSiteRevisarAprovarRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
 
@@ -981,7 +1039,10 @@ interface PortalRouteChildren {
   PortalSiteArtigosRoute: typeof PortalSiteArtigosRoute
   PortalSiteFotosRoute: typeof PortalSiteFotosRoute
   PortalSitePaginasIdRoute: typeof PortalSitePaginasIdRoute
+  PortalSiteRevisarPedidoRoute: typeof PortalSiteRevisarPedidoRoute
+  PortalSiteRevisarAprovarRoute: typeof PortalSiteRevisarAprovarRoute
   PortalSitePaginasIndexRoute: typeof PortalSitePaginasIndexRoute
+  PortalSiteRevisarIndexRoute: typeof PortalSiteRevisarIndexRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
@@ -995,7 +1056,10 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalSiteArtigosRoute: PortalSiteArtigosRoute,
   PortalSiteFotosRoute: PortalSiteFotosRoute,
   PortalSitePaginasIdRoute: PortalSitePaginasIdRoute,
+  PortalSiteRevisarPedidoRoute: PortalSiteRevisarPedidoRoute,
+  PortalSiteRevisarAprovarRoute: PortalSiteRevisarAprovarRoute,
   PortalSitePaginasIndexRoute: PortalSitePaginasIndexRoute,
+  PortalSiteRevisarIndexRoute: PortalSiteRevisarIndexRoute,
 }
 
 const PortalRouteWithChildren =

@@ -127,3 +127,17 @@ O desenho do lado do Hub fica para o próximo passo da especificação ("Modelag
 - [ ] `revisao_aprovar_site` chamado por pessoa da equipe é recusado; pelo responsável sem as 3 confirmações também (pgTAP).
 - [ ] A 3ª rodada marca os pedidos como "provável serviço adicional" no contexto (pgTAP).
 - [ ] `supabase test db`, `bun run build`, `bun run lint` e `bun run test` passam.
+
+## Implementação (06/11/2026)
+
+- **Migrações:**
+  - `20261106100000_rs1_origem_revisao.sql` acrescenta a origem `revisao`.
+  - `20261106100100_rs1_revisar_site.sql` cria o resto: tabelas `site_rodadas` e `site_marcadores`; colunas novas em `requests` e `sites`; os RPCs `portal_revisao`, `portal_revisao_salvar`, `portal_revisao_tirar`, `portal_revisao_enviar`, `portal_revisao_ficou_bom`, `portal_revisao_outra_mudanca` e `portal_revisao_aprovar`; o selo `site` em `portal_pendencias`; e `v_pedidos` com a revisão.
+- **Nomes para o cliente (versão 2 do canvas):** "ajuste" no lugar de marcador e "revisão 1, 2…" no lugar de rodada. No banco, os nomes das tabelas ficaram.
+- **Foto e áudio:** são arquivos do cliente em `materials` (S8), com o áudio do navegador aceito (`audio/webm`, `audio/mp4` e `audio/ogg`). No envio, cada arquivo fica ligado ao seu pedido.
+- **Aviso:** o envio grava um evento só, `revisao.enviada`. "Quero outra mudança" grava `revisao.outra_mudanca`, e a aprovação grava `revisao.site_aprovado`.
+- **Hub:**
+  - a origem aparece como "Revisão N · página";
+  - o bloco "Onde" mostra a revisão, o tipo, o "Hoje está" e o "Deve ficar", e avisa quando é provável serviço adicional ou quando o ajuste já foi refeito;
+  - a conversa com a equipe do cliente vale também para a revisão.
+- **Teste:** `supabase/tests/rs1_revisar_site.test.sql` com 34 verificações.

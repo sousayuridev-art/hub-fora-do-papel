@@ -104,3 +104,16 @@ Todas com `ssr: false` e `exigirPapel` no `beforeLoad`.
 - [ ] **Selo:** o selo da aba "Meu site" é igual à soma usada em "Precisam de você" (teste).
 - [ ] **Celular:** em 390 px, nada passa da largura, e a barra fixa não cobre o último item.
 - [ ] `bun run build`, `bun run lint` e `bun run test` passam, com conferência no navegador em 390 e 1440 px.
+
+## Implementação (06/11/2026, versão 2 do canvas)
+
+- **Rotas:** tudo fica em `/portal/site/revisar`. Primeiro aparece o convite, que explica a revisão em 3 passos, depois o acompanhamento. "Começar a revisão" abre a prévia para marcar.
+- **Componentes:** ficam em `src/components/portal/revisao/`:
+  - `PreviaPagina` (a página desenhada com as seções do editor, com toque e pinos);
+  - `EscolherTipo` (os 6 cartões);
+  - `AjusteFolha` (abre por cima do site, com "Pôr na lista", a foto e o áudio);
+  - `GravadorAudio`, `ItemDaLista` e `EnviarRevisao` (com os 3 passos do que acontece depois);
+  - `MarcarRevisao`, que junta tudo.
+- **Menu:** "Revisar o site" entrou em Meu site, com o selo de ajustes para conferir. A soma bate com "Precisa da sua atenção".
+- **Fora desta entrega:** a troca "Computador | Celular" da prévia no computador. As seções mudam de formato pela largura da tela, não pela largura da caixa, e a prévia de celular no computador mostraria um desenho errado. Fica para um card próprio, usando a moldura do editor (PC-4).
+- **Testes:** `src/test/rs-revisao.test.tsx`; conferido no navegador em 390 e 1440 px.
