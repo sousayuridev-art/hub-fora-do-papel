@@ -21,8 +21,9 @@ A capa do cartão em Sites é montada com o que foi publicado pelo editor de pá
 - [x] Um domínio inválido não gera endereço de foto (teste).
 - [x] Sem domínio, o aviso continua (teste).
 - [x] `bun run build`, `bun run lint` e `bun run test` passam.
-- [ ] Conferência em Sites no Hub publicado.
+- [x] Conferência em Sites no Hub publicado (11/11): a Mansão mostra a foto do topo do site.
 
 ## Observação
 
 Na primeira vez, o serviço pode devolver uma imagem de "gerando" por alguns segundos. A foto aparece quando a página é aberta de novo.
+- O site do Junior (juniorsoarespersonal.lovable.app) saiu com a tela de carregamento do Lovable. A página dele só se monta no navegador, e a captura foi tirada antes disso. Ela deve melhorar quando o site for para o domínio próprio, com a página montada no servidor.
