@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { urlDaFoto } from "@/lib/catalogo";
-import type { CapaDoSite as Capa } from "@/lib/sitesHub";
+import { fotoDoSiteNoAr, type CapaDoSite as Capa } from "@/lib/sitesHub";
 import { Capa as SecaoCapa, type CapaProps } from "@/secoes/Capa";
 import { Chamada, type ChamadaProps } from "@/secoes/Chamada";
 import { Perguntas, type PerguntasProps } from "@/secoes/Perguntas";
@@ -35,9 +35,19 @@ function Secao({ tipo, props }: { tipo: string; props: Record<string, unknown> }
 /**
  * Miniatura do cartão do site (RD2-8): a primeira seção publicada da página inicial, desenhada
  * em tamanho real (1280 px no computador, 600 px no celular) e reduzida para caber.
- * O site da Fora do Papel mostra o topo publicado. Sem nada publicado, um aviso.
+ * O site da Fora do Papel mostra o topo publicado. Site feito fora do editor do Hub mostra uma foto
+ * do endereço no ar (card SITE-43); sem endereço ou se a foto falhar, um aviso.
  */
-export function CapaDoSite({ capa, altura = 150 }: { capa: Capa | null; altura?: number }) {
+export function CapaDoSite({
+  capa,
+  altura = 150,
+  dominio,
+}: {
+  capa: Capa | null;
+  altura?: number;
+  dominio?: string | undefined;
+}) {
+  const [fotoFalhou, setFotoFalhou] = useState(false);
   const caixa = useRef<HTMLDivElement>(null);
   const [largura, setLargura] = useState(0);
   const [base, setBase] = useState(1280);
@@ -57,6 +67,24 @@ export function CapaDoSite({ capa, altura = 150 }: { capa: Capa | null; altura?:
   const escala = largura > 0 ? largura / base : 0;
 
   const vazio = !capa || (capa.tipo === "secao" && !capa.secao);
+  const foto = vazio && dominio && !fotoFalhou ? fotoDoSiteNoAr(dominio) : null;
+  if (foto)
+    return (
+      <div
+        aria-hidden="true"
+        className="overflow-hidden border-b border-[#EEF1F5] bg-[#F5F7FA]"
+        style={{ height: altura }}
+      >
+        <img
+          src={foto}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setFotoFalhou(true)}
+          className="h-full w-full object-cover object-top"
+        />
+      </div>
+    );
   if (capa?.tipo === "foto")
     return (
       <div

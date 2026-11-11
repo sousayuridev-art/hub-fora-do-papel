@@ -60,7 +60,7 @@ export function SiteCartao({ s, logo }: { s: SiteResumo; logo: string | undefine
   return (
     // Cartão com link esticado: a capa traz links do próprio site, que não podem ficar dentro de outro link
     <article className="relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[#E3E7ED] bg-white transition-shadow focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-hub-tinta hover:shadow-[0_8px_20px_-10px_rgba(14,16,19,0.25)]">
-      <CapaDoSite capa={s.capa} />
+      <CapaDoSite capa={s.capa} dominio={s.dominio} />
       <span className="flex flex-col gap-3 px-4 py-3.5">
         <span className="flex items-start justify-between gap-3">
           <span className="flex min-w-0 items-center gap-2.5">

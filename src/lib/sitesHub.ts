@@ -180,3 +180,13 @@ export function fraseDaAtividade(i: AtividadeSite["itens"][number]): string {
       : "";
   return `${quem} ${acao}${alvo}`;
 }
+
+/**
+ * Foto do site no ar para a capa do cartão (card SITE-43), pelo serviço público de capturas do
+ * WordPress (mShots): sem chave, atualiza sozinho em até um dia. Só o endereço do site sai do Hub.
+ */
+export function fotoDoSiteNoAr(dominio: string): string | null {
+  const limpo = dominio.trim().toLowerCase();
+  if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(limpo)) return null;
+  return `https://s0.wp.com/mshots/v1/${encodeURIComponent(`https://${limpo}/`)}?w=1280&h=800`;
+}
