@@ -85,7 +85,7 @@ function Reunioes() {
         }
       />
       {aba === "agenda" ? (
-        <Agenda semana={semana} aoVerGravacao={setAberta} />
+        <Agenda semana={semana} aoVerGravacao={setAberta} aoMarcar={() => setMarcar(true)} />
       ) : (
         <Gravacoes aoAbrir={setAberta} />
       )}
@@ -99,9 +99,11 @@ function Reunioes() {
 function Agenda({
   semana,
   aoVerGravacao,
+  aoMarcar,
 }: {
   semana: string | undefined;
   aoVerGravacao: (r: Reuniao) => void;
+  aoMarcar: () => void;
 }) {
   const navigate = Route.useNavigate();
   const segunda = useMemo(() => {
@@ -159,6 +161,7 @@ function Agenda({
         carregando={q.isFetching}
         aoAbrir={setEvento}
         aoMudarSemana={mudarSemana}
+        aoMarcar={aoMarcar}
       />
       <AgendaEventoPainel
         evento={evento}

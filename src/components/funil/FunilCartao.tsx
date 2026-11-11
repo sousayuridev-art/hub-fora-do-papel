@@ -88,7 +88,10 @@ export function FunilCartao({
           >
             {o.company_name}
           </Link>
-          <span className="truncate text-[12.5px] text-hub-suave">{o.contact_name}</span>
+          {/* Sem empresa, o nome do contato já é o título: não repete */}
+          {o.contact_name && o.contact_name !== o.company_name && (
+            <span className="truncate text-[12.5px] text-hub-suave">{o.contact_name}</span>
+          )}
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger

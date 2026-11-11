@@ -112,6 +112,16 @@ function complemento(n: Novidade): string | null {
   return null;
 }
 
+/** O pedido de ajuste diz de onde veio: portal, painel, sistema do cliente ou revisão do site. */
+function textoDo(n: Novidade): string {
+  if (n.tipo !== "pedido_recebido") return tipos[n.tipo].texto;
+  const origem = n.detalhe["origem"];
+  if (origem === "sistema") return "fez um pedido pelo sistema";
+  if (origem === "revisao") return "enviou ajustes da revisão do site";
+  if (origem === "painel") return "fez um pedido pelo painel do site";
+  return tipos.pedido_recebido.texto;
+}
+
 const classe = "flex min-h-14 items-start gap-3 px-5 py-3.5 hover:bg-hub-fundo";
 
 /** Últimos 7 dias do que o cliente e o site fizeram sem o Yuri estar olhando. */
@@ -144,7 +154,7 @@ export function PainelNovidades({ itens }: { itens: Novidade[] }) {
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="text-[15px]">
-                    <strong className="font-semibold">{n.empresa}</strong> {t.texto}
+                    <strong className="font-semibold">{n.empresa}</strong> {textoDo(n)}
                   </span>
                   {extra && <span className="text-[13.5px] text-hub-suave">{extra}</span>}
                 </span>

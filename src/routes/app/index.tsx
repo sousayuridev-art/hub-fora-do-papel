@@ -103,7 +103,10 @@ function Painel() {
               </dd>
               <dd className="mt-1 text-[13.5px] text-hub-suave">
                 {n
-                  ? `${n.fechados_mes} ${n.fechados_mes === 1 ? "contrato" : "contratos"} neste mês`
+                  ? n.fechado_mes_cents === 0 && n.fechados_mes > 0
+                    ? // Fechado sem valor (proposta fora do Hub): diz o que falta em vez de R$ 0 calado
+                      `${n.fechados_mes} ${n.fechados_mes === 1 ? "contrato" : "contratos"} sem valor registrado`
+                    : `${n.fechados_mes} ${n.fechados_mes === 1 ? "contrato" : "contratos"} neste mês`
                   : " "}
               </dd>
             </div>

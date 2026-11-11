@@ -99,7 +99,6 @@ function CentralConteudo() {
       <CabecalhoPagina
         grupo="Marketing"
         titulo="Central de conteúdo"
-        resumo="Da ideia à publicação: uma versão para cada canal, revisada pela marca antes de sair."
         acao={
           aba === "campanhas" ? (
             <button
@@ -162,9 +161,13 @@ function CentralConteudo() {
                   : undefined,
             },
             {
-              rotulo: "Publicadas no mês",
+              // Conta publicações (uma por canal) no mês; a coluna Publicado conta peças em 30 dias (REV-6)
+              rotulo: "Publicações no mês",
               valor: r.publicadas_mes,
-              apoio: r.sem_resultados > 0 ? `${r.sem_resultados} sem resultados` : undefined,
+              apoio:
+                r.sem_resultados > 0
+                  ? `uma por canal · ${r.sem_resultados} sem resultados`
+                  : "uma por canal",
             },
           ]}
         />

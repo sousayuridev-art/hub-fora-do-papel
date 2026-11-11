@@ -2,9 +2,23 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDown } from "lucide-react";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { TarefaLinha } from "@/components/tarefas/TarefaLinha";
 import { gradeListaTarefas } from "@/lib/estilos";
-import { agruparPorPrazo, linhasDaLista, type GrupoPrazo, type TarefaVista } from "@/lib/tarefas";
+import {
+  agruparPorPrazo,
+  estaAtrasada,
+  linhasDaLista,
+  opcoesDeAdiar,
+  type GrupoPrazo,
+  type TarefaVista,
+} from "@/lib/tarefas";
 import { cn } from "@/lib/utils";
 
 const corGrupo: Partial<Record<GrupoPrazo, string>> = {
@@ -21,16 +35,26 @@ export function TarefasLista({
   hoje,
   aoAbrir,
   aoConcluir,
+  aoMudarPrazos,
 }: {
   itens: TarefaVista[];
   hoje: string;
   aoAbrir: (t: TarefaVista) => void;
   aoConcluir: (t: TarefaVista) => void;
+  /** Muda o prazo de todas as atrasadas de uma vez (REV-6). */
+  aoMudarPrazos?: (ids: string[], prazo: string, rotulo: string) => void;
 }) {
   const [concluidas, setConcluidas] = useState(false);
   const linhas = useMemo(
     () => linhasDaLista(agruparPorPrazo(itens, hoje), concluidas),
     [itens, hoje, concluidas],
+  );
+  const atrasadas = useMemo(
+    () =>
+      itens
+        .filter((t) => (t.atrasada ?? estaAtrasada(t, hoje)) && !t.id.startsWith("temp-"))
+        .map((t) => t.id),
+    [itens, hoje],
   );
   const caixa = useRef<HTMLDivElement>(null);
   const [margem, setMargem] = useState(0);
@@ -92,11 +116,32 @@ export function TarefasLista({
                 <div
                   role="cell"
                   className={cn(
-                    "border-t border-hub-borda px-4 pb-1.5 pt-4 text-[14px] font-semibold first:border-t-0 md:px-5",
+                    "flex items-center justify-between gap-3 border-t border-hub-borda px-4 pb-1.5 pt-4 text-[14px] font-semibold first:border-t-0 md:px-5",
                     corGrupo[l.id],
                   )}
                 >
-                  {l.rotulo} · {l.total}
+                  <span>
+                    {l.rotulo} · {l.total}
+                  </span>
+                  {l.id === "atrasadas" && aoMudarPrazos && atrasadas.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="-my-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-[14px] font-medium text-hub-tinta hover:bg-hub-selecao md:min-h-9">
+                        Mudar o prazo
+                        <ChevronDown className="size-4" aria-hidden="true" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {opcoesDeAdiar(hoje).map((o) => (
+                          <DropdownMenuItem
+                            key={o.prazo}
+                            className="min-h-11 md:min-h-9"
+                            onSelect={() => aoMudarPrazos(atrasadas, o.prazo, o.rotulo)}
+                          >
+                            {o.texto}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               ) : l.tipo === "concluidas" ? (
                 <div role="cell" className="border-t border-hub-borda bg-[#FAFAF7]">

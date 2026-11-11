@@ -144,6 +144,24 @@ export function somarDias(iso: string, dias: number): string {
   return isoDoDia(d);
 }
 
+/**
+ * Opções do "Mudar o prazo" das atrasadas (REV-6): hoje, amanhã e a próxima segunda.
+ * `rotulo` entra no aviso de sucesso ("3 tarefas com prazo para amanhã").
+ */
+export function opcoesDeAdiar(hoje: string): { prazo: string; texto: string; rotulo: string }[] {
+  const dia = dataLocal(hoje).getDay();
+  const ateSegunda = (8 - dia) % 7 || 7;
+  return [
+    { prazo: hoje, texto: "Todas para hoje", rotulo: "hoje" },
+    { prazo: somarDias(hoje, 1), texto: "Todas para amanhã", rotulo: "amanhã" },
+    {
+      prazo: somarDias(hoje, ateSegunda),
+      texto: "Todas para a próxima segunda",
+      rotulo: "a próxima segunda",
+    },
+  ];
+}
+
 /** Dias inteiros de `de` até `ate` (negativo se `ate` vem antes). */
 export function diasEntre(de: string, ate: string): number {
   return Math.round((dataLocal(ate).getTime() - dataLocal(de).getTime()) / 86_400_000);

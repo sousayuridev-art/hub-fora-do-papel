@@ -62,7 +62,6 @@ function Sistemas() {
       <CabecalhoPagina
         grupo="Entregar"
         titulo="Sistemas"
-        resumo="Os sistemas sob medida que entregamos: onde rodam, quanto custam por mês e o que pede atenção."
         acao={
           <button type="button" className={classeAcaoPrincipal} onClick={() => setNovo(true)}>
             <Plus className="size-4" aria-hidden="true" /> Novo sistema

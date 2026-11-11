@@ -131,6 +131,8 @@ export type ResumoFunil = {
   ganho_serie: number[];
   /** null quando não houve ganho nem perda em 90 dias. */
   taxa_ganho_90: number | null;
+  /** Ganhos + perdidos em 90 dias: a taxa só aparece com 5 ou mais (card REV-6). */
+  decididos_90?: number;
   filtros: Record<FiltroFunil, number>;
   etapas: Record<Etapa, { quantidade: number; soma_cents: number }>;
 };

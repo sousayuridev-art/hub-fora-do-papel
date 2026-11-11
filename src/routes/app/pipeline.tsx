@@ -40,7 +40,8 @@ const busca = z.object({
 function variacaoGanho(serie: number[]): { texto: string; sobe: boolean } | undefined {
   const atual = serie.at(-1) ?? 0;
   const antes = serie.at(-2) ?? 0;
-  if (antes <= 0) return undefined;
+  // Mês ainda sem ganho não é queda de 100%: só compara quando os dois meses têm valor (REV-6)
+  if (antes <= 0 || atual <= 0) return undefined;
   const pct = Math.round(((atual - antes) / antes) * 100);
   return { texto: `${Math.abs(pct)}% sobre ${mesAnterior}`, sobe: pct >= 0 };
 }
@@ -142,15 +143,25 @@ function Funil() {
             },
             {
               rotulo: "Taxa de ganho",
-              valor: r ? (r.taxa_ganho_90 == null ? "—" : `${r.taxa_ganho_90}%`) : "…",
+              // Com menos de 5 decididas, a porcentagem engana: mostra os números (REV-6)
+              valor: r
+                ? r.taxa_ganho_90 == null
+                  ? "—"
+                  : (r.decididos_90 ?? 0) < 5
+                    ? `${r.decididos_90 ?? 0} de 5`
+                    : `${r.taxa_ganho_90}%`
+                : "…",
               barra:
-                r && r.taxa_ganho_90 != null
+                r && r.taxa_ganho_90 != null && (r.decididos_90 ?? 0) >= 5
                   ? [
                       { rotulo: "Ganhos", valor: r.taxa_ganho_90, cor: "var(--color-serie-3)" },
                       { rotulo: "Perdidos", valor: 100 - r.taxa_ganho_90, cor: "#ECECE6" },
                     ]
                   : undefined,
-              apoio: "Ganhos sobre fechados e perdidos em 90 dias",
+              apoio:
+                r && r.taxa_ganho_90 != null && (r.decididos_90 ?? 0) < 5
+                  ? "Decididas em 90 dias. A taxa aparece a partir de 5"
+                  : "Ganhos sobre fechados e perdidos em 90 dias",
             },
           ]}
         />

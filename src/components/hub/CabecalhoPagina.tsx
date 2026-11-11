@@ -16,7 +16,8 @@ import { cn } from "@/lib/utils";
  * (card RD-9): histórico quando a pessoa veio de dentro do Hub, senão `voltarPara`.
  */
 export function CabecalhoPagina({
-  grupo,
+  // O grupo (Vender, Entregar…) já está no menu ao lado: não repete acima do título (REV-6)
+  grupo: _grupo,
   titulo,
   resumo,
   acao,
@@ -57,7 +58,6 @@ export function CabecalhoPagina({
       )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
-          {grupo && <span className="text-[12.5px] text-hub-suave">{grupo}</span>}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h1 className="font-titulo text-[28px] font-bold leading-tight tracking-[-0.02em] text-titulo">
               {titulo}
