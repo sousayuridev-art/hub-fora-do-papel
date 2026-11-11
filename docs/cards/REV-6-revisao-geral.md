@@ -84,7 +84,7 @@ A revisão achou quatro grupos de problemas:
 - [x] "Mudar o prazo" oferece hoje, amanhã e a próxima segunda, com datas certas (teste).
 - [x] `funil_resumo` devolve `decididos_90`. A troca do texto da função foi conferida num Postgres 16 local a partir da versão do RD-2.
 - [x] `bun run build`, `bun run lint` (sem erros) e `bun run test` passam.
-- [ ] Conferência no Hub publicado: menu em 730 px, Reuniões, Configurações e Tarefas.
+- [x] Conferência no Hub publicado (11/11, Chrome a 1366×730): o menu inteiro cabe sem rolar, Tarefas mostra "Mudar o prazo", Reuniões mostra o aviso na semana vazia e Configurações tem "Avançado".
 
 ## Registro
 
