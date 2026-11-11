@@ -184,7 +184,13 @@ function Tarefas() {
           aoRemover={(t) => m.remover(t)}
         />
       ) : (
-        <TarefasLista itens={itens} hoje={hoje} aoAbrir={abrir} aoConcluir={m.alternarPronta} />
+        <TarefasLista
+          itens={itens}
+          hoje={hoje}
+          aoAbrir={abrir}
+          aoConcluir={m.alternarPronta}
+          aoMudarPrazos={(ids, prazo, rotulo) => m.mudarPrazos.mutate({ ids, prazo, rotulo })}
+        />
       )}
 
       <TarefaPainel tarefa={aberta} hoje={hoje} aoFechar={painelTarefa.fechar} />

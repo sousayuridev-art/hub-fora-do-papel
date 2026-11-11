@@ -87,21 +87,33 @@ function Configuracoes() {
 
       <SecaoSeguranca />
 
-      <section className="flex flex-col gap-3 rounded-2xl border border-hub-borda bg-white p-5 md:p-6">
-        <h2 className="font-titulo text-lg font-bold">Conexão com o banco</h2>
-        <p className="text-[15px] text-hub-suave">
-          Confere se o Hub consegue falar com o banco usando o seu acesso.
-        </p>
-        <button
-          type="button"
-          className={`${classeBotaoSecundario} self-start`}
-          disabled={testarConexao.isPending}
-          onClick={() => testarConexao.mutate()}
-        >
-          <PlugZap className="size-4" aria-hidden="true" />
-          Testar conexão
-        </button>
-      </section>
+      {/* REV-6: teste técnico fica recolhido no fim, fora do caminho do dia a dia */}
+      <details className="group rounded-2xl border border-hub-borda bg-white">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 font-titulo text-lg font-bold md:px-6">
+          Avançado
+          <span
+            aria-hidden="true"
+            className="text-hub-suave transition-transform group-open:rotate-180"
+          >
+            ⌄
+          </span>
+        </summary>
+        <div className="flex flex-col gap-3 border-t border-hub-borda p-5 md:p-6">
+          <h3 className="font-titulo text-base font-semibold">Conexão com o banco</h3>
+          <p className="text-[15px] text-hub-suave">
+            Confere se o Hub consegue falar com o banco usando o seu acesso.
+          </p>
+          <button
+            type="button"
+            className={`${classeBotaoSecundario} self-start`}
+            disabled={testarConexao.isPending}
+            onClick={() => testarConexao.mutate()}
+          >
+            <PlugZap className="size-4" aria-hidden="true" />
+            Testar conexão
+          </button>
+        </div>
+      </details>
     </div>
   );
 }

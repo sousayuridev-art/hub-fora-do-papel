@@ -89,7 +89,6 @@ function CustoSemanal({ t, falhou }: { t: TendenciaTrafego | undefined; falhou: 
       ? []
       : [{ rotulo: rotuloSemana(w.inicio, k === s.length - 1), valor: w.custo_contato_cents }],
   );
-  const ultima = s[s.length - 1];
   const limite = t?.limite_custo_contato_cents ?? null;
   return (
     <Cartao
@@ -97,7 +96,7 @@ function CustoSemanal({ t, falhou }: { t: TendenciaTrafego | undefined; falhou: 
       className="max-md:hidden"
       titulo={
         <>
-          Custo por contato
+          Custo por contato, semana a semana
           <Ajuda sobre="custo por contato por semana">
             Investido na semana dividido pelos contatos de anúncio que chegaram na mesma semana.
             Semanas sem contato ficam fora da linha.
@@ -116,12 +115,6 @@ function CustoSemanal({ t, falhou }: { t: TendenciaTrafego | undefined; falhou: 
         )
       ) : (
         <>
-          <p className="m-0 flex items-baseline gap-2">
-            <b className="text-[26px] font-semibold tabular-nums leading-none">
-              {moeda(ultima?.custo_contato_cents)}
-            </b>
-            <span className="text-[13px] text-hub-suave">esta semana</span>
-          </p>
           {pontos.length === 0 ? (
             <p className="m-0 rounded-xl border border-dashed border-[#D6D6CF] p-4 text-[14px] text-hub-suave">
               Aparece quando uma semana tiver investimento e contato de anúncio.

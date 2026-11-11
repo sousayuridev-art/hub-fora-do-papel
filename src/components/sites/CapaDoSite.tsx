@@ -110,7 +110,16 @@ export function CapaDoSite({ capa, altura = 150 }: { capa: Capa | null; altura?:
                 </p>
               )}
               <p className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.05] tracking-tight md:mt-6 md:text-7xl">
-                {capa.topo.titulo}
+                {/* O título vem do banco com **negrito**, como o site lê; aqui vira <strong> */}
+                {(capa.topo.titulo ?? "").split(/(\*\*[^*]+\*\*)/g).map((parte, i) =>
+                  /^\*\*[^*]+\*\*$/.test(parte) ? (
+                    <strong key={i} className="font-extrabold text-[#FFB020]">
+                      {parte.slice(2, -2)}
+                    </strong>
+                  ) : (
+                    parte
+                  ),
+                )}
               </p>
               {capa.topo.apoio && (
                 <p className="mt-4 max-w-3xl text-lg text-[#C9CCD2] md:mt-6 md:text-2xl">

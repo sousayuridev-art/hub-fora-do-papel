@@ -82,8 +82,7 @@ export function PrecosFormulario({ dados }: { dados: DadosPrecos }) {
       <div className="flex gap-3 rounded-2xl bg-sit-info p-4 text-sit-info-t">
         <Info className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
         <p className="text-[14.5px]">
-          <strong className="font-semibold">Propostas e cobranças leem estes valores.</strong> Uma
-          mudança vale para o que for criado depois de salvar. O que já foi enviado ao cliente
+          Mudanças valem para o que for criado depois de salvar; o que já foi enviado ao cliente
           mantém o valor combinado.
         </p>
       </div>

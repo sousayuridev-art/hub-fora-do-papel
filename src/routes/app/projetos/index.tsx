@@ -126,19 +126,34 @@ function Projetos() {
           <div className="flex min-w-0 flex-col gap-5">
             {d.projetos.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-[#D6D6CF] bg-white p-6 text-[15px] text-hub-suave">
-                {aba === "andamento"
-                  ? "Nenhum projeto em andamento. Quando um cliente aceitar a proposta, o projeto aparece aqui sozinho."
-                  : aba === "mensalidade"
-                    ? "Nenhum projeto em mensalidade. Projetos lançados com plano combinado aparecem aqui."
-                    : "Nenhum projeto concluído ainda."}
+                {aba === "andamento" ? (
+                  <>
+                    Nenhum projeto em andamento. Quando um cliente aceita a proposta no Hub, o
+                    projeto aparece aqui. Fechou por fora?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setNovoAberto(true)}
+                      className="min-h-11 font-semibold text-hub-tinta underline-offset-4 hover:underline"
+                    >
+                      Cadastrar o projeto ›
+                    </button>
+                  </>
+                ) : aba === "mensalidade" ? (
+                  "Nenhum projeto em mensalidade. Projetos lançados com plano combinado aparecem aqui."
+                ) : (
+                  "Nenhum projeto concluído ainda."
+                )}
               </p>
             ) : (
               <ProjetosTabela projetos={d.projetos} />
             )}
           </div>
-          <div className="lg:max-w-xl">
-            <HorasSemana semana={d.semana} />
-          </div>
+          {/* Sem horas na semana, o cartão "Horas desta semana" no topo já diz 0 h (REV-6) */}
+          {d.semana.itens.length > 0 && (
+            <div className="lg:max-w-xl">
+              <HorasSemana semana={d.semana} />
+            </div>
+          )}
         </div>
       )}
 

@@ -223,5 +223,33 @@ export function useMutacoesTarefa() {
     );
   }
 
-  return { editar, mover, criar, remover, alternarPronta };
+  /** Muda o prazo de várias tarefas de uma vez (ex.: as atrasadas para hoje), card REV-6. */
+  const mudarPrazos = useMutation({
+    mutationFn: async (v: { ids: string[]; prazo: string; rotulo: string }) => {
+      // Uma chamada por tarefa: cada uma passa pela mesma RPC (tenant, situação e evento).
+      const r = await Promise.allSettled(v.ids.map((id) => editarTarefa(id, { prazo: v.prazo })));
+      const falha = r.find((x): x is PromiseRejectedResult => x.status === "rejected");
+      if (falha) throw falha.reason;
+    },
+    onMutate: async (v) => {
+      await pararLeituras(qc);
+      const foto = fotografar(qc);
+      for (const id of v.ids)
+        mudarEmTodaParte(qc, id, (t, hoje) => ajustarTarefa(t, { prazo: v.prazo }, hoje));
+      return { foto };
+    },
+    onSuccess: (_r, v) =>
+      ok(
+        v.ids.length === 1
+          ? `Prazo mudado para ${v.rotulo}.`
+          : `${v.ids.length} tarefas com prazo para ${v.rotulo}.`,
+      ),
+    onError: (e, v, ctx) => {
+      if (ctx) restaurar(qc, ctx.foto);
+      erro(falhou(e), { tentarDeNovo: () => mudarPrazos.mutate(v) });
+    },
+    onSettled: () => recarregar(qc),
+  });
+
+  return { editar, mover, criar, remover, alternarPronta, mudarPrazos };
 }

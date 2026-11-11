@@ -68,11 +68,7 @@ function Sites() {
 
   return (
     <div className="flex flex-col gap-5">
-      <CabecalhoPagina
-        grupo="Entregar"
-        titulo="Sites"
-        resumo="Todos os sites que entregamos, o nosso e os dos clientes, e o que cada cliente está fazendo no dele."
-      />
+      <CabecalhoPagina grupo="Entregar" titulo="Sites" />
 
       {q.isError ? (
         <EstadoErro

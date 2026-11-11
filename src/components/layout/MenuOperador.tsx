@@ -23,8 +23,9 @@ function useContador(tipo: ItemMenu["contador"]): number | null {
 const classeAtivo =
   "!bg-menu-ativo !text-hub-tinta font-semibold shadow-[0_6px_16px_-8px_rgb(255_176_32_/_0.7)]";
 
+// Em notebook baixo (até 820 px de altura) os itens ficam com 36 px para o menu caber sem rolar (REV-6)
 const classeItem =
-  "group flex min-h-11 items-center gap-3 rounded-xl px-3 text-[14.5px] font-medium text-menu-texto transition-colors hover:bg-menu-hover hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB020]";
+  "group flex min-h-11 [@media(max-height:820px)_and_(min-width:768px)]:min-h-9 items-center gap-3 rounded-xl px-3 text-[14.5px] font-medium text-menu-texto transition-colors hover:bg-menu-hover hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB020]";
 
 function LinkMenu({
   item,
@@ -169,7 +170,7 @@ export function MenuOperador({
         onScroll={aoRolar}
         data-rolando={rolando}
         className={cn(
-          "rolagem-discreta flex flex-1 flex-col gap-4 overflow-y-auto py-3",
+          "rolagem-discreta flex flex-1 flex-col gap-4 overflow-y-auto py-3 [@media(max-height:820px)_and_(min-width:768px)]:gap-2 [@media(max-height:820px)_and_(min-width:768px)]:py-2",
           recolhido ? "px-3" : "px-4",
         )}
       >
@@ -179,9 +180,15 @@ export function MenuOperador({
               (recolhido ? (
                 <span aria-hidden="true" className="mx-2 mb-1 h-px bg-white/10" />
               ) : (
-                <span className="px-3 pb-1 text-[12.5px] font-semibold uppercase tracking-[0.08em] text-menu-rotulo">
-                  {grupo.titulo}
-                </span>
+                <>
+                  <span className="px-3 pb-1 text-[12.5px] font-semibold uppercase tracking-[0.08em] text-menu-rotulo [@media(max-height:820px)_and_(min-width:768px)]:sr-only">
+                    {grupo.titulo}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="mx-2 mb-1 hidden h-px bg-white/10 [@media(max-height:820px)_and_(min-width:768px)]:block"
+                  />
+                </>
               ))}
             {grupo.itens.map((item) => (
               <LinkMenu key={item.para} item={item} aoNavegar={aoNavegar} recolhido={recolhido} />
@@ -191,7 +198,7 @@ export function MenuOperador({
       </nav>
       <div
         className={cn(
-          "flex flex-col gap-2 border-t border-white/10 py-3",
+          "flex flex-col gap-2 border-t border-white/10 py-3 [@media(max-height:820px)_and_(min-width:768px)]:gap-1 [@media(max-height:820px)_and_(min-width:768px)]:py-2",
           recolhido ? "px-3" : "px-4",
         )}
       >
