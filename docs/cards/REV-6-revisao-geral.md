@@ -88,5 +88,5 @@ A revisão achou quatro grupos de problemas:
 
 ## Registro
 
-- **Testes:** 40 arquivos e 265 testes passando. Build sem erros. Lint sem erros (9 avisos antigos).
+- **Testes:** 40 arquivos e 263 testes passando. Build sem erros. Lint sem erros (9 avisos antigos).
 - **Banco:** o `supabase test db` completo não rodou: o ambiente novo não tem a Supabase CLI nem o pgTAP. Por isso, a migração foi conferida isolada (a troca de texto encontra o ponto e grava `decididos_90`).
