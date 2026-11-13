@@ -27,4 +27,4 @@ Pedido de ajuste novo (portal, sistema do cliente, revisão do site) só era vis
 - [x] Sem pedido novo, não há faixa (teste).
 - [x] A faixa conta os novos e os urgentes (teste).
 - [x] `bun run build`, `bun run lint` e `bun run test` passam.
-- [ ] Conferência no Hub publicado: o número aparece no menu e a faixa no topo.
+- [x] Conferência no Hub publicado (13/11): "Pedidos de ajuste 2" no menu e a faixa "2 pedidos de ajuste novos esperando você, 1 urgente" no topo, em tom de risco.
