@@ -56,7 +56,8 @@ export function PainelLateral({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">{children}</div>
         {rodape && (
-          <div className="flex flex-col gap-2 border-t border-hub-borda bg-white px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end">
+          // Quebra de linha quando os botões não cabem nos 460 px do painel (antes vazavam para fora)
+          <div className="flex flex-col gap-2 border-t border-hub-borda bg-white px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:flex-wrap sm:justify-end">
             {rodape}
           </div>
         )}
