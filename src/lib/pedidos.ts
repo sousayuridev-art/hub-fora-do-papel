@@ -86,7 +86,21 @@ export type ResumoPedidos = {
   aguardando_cliente: number;
   concluidos: number;
   adicional_aprovado_cents: number;
+  /** PED-1: novos, em análise e fazendo (o que espera a Fora do Papel). */
+  pendentes?: number;
+  novos_urgentes?: number;
+  novo_mais_antigo?: string | null;
 };
+
+/** Frase do alerta de pedidos novos (PED-1). Nada novo = sem alerta. */
+export function textoAlertaPedidos(r: ResumoPedidos | undefined): string | null {
+  const novos = r?.recebido ?? 0;
+  if (novos <= 0) return null;
+  const base = novos === 1 ? "1 pedido de ajuste novo" : `${novos} pedidos de ajuste novos`;
+  const urgentes = r?.novos_urgentes ?? 0;
+  const urg = urgentes === 0 ? "" : urgentes === 1 ? ", 1 urgente" : `, ${urgentes} urgentes`;
+  return `${base} esperando você${urg}`;
+}
 
 export type AbaPedidos = "todos" | "recebido" | "andamento" | "aguardando_cliente" | "concluidos";
 

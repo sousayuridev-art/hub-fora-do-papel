@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Marca } from "@/components/layout/Marca";
 import { MenuOperador } from "@/components/layout/MenuOperador";
 import { BuscaGeral } from "@/components/layout/BuscaGeral";
+import { AlertaPedidos } from "@/components/layout/AlertaPedidos";
 import { cn } from "@/lib/utils";
 
 /**
@@ -89,6 +90,7 @@ export function OperatorLayout({ children }: { children: ReactNode }) {
           recolhido ? "md:pl-[84px]" : "md:pl-70",
         )}
       >
+        <AlertaPedidos />
         <div className="mx-auto w-full max-w-[1320px] px-4 py-6 md:px-8 md:py-7">{children}</div>
       </main>
     </div>
