@@ -34,6 +34,13 @@ export function ContaUsuario({
   const queryClient = useQueryClient();
   const email = session?.user.email ?? "";
   const nome = (session?.user.user_metadata?.["full_name"] as string | undefined) ?? email;
+  // Foto da pessoa (ex.: o dono), gravada em avatar_url; sem foto, ficam as iniciais
+  const foto = session?.user.user_metadata?.["avatar_url"] as string | undefined;
+  const rosto = foto ? (
+    <img src={foto} alt="" className="size-full rounded-full object-cover" />
+  ) : (
+    iniciais(nome)
+  );
 
   async function sair() {
     try {
@@ -55,7 +62,7 @@ export function ContaUsuario({
         aria-label={`Sair (${nome})`}
         title={`${nome} · sair`}
       >
-        {iniciais(nome)}
+        {rosto}
       </button>
     );
   }
@@ -75,7 +82,7 @@ export function ContaUsuario({
             : "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E5EDFF] text-[13px] font-semibold text-[#1E3FA8]"
         }
       >
-        {iniciais(nome)}
+        {rosto}
       </span>
       <span className="flex min-w-0 flex-1 flex-col leading-tight" title={email}>
         <span
