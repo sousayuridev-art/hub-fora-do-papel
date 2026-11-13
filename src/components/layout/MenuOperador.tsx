@@ -7,17 +7,31 @@ import { itemConfiguracoes, menuOperador, type ItemMenu } from "@/components/lay
 import { ContaUsuario } from "@/components/layout/ContaUsuario";
 import { SimboloPapel } from "@/components/layout/Marca";
 import { cn } from "@/lib/utils";
+import { chavesPedidos, resumoPedidos } from "@/lib/pedidos";
 import { chavesTarefas, resumoTarefas } from "@/lib/tarefas";
 
-/** Tarefas atrasadas (do banco; o mesmo número do atalho "Atrasadas" da Central sem filtros). */
+/**
+ * Número ao lado do item do menu, sempre do banco:
+ * - Tarefas: atrasadas (o mesmo número do atalho "Atrasadas" da Central sem filtros);
+ * - Pedidos de ajuste: pendentes, isto é, novos, em análise e fazendo (PED-1).
+ */
 function useContador(tipo: ItemMenu["contador"]): number | null {
-  const q = useQuery({
+  const tarefas = useQuery({
     queryKey: chavesTarefas.resumo(),
     queryFn: () => resumoTarefas(),
     enabled: tipo === "tarefas_atrasadas",
     staleTime: 60_000,
   });
-  return tipo === "tarefas_atrasadas" ? (q.data?.atrasadas ?? null) : null;
+  const pedidos = useQuery({
+    queryKey: chavesPedidos.resumo,
+    queryFn: resumoPedidos,
+    enabled: tipo === "pedidos_pendentes",
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+  });
+  if (tipo === "tarefas_atrasadas") return tarefas.data?.atrasadas ?? null;
+  if (tipo === "pedidos_pendentes") return pedidos.data?.pendentes ?? null;
+  return null;
 }
 
 const classeAtivo =
@@ -38,6 +52,10 @@ function LinkMenu({
 }) {
   const Icone = item.icone;
   const contador = useContador(item.contador);
+  const rotuloContador =
+    item.contador === "pedidos_pendentes"
+      ? `${contador} ${contador === 1 ? "pendente" : "pendentes"}`
+      : `${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`;
   const caminho = useRouterState({ select: (r) => r.location.pathname });
   // Rotas que pertencem a este item sem estar no endereço dele (ex.: Propostas em Vendas, RD2-2)
   const extra = item.tambem?.some((p) => caminho === p || caminho.startsWith(`${p}/`)) ?? false;
@@ -65,7 +83,7 @@ function LinkMenu({
             {contador && recolhido ? (
               <span
                 className="absolute right-1.5 top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#FFB020] px-1 text-[11px] font-bold tabular-nums text-hub-tinta"
-                aria-label={`${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`}
+                aria-label={rotuloContador}
               >
                 {contador}
               </span>
@@ -76,7 +94,7 @@ function LinkMenu({
                     ? "flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-hub-tinta px-1.5 text-[12.5px] font-semibold tabular-nums text-white"
                     : "flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#FFB020]/15 px-1.5 text-[12.5px] font-semibold tabular-nums text-[#FFB020]"
                 }
-                aria-label={`${contador} ${contador === 1 ? "atrasada" : "atrasadas"}`}
+                aria-label={rotuloContador}
               >
                 {contador}
               </span>

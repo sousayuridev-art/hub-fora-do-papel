@@ -48,7 +48,7 @@ export type ItemMenu = {
   /** Outras rotas que acendem este item (ex.: Propostas dentro de Vendas). */
   tambem?: string[];
   /** Número ao lado do nome (contas do banco). */
-  contador?: "tarefas_atrasadas";
+  contador?: "tarefas_atrasadas" | "pedidos_pendentes";
 };
 export type GrupoMenu = { titulo: string | null; itens: ItemMenu[] };
 
@@ -81,7 +81,12 @@ export const menuOperador: GrupoMenu[] = [
     titulo: "Entregar",
     itens: [
       { rotulo: "Projetos", para: "/app/projetos", icone: FolderKanban },
-      { rotulo: "Pedidos de ajuste", para: "/app/pedidos", icone: Inbox },
+      {
+        rotulo: "Pedidos de ajuste",
+        para: "/app/pedidos",
+        icone: Inbox,
+        contador: "pedidos_pendentes",
+      },
       // RD2-1: o conteúdo do site da Fora do Papel fica em "Sites" (CMS-2; os sites dos clientes entram no RD2-5)
       { rotulo: "Sites", para: "/app/sites", icone: Globe },
       // SIS-1: sistemas sob medida, no mesmo formato da central de Sites
