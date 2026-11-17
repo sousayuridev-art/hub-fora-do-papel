@@ -208,3 +208,11 @@ export function minuto(seg: number): string {
   const s = String(seg % 60).padStart(2, "0");
   return h ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
 }
+
+/**
+ * Transcrição inteira em texto, uma fala por linha: "[12:05] Yuri: texto" (card RE-2).
+ * Serve para copiar e colar em outro lugar (proposta, IA, e-mail).
+ */
+export function textoDaTranscricao(falas: Fala[]): string {
+  return falas.map((f) => `[${minuto(f.seg)}] ${f.quem}: ${f.texto.trim()}`).join("\n");
+}
