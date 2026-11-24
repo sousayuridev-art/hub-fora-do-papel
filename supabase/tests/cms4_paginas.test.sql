@@ -12,8 +12,8 @@ select is((select array_agg(b.chave order by b.chave) from public.site_blocos b 
 select is((select count(*) from jsonb_object_keys(public.site_publico_blocos('foradopapel.com.br')))::int, 5,
   'Leitura pública devolve as 5 chaves importadas');
 select is(public.site_publico_blocos('www.foradopapel.com.br') -> 'inicio.topo' ->> 'titulo',
-  '**Sistemas sob medida** para empresas que cresceram mais rápido que as suas planilhas.',
-  'Topo importado com o texto atual do site');
+  '**Sistemas sob medida** que crescem junto com a sua empresa.',
+  'Topo publicado com o texto do SITE-49 (a migração 20261124120000 substitui o importado)');
 select is((select count(*) from public.site_blocos where public._site_bloco_erro(chave, valor) is not null)::int, 0,
   'Todas as chaves importadas passam na validação');
 select is((select count(*) from public.event_outbox where event like 'site.bloco%')::int, 0, 'Importação não gera evento');
