@@ -354,6 +354,7 @@ function Financeiro() {
             {d.regras.juros_pct}% ao mês) aparecem só como referência.{" "}
             <Link
               to="/app/configuracoes"
+              search={{ aba: "recebimento" }}
               className={`${classeLinkTexto} inline-flex min-h-11 items-center sm:min-h-0`}
             >
               Chave Pix e regras em Configurações

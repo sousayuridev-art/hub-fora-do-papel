@@ -62,7 +62,7 @@ export function GoogleCabecalho({ acao }: { acao?: ReactNode } = {}) {
           {buscar.isPending ? "Buscando…" : "Buscar agora"}
         </button>
       ) : (
-        <Link to="/app/configuracoes" className={classeBotaoSecundario}>
+        <Link to="/app/configuracoes" search={{ aba: "google" }} className={classeBotaoSecundario}>
           {s.ligada ? "Ligar de novo" : "Ligar ao Google"}
         </Link>
       )}

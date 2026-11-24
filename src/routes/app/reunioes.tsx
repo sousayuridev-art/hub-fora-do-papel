@@ -142,7 +142,7 @@ function Agenda({
     return (
       <div className="flex flex-col items-start gap-2 rounded-2xl border border-dashed border-[#C3CAD3] bg-white p-6 text-[15px] text-hub-suave">
         <p>Ligue o Google para ver aqui a sua semana e marcar reuniões com link do Meet.</p>
-        <Link to="/app/configuracoes" className={classeAcaoTexto}>
+        <Link to="/app/configuracoes" search={{ aba: "google" }} className={classeAcaoTexto}>
           Ligar ao Google ›
         </Link>
       </div>
@@ -268,7 +268,7 @@ function Gravacoes({ aoAbrir: setAberta }: { aoAbrir: (r: Reuniao) => void }) {
                 Nenhuma reunião ainda. Elas aparecem aqui depois que o Google estiver ligado e a
                 reunião tiver transcrição.
               </p>
-              <Link to="/app/configuracoes" className={classeAcaoTexto}>
+              <Link to="/app/configuracoes" search={{ aba: "google" }} className={classeAcaoTexto}>
                 Ver a ligação com o Google ›
               </Link>
             </>
